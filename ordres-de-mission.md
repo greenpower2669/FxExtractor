@@ -19,3 +19,6 @@ Demande Fab : « Une ia est intégrable ou un nom modifiable comme explosio ». 
 
 ### Preuve livraison v0.2.2
 CI 39069953534 verte, fichier `apk/FxExtractor-0.2.2-debug.apk` de 33 989 octets présent dans `delivery/fxextractor-apk` ; lien raw dans README, sans ZIP côté Fab. La branche main reste intacte.
+
+## 17/10/2026 — intégrer une IA acoustique
+Autorisation de Fab : « Ok o. Intègre l ia ». YAMNet/TFLite doit être **effectivement embarqué** dans l'APK avec ses 521 labels, fonctionner hors ligne et suggérer automatiquement des noms toujours modifiables. Afficher les scores, ne jamais écraser les corrections humaines. Qwen-Omni PC reste séparé. Respect de la règle APK brut GitHub par dossier temporaire et tests, sans merge main ni Release.

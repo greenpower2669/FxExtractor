@@ -21,3 +21,6 @@ Saisie manuelle accessible d'un libellé pour chacun des 40 premiers FX. L'expor
 
 ## Preuve CI et binaire v0.2.2 (17/10/2026)
 Run `39069953534` SUCCESS sur SHA source `92043f757cc18473e1db16e956495dc7d7700390`. APK direct brut publié sur branche indépendante `delivery/fxextractor-apk`, chemin `apk/FxExtractor-0.2.2-debug.apk` (33 989 octets ; git blob `115bf1714c982e4e8ac6b95b21a26a43e863e6d3`), tests pure JVM et build Android verts. Aucun essai Samsung matériel ni IA classifiante encore validés.
+
+## 0.3.0 — classification IA Android réelle
+Modèle YAMNet Google TensorFlow Lite 521 classes AudioSet, entrée mono 16kHz / 15 600 float32, inférence FxSoundAI.java. Le modèle et ses labels sont téléchargés/embarqués durant GitHub Actions avant Gradle : téléphone hors ligne et sans permission Internet. IA lance automatiquement des suggestions sur les 40 premiers FX, noms toujours éditables, score visible, classe anglaise conservée faute de traduction. Qwen-Omni reste PC uniquement. Ne jamais confondre IA de classification avec séparation de sources.

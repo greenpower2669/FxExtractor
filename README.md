@@ -76,3 +76,10 @@ Après analyse, une zone de texte apparaît sous chacun des **40 premiers effets
 
 ### APK 0.2.2 disponible et contrôlé (CI verte)
 [**Télécharger le fichier APK directement sans ZIP**](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.2.2-debug.apk). GitHub Actions [run 39069953534](https://github.com/greenpower2669/FxExtractor/actions/runs/39069953534), tests et Android verts ; publication raw confirmée dans l'arbre Git sur la branche de livraison, APK 33 989 octets. Ceci n'est pas une Release Play et l'essai physique Samsung reste nécessaire.
+
+## v0.3.0 — véritable IA audio embarquée (17/10/2026)
+YAMNet, modèle de classification acoustique de Google, analyse **réellement** les extraits du WAV sur Android : mono 16 kHz, fenêtres de 15 600 échantillons, scores de 521 catégories AudioSet via TensorFlow Lite 2.16.1. Les propositions (« Explosion », « Moteur », « Voix » ou classe originale si aucune traduction) apparaissent automatiquement après la découpe. Le score brut est indicatif et non une certitude ; l'utilisateur peut modifier tous les noms, une correction manuelle n'est jamais écrasée. Les effets synthétiques peuvent être mal reconnus.
+
+Modèle et liste officielle de 521 classes **incorporés au fichier APK pendant le build GitHub**. Aucune permission INTERNET, aucun téléchargement de modèle ni transmission du son à l'exécution. La piste Qwen-Omni lourde reste uniquement sur PC. L'IA ne sépare pas des sons qui se chevauchent, elle les étiquette. Le modèle officiel et ses licences applicables doivent être préservés ; source : https://storage.googleapis.com/mediapipe-models/audio_classifier/yamnet/float32/1/yamnet.tflite
+
+La CI doit valider : poids de modèle >1Mo, en-tête TFL3, 521 classes exactes, compilation et APK contenant les deux assets, plus lien raw direct. Les essais sur Samsung (latence et qualité des libellés) restent distincts des tests de compilation.

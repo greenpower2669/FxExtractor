@@ -40,3 +40,11 @@
 - [x] CI 0.2.2 verte (run `39069953534`, SHA source `92043f757cc18473e1db16e956495dc7d7700390`) : tests JVM, Android APK/AAB, extraction RUNNER_TEMP, publication raw. La branche `delivery/fxextractor-apk` contient `apk/FxExtractor-0.2.2-debug.apk` (33 989 octets, blob SHA `115bf1714c982e4e8ac6b95b21a26a43e863e6d3`).
 - [ ] Tester clavier et export nom personnalisé sur Samsung ; les autres effets restent FX_NNN.
 - [ ] Étudier YAMNet/TFLite local et mapping FR, mesurer vitesse/qualité/licence ; ne pas présenter comme déjà embarqué.
+
+## 0.3.0 — intégration IA audio autorisée
+- [x] Moteur YAMNet TensorFlow Lite réel, 521 catégories, traitement PCM16 mono 16kHz.
+- [x] Lancement automatique des propositions de noms après extraction, scores et édition manuelle préservés.
+- [x] CI pour télécharger le modèle officiel à la compilation, embarquer labels et modèle dans l'APK sans Internet sur le téléphone.
+- [ ] Vérifier run GitHub Actions vert, contenu des assets du vrai APK 0.3.0 et lien direct raw.
+- [ ] Tests Samsung Android 16 (latence, mémoire, décodage, sons explosifs/moteurs/voix, cas incertains).
+- [ ] Ajuster catégories/traductions à partir de tests réels, sans inventer de reconnaissance parfaite.

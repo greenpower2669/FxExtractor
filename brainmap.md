@@ -15,3 +15,6 @@
 
 - `app/src/main/java/fr/fxextractor/WavIO.java` : noms WAV personnalisés sûrs et libellés originaux dans `events.json`.
 - `delivery/fxextractor-apk` : branche APK installables bruts, lien raw, sans extraction ZIP chez Fab.
+
+- app/src/main/java/fr/fxextractor/FxSoundAI.java : reconnaissance acoustique Android YAMNet, prétraitement 16kHz, prédictions et traduction limitée.
+- .github/workflows/android.yml : emballage du modèle officiel et des étiquettes en assets, compilation, validation et publication du vrai APK.

@@ -24,3 +24,6 @@ La 0.2.1 n'avait ni saisie des noms, ni IA embarquée. La 0.2.2 rend les libell�
 
 ### D007 — validation CI
 Run `39069953534` success : extraction temporaire GitHub, contrôle contenu APK, push de `apk/FxExtractor-0.2.2-debug.apk` sur branche delivery. Git tree direct contient blob binaire 33 989 octets. Anciennes pages d'artefacts Actions restent sujettes au ZIP ; seul lien raw de branche est livré comme fichier brut. Pas de tests sur téléphone.
+
+## D008 — ajout modèle YAMNet (17/10/2026)
+Précédemment, noms manuels et découpe RMS, aucune IA on-device. Ajout d'un vrai interpréteur TensorFlow Lite Android, source de poids Google et extraction des 521 labels embarqués. Modèle distinct du script Qwen PC. Le modèle est téléchargé à la compilation, pas au lancement. Risques à auditer : compatibilité ABI/poids, index de labels, latence et fausses reconnaissances de SFX synthétiques. Aucun test matériel présumé.
