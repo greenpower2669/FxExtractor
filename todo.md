@@ -32,3 +32,11 @@
 - [x] CI 0.2.1 validée : run `39068622333`, code SHA `439be695651a26a13f01697f11b98d026a9faf30`, tests JVM + APK/AAB verts. APK brut ID `12114461455` (32 609 octets) ; AAB unsigned ID `12114685969`.
 - [ ] Tester sur Samsung les fins de sons réels et risques de regroupement de deux FX rapprochés ; ajuster au besoin.
 - [ ] IA audio Android : **non intégrée** ; choisir un modèle compatible hors ligne et tester mémoire/latence/qualité, sans prétendre que Qwen PC est déjà dans l'APK.
+
+## 0.2.2 — noms modifiables, IA possible
+- [x] Saisie de noms sous les 40 premiers sons (Explosion, Moteur, Voix, etc.).
+- [x] Noms WAV sûrs, libellé original dans events.json, compatibilité FX_NNN et tests de sécurité.
+- [x] Publication prévue APK brut depuis CI vers branche de livraison dédiée après extraction RUNNER_TEMP.
+- [ ] CI 0.2.2 verte avec vérification d'existence du lien raw direct.
+- [ ] Tester clavier et export nom personnalisé sur Samsung ; les autres effets restent FX_NNN.
+- [ ] Étudier YAMNet/TFLite local et mapping FR, mesurer vitesse/qualité/licence ; ne pas présenter comme déjà embarqué.

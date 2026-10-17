@@ -15,3 +15,6 @@ La détection RMS reste la base ; entrée sur seuil haut, suivi basse énergie p
 
 ### CI 0.2.1 validée le 17/10/2026
 Run GitHub Actions `39068622333` SUCCESS sur code `439be695651a26a13f01697f11b98d026a9faf30` ; tests Java incluant décroissance et édition de queue, build Android APK et AAB. APK brut direct `FxExtractor-0.2.1-debug.apk` 32 609 octets, artefact `12114461455` ; AAB non signé `12114685969`. La CI ne confirme pas la qualité d'écoute sur Samsung.
+
+## 0.2.2 — nommage et option IA
+Saisie manuelle accessible d'un libellé pour chacun des 40 premiers FX. L'export WAV utilise un nom sécurisé (ex. Explosion_001.wav), et events.json contient le label original. WavIO.zip ancien appel conserve FX_NNN. IA son sur smartphone à étudier : YAMNet/TFLite compact, détection indicatrice et toujours corrigeable. Qwen PC seulement. CI publie APK brut sur `delivery/fxextractor-apk` après extraction et vérification, sans main/Release.

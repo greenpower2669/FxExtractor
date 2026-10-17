@@ -18,3 +18,6 @@ Cause de code confirmée : FxAnalyzer.java conservait seulement 100 ms après la
 
 ### D006 — preuve CI
 Run `39068622333` SUCCESS : tests JVM (silence, sons séparés, réverbération décroissante, fin réglable, ZIP), Gradle APK et AAB, extraction en RUNNER_TEMP et publication `.apk` brut. Aucun test matériel Samsung ni inférence Qwen réelle revendiqués.
+
+## D007 — noms et livraison APK
+La 0.2.1 n'avait ni saisie des noms, ni IA embarquée. La 0.2.2 rend les libellés éditables avant export et normalise les noms WAV ; tests anti-traversée ZIP. Le lien d'artefact Actions peut rester une archive même si nommé .apk : la CI ajoute une publication de fichier brut sur la branche `delivery/fxextractor-apk`. Contrôler avant remise du lien.

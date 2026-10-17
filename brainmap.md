@@ -12,3 +12,6 @@
 - `app/src/main/java/fr/fxextractor/MediaAudioDecoder.java` : première piste audio d'une vidéo via MediaExtractor/MediaCodec, conversion PCM16 WAV locale.
 
 - `tools/qwen_tag_fx.py` : adaptateur descriptif Qwen2.5-Omni-3B facultatif sur PC ; aucune IA audio dans le binaire Android.
+
+- `app/src/main/java/fr/fxextractor/WavIO.java` : noms WAV personnalisés sûrs et libellés originaux dans `events.json`.
+- `delivery/fxextractor-apk` : branche APK installables bruts, lien raw, sans extraction ZIP chez Fab.

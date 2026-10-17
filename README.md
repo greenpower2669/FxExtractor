@@ -66,3 +66,10 @@ L'unique adaptateur Qwen est **`tools/qwen_tag_fx.py`**, outil PC Python hors de
 
 ### ✅ APK 0.2.1 vérifié en CI
 [**Télécharger l'APK 0.2.1 directement (sans ZIP)**](https://github.com/greenpower2669/FxExtractor/actions/runs/39068622333/artifacts/12114461455) (32 609 octets, debug). [AAB séparé non signé](https://github.com/greenpower2669/FxExtractor/actions/runs/39068622333/artifacts/12114685969). Code SHA `439be695` ; run 39068622333 SUCCESS. `main` n'est pas fusionnée. Test matériel Samsung et intégration future de l'IA audio encore nécessaires.
+
+## 0.2.2 — noms de sons modifiables (17 octobre 2026)
+Après analyse, une zone de texte apparaît sous chacun des **40 premiers effets**. Fab peut écouter puis saisir « Explosion », « Moteur », « Voix », « Laser », etc., ou laisser vide pour conserver « FX ». L'export utilise `Explosion_001.wav` / `Moteur_002.wav`, assainit les caractères de fichiers invalides et préserve le libellé d'origine dans `events.json` (propriété `label`). Au-delà de 40, les noms restent `FX_NNN.wav`.
+
+**IA audio embarquée ?** Oui, envisageable avec un classifieur léger type YAMNet/TFLite (~521 catégories). **Non encore intégré** ; ne jamais remplacer le nom éditable par un nom imposé. Tester traduction française, confiance, licence, mémoire et latence Samsung avant implémentation. Qwen2.5-Omni-3B reste un outil PC facultatif.
+
+**Vrai APK direct sans ZIP :** la CI 0.2.2 extrait dans `RUNNER_TEMP`, vérifie l'APK, puis commite le fichier brut sur la branche séparée `delivery/fxextractor-apk`. Aucun merge main ni Release. Lien à utiliser **après CI verte** : `https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.2.2-debug.apk`. Un artefact GitHub Actions peut être fourni dans une archive ; le lien raw est réellement le fichier .apk.

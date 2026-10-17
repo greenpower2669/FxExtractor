@@ -13,3 +13,6 @@ Après retour Fab : ajouter import vidéo/audio direct, extraction locale de la 
 
 ## 17/10/2026 — retour écoute et état IA
 Retour Fab : impressions de sons tronqués avant fin et question sur les librairies IA. Correction limitée au suivi des queues, à un padding de fin réglable et à l'arrêt de pré-écoute asservi à la position sonore ; garder extraction vidéo et export WAV existants. **Ne pas présenter le modèle Qwen-Omni comme intégré à Android : uniquement adaptateur Python PC `tools/qwen_tag_fx.py` non validé matériellement.** Conserver règle immuable APK direct GitHub et aucun merge main/Release sans nouvel accord.
+
+## 17/10/2026 — noms des sons et IA future
+Demande Fab : « Une ia est intégrable ou un nom modifiable comme explosio ». Chaque FX doit pouvoir recevoir un nom éditable, ex. Explosion_001.wav, conservé dans events.json. IA sonore possible mais non intégrée : étudier YAMNet local ; Qwen-Omni reste outil PC. Maintenir la règle immuable : APK réellement brut accessible via lien raw sur branche de livraison séparée, décompressé/vérifié dans RUNNER_TEMP GitHub. Aucun merge main ni Release sans accord.
