@@ -53,3 +53,13 @@ Choisir une vidéo ou un audio via le sélecteur Android. MediaExtractor et Medi
 
 ### APK v0.2.0 validé par GitHub Actions
 [**Télécharger FxExtractor-0.2.0-debug.apk (fichier direct, sans ZIP)**](https://github.com/greenpower2669/FxExtractor/actions/runs/39067220630/artifacts/12113557221). Code et CI verts : commit `290dbec2`, run `39067220630`, APK 31 557 octets. AAB test non signé [séparément](https://github.com/greenpower2669/FxExtractor/actions/runs/39067220630/artifacts/12112789366). Essai physique Samsung à faire.
+
+## 0.2.1 — préserver la fin des effets sonores
+- Le seuil d'entrée reste conservateur ; un seuil de suivi plus bas prolonge l'événement tant qu'une réverbération ou un souffle décroissant restent détectables.
+- Attente d'environ 220 ms de vrai silence avant de déclarer la fin ; queue ajoutée **réglable de 100 à 1 500 ms**, par défaut 600 ms (anciennement seulement 100 ms).
+- Quand deux zones protégées se chevauchent, elles sont réunies ; si les sons sont distincts mais trop rapprochés, baisser le réglage. Aucun échantillon source n'est modifié.
+- Pré-écoute : l'arrêt est déclenché à la position de lecture réelle du média, plus par un délai mural qui pouvait couper la fin avant que le démarrage/seek soit achevé.
+- Tests Java couvrant une longue décroissance, l'extension réglable, la séparation de deux événements et le silence. Aucune IA embarquée à ce stade : analyse RMS, pas de classification.
+
+### Où se trouve Qwen ?
+L'unique adaptateur Qwen est **`tools/qwen_tag_fx.py`**, outil PC Python hors de l'APK ; il dépend de `torch`, `transformers`, `qwen-omni-utils` et du checkpoint `Qwen/Qwen2.5-Omni-3B` (~12 Go de poids). Le modèle **n'est ni committé au dépôt, ni inclus dans l'APK, ni exécuté par Android**. Le script ne télécharge les poids que sur instruction explicite `--allow-download` et son inférence réelle reste à vérifier. Licence de ces poids : `qwen-research` (voir fiche officielle).

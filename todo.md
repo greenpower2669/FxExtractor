@@ -23,3 +23,12 @@
 - [x] CI Android + tests Java **SUCCESS** sur SHA `290dbec2c7a58d9800da6ca49b4efa2f157bd158`, run `39067220630`. APK direct ID `12113557221`, AAB séparé ID `12112789366`.
 - [ ] Test Samsung Android 16 : MP4/AAC, MOV, WebM/Opus, MKV, MP3/M4A, silence, absence piste, ZIP et lecture.
 - [ ] Autres formats / codecs non pris en charge par Android à étudier séparément (AVI/DRM).
+
+## 0.2.1 — retour Fab, fins d'effets
+- [x] Auditer le seuil RMS 0.52 et l'ancien padding arrière de 100 ms : source de coupes prématurées possibles.
+- [x] Suivre les queues faibles avec un seuil plus bas et silence 220 ms ; fin réglable de 100 à 1500 ms (600 ms par défaut).
+- [x] Pré-écoute basée sur la position réelle MediaPlayer (plutôt qu'un délai fixe après un seek).
+- [x] Ajouter tests Java de reverb, réglage fin, événements séparés et silence.
+- [ ] Confirmer CI Android de la version 0.2.1, SHA artefact et fournir le fichier APK direct non zippé via RUNNER_TEMP.
+- [ ] Tester sur Samsung les fins de sons réels et risques de regroupement de deux FX rapprochés ; ajuster au besoin.
+- [ ] IA audio Android : **non intégrée** ; choisir un modèle compatible hors ligne et tester mémoire/latence/qualité, sans prétendre que Qwen PC est déjà dans l'APK.

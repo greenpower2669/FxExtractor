@@ -9,3 +9,6 @@ Première piste audio des conteneurs pris en charge par Android (MediaExtractor/
 
 ## Preuve build vidéo/audio v0.2.0
 GitHub Actions run `39067220630` SUCCESS sur commit source `290dbec2c7a58d9800da6ca49b4efa2f157bd158` (17/10/2026) ; tests DSP et APK/AAB verts. APK test brut `FxExtractor-0.2.0-debug.apk` (31 557 octets, artefact 12113557221) et AAB non signé (22 097 octets, artefact 12112789366). Aucun essai Android Samsung ni validation exhaustive des formats de vidéo encore réalisés.
+
+## 0.2.1 — protection des queues sonores
+La détection RMS reste la base ; entrée sur seuil haut, suivi basse énergie pour les décroissances, 220 ms de silence puis ajout de fin réglable de 100 à 1 500 ms (600 ms par défaut). La pré-écoute MediaPlayer s'arrête en vérifiant la position sonore plutôt que le temps écoulé. Ne pas qualifier ceci de séparation ou de compréhension IA. Qwen-Omni reste uniquement dans `tools/qwen_tag_fx.py`, Python PC facultatif, sans poids téléchargeables dans l'APK.

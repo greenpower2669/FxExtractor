@@ -10,3 +10,5 @@
 - `ordres-de-mission.md` : décisions et autorisations.
 
 - `app/src/main/java/fr/fxextractor/MediaAudioDecoder.java` : première piste audio d'une vidéo via MediaExtractor/MediaCodec, conversion PCM16 WAV locale.
+
+- `tools/qwen_tag_fx.py` : adaptateur descriptif Qwen2.5-Omni-3B facultatif sur PC ; aucune IA audio dans le binaire Android.

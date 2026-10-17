@@ -12,3 +12,6 @@ Cause 0.1.0 : filtre SAF audio/WAV et lecteur PCM16 seul. Version 0.2.0 : SAF au
 
 ## D005 — preuve CI vidéo/audio
 GitHub Actions `39067220630` SUCCESS : étape de packaging temporaire GitHub (zip de transit, extraction RUNNER_TEMP, comparaison CMP, vérification ZIP interne de l'APK), tests Java et build APK+AAB. La réussite CI ne garantit pas que le MediaCodec du Samsung décodera tous les conteneurs.
+
+## D006 — queue FX coupée (17/10/2026)
+Cause de code confirmée : FxAnalyzer.java conservait seulement 100 ms après la dernière fenêtre RMS >=52% du seuil d'entrée, et le preview MediaPlayer cessait selon un timer en temps réel plutôt que sa position de lecture. Réduction prématurée possible des queues de réverbération et de la pré-écoute. Correctif 0.2.1 : seuil de sustain abaissé, silence mesuré avant fin, extension 100..1500 ms ajustable et polling position pour pré-écoute. Les fichiers WAV source sont inchangés. Tests audio synthétiques ajoutés ; écoute Samsung encore nécessaire.

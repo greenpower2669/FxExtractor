@@ -10,3 +10,6 @@ Un adaptateur Python Qwen2.5-Omni-3B, limité aux FX WAV issus des ZIP, produit 
 
 ## 17/10/2026 — importer les vidéos
 Après retour Fab : ajouter import vidéo/audio direct, extraction locale de la première piste audio et découpes FX WAV existantes. Ne pas prétendre accepter tous les codecs Android. Garder `main` intact, et appliquer la règle APK direct extrait/vérifié dans RUNNER_TEMP. Aucune Release sans accord.
+
+## 17/10/2026 — retour écoute et état IA
+Retour Fab : impressions de sons tronqués avant fin et question sur les librairies IA. Correction limitée au suivi des queues, à un padding de fin réglable et à l'arrêt de pré-écoute asservi à la position sonore ; garder extraction vidéo et export WAV existants. **Ne pas présenter le modèle Qwen-Omni comme intégré à Android : uniquement adaptateur Python PC `tools/qwen_tag_fx.py` non validé matériellement.** Conserver règle immuable APK direct GitHub et aucun merge main/Release sans nouvel accord.
