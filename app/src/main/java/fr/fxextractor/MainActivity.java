@@ -11,12 +11,16 @@ import android.os.Looper;
 import android.provider.OpenableColumns;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.text.InputType;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import java.io.*;
 import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -29,6 +33,7 @@ public final class MainActivity extends Activity {
     private Button openButton, analyzeButton, exportButton;
     private TextView state, summary, help;
     private LinearLayout events;
+    private final List<EditText> nameInputs = new ArrayList<>();
     private File current;
     private String name = "audio.wav";
     private volatile FxAnalyzer.Result result;
@@ -77,7 +82,7 @@ public final class MainActivity extends Activity {
             @Override public void onStopTrackingTouch(SeekBar b) {}
         });
         analyzeButton = button(root, "2 · Analyser les sons", () -> analyze());
-        exportButton = button(root, "3 · Exporter les FX en ZIP", () -> save());
+        exportButton = button(root, "3 · Exporter les FX nommés en ZIP", () -> save());
         state = text(root, "Choisis une vidéo ou un son pour commencer.", 18);
         summary = text(root, "", 17);
         events = new LinearLayout(this); events.setOrientation(LinearLayout.VERTICAL);
@@ -171,7 +176,7 @@ public final class MainActivity extends Activity {
                     ui.post(() -> {
                         File previous = current;
                         current = ready;
-                        name = selected; result = null; info = null; events.removeAllViews();
+                        name = selected; result = null; info = null; events.removeAllViews(); nameInputs.clear();
                         summary.setText("");
                         if (!directWav) source.delete();
                         if (previous != null && !previous.equals(ready)) previous.delete();
@@ -186,6 +191,9 @@ public final class MainActivity extends Activity {
         } else if(requestCode==SAVE_ZIP && result!=null && info!=null && current!=null) {
             FxAnalyzer.Result snapshot = result;
             WavIO.Info format = info; File inputFile=current; String sourceName=name;
+            // Read editable UI labels on the main thread before starting I/O.
+            List<String> labelSnapshot = new ArrayList<>();
+            for (EditText input : nameInputs) labelSnapshot.add(input.getText().toString());
             setBusy(true,"Export WAV en cours...");
             worker.execute(() -> {
                 try(RandomAccessFile audio = new RandomAccessFile(inputFile,"r")) {
@@ -195,7 +203,7 @@ public final class MainActivity extends Activity {
                         throw new IOException("Source modifiée");
                     OutputStream dest=getContentResolver().openOutputStream(uri,"wt");
                     if(dest==null) throw new IOException("Destination inaccessible");
-                    try(OutputStream output=dest) { WavIO.zip(audio,format,snapshot,sourceName,output); }
+                    try(OutputStream output=dest) { WavIO.zip(audio,format,snapshot,sourceName,labelSnapshot,output); }
                     ui.post(() -> setBusy(false,"Export terminé : "+snapshot.spans.size()+" extraits WAV + events.json"));
                 } catch(Exception e) {
                     ui.post(() -> setBusy(false,"Export interrompu : "+safe(e)+" (supprime le ZIP partiel si nécessaire)"));
@@ -228,14 +236,26 @@ public final class MainActivity extends Activity {
                         sourceName,analyzed.durationMs()/1000.0,analyzed.rate,analyzed.channels,
                         found.spans.size(),found.threshold,found.releaseMs));
                     events.removeAllViews();
+                    nameInputs.clear();
+                    if (!found.spans.isEmpty())
+                        text(events, "Écoute chaque effet, puis donne-lui un nom : Explosion, Moteur, Voix… Le nom sera utilisé dans les fichiers WAV.", 17);
                     if(found.spans.isEmpty()) text(events,"Aucun événement isolé trouvé. Essaie une sensibilité plus élevée (vers la gauche).",17);
                     for(int i=0;i<Math.min(40,found.spans.size());i++) {
                         FxAnalyzer.Span span=found.spans.get(i);
                         int index=i+1;
                         button(events,String.format(Locale.FRANCE,"▶ FX %03d · %.2f à %.2f s",index,
                             span.startMs/1000.0,span.endMs/1000.0),()->preview(span));
+                        EditText customName = new EditText(this);
+                        customName.setSingleLine(true);
+                        customName.setTextSize(18);
+                        customName.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+                        customName.setHint("Nom, par ex. Explosion");
+                        customName.setContentDescription("Nom du son numéro " + index + ", modifiable");
+                        events.addView(customName);
+                        nameInputs.add(customName);
                     }
-                    if(found.spans.size()>40) text(events,"40 premiers extraits écoutables ; tous seront exportés.",16);
+                    if(found.spans.size()>40)
+                        text(events,"40 premiers extraits renommables ; les autres seront exportés en FX_041, FX_042…",16);
                     setBusy(false,"Analyse terminée. Appuie sur ▶ pour écouter un extrait.");
                 });
             } catch(Exception e) { ui.post(()->setBusy(false,"Analyse impossible : "+safe(e))); }
