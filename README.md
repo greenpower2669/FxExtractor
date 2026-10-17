@@ -86,3 +86,6 @@ La CI doit valider : poids de modèle >1Mo, en-tête TFL3, 521 classes exactes, 
 
 ### État prouvé du modèle et empreinte
 GitHub Actions run 39072658917 : SUCCESS, compilation native Android et tests Java ; APK brut v0.3.0 livré sur la branche delivery/fxextractor-apk (18 888 244 octets), et vérification de la présence des fichiers assets/yamnet.tflite et assets/yamnet_labels.txt dans l'APK. Poids téléchargés chez Google, SHA256 4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf. **Cette empreinte est maintenant verrouillée dans la CI**, de sorte que le build refuse un modèle distant différent. L'inférence sur Samsung reste à tester physiquement, car un build réussi ne prouve pas la latence ni la précision.
+
+### Fichier APK v0.3.0 prêt (contrôle final)
+[**FxExtractor-0.3.0-debug.apk — téléchargement direct, aucun ZIP**](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.0-debug.apk) — 18 888 244 octets. Code aba5f44c, [workflow 39072851527](https://github.com/greenpower2669/FxExtractor/actions/runs/39072851527) SUCCESS. Le binaire contient yamnet.tflite et yamnet_labels.txt, aucune permission réseau. Un essai réel sur Samsung est encore indispensable pour valider qualité IA, temps de traitement et mémoire.

@@ -30,3 +30,6 @@ Précédemment, noms manuels et découpe RMS, aucune IA on-device. Ajout d'un vr
 
 ### D008 — preuve du modèle et de l'APK
 Run CI 39072658917 vert. SHA256 du modèle YAMNet provenant de Google : 4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf. Les métadonnées du modèle contiennent exactement yamnet_label_list.txt (521 classes). Les étapes de vérification du contenu de l'APK et de publication du fichier brut ont réussi. Un contrôle fixe du checksum est maintenant ajouté à la CI pour éviter les modifications silencieuses des poids.
+
+### D008 — validation checksum après reprise CI
+Après correction du texte d'interface et verrouillage SHA256 du modèle, run GitHub 39072851527 vert (tests et build Android). Présence du binaire APK brut v0.3.0 de 18 888 244 octets confirmée dans la branche delivery. Ne pas confondre build validé avec test d'inférence sur appareil.

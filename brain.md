@@ -27,3 +27,6 @@ Modèle YAMNet Google TensorFlow Lite 521 classes AudioSet, entrée mono 16kHz /
 
 ### Validation modèle 0.3.0
 Run GitHub 39072658917 SUCCESS ; APK direct brut FxExtractor-0.3.0-debug.apk = 18 888 244 octets ; blob Git aaa1bf532e841ee665b787d91ef93038a49660da. Modèle Google réel et 521 labels extraits, SHA256 4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf ; désormais vérifier cette empreinte fixe à chaque CI.
+
+### Livraison 0.3.0 définitive de cette mission
+Run GitHub Actions 39072851527 SUCCESS sur commit code aba5f44c19cc986baf404a4010a606cac029e5b0. Modèle YAMNet Google SHA256 verrouillé, 521 classes, vérifier assets dans APK réussi, livraison brute sur delivery/fxextractor-apk/apk/FxExtractor-0.3.0-debug.apk (18 888 244 octets, git blob 51148d79a2baae4d3c1728432e3f3f8b6f75fadd). CI seule : inférence sur Samsung non encore essayée.

@@ -22,3 +22,6 @@ CI 39069953534 verte, fichier `apk/FxExtractor-0.2.2-debug.apk` de 33 989 octets
 
 ## 17/10/2026 — intégrer une IA acoustique
 Autorisation de Fab : « Ok o. Intègre l ia ». YAMNet/TFLite doit être **effectivement embarqué** dans l'APK avec ses 521 labels, fonctionner hors ligne et suggérer automatiquement des noms toujours modifiables. Afficher les scores, ne jamais écraser les corrections humaines. Qwen-Omni PC reste séparé. Respect de la règle APK brut GitHub par dossier temporaire et tests, sans merge main ni Release.
+
+### Vérification de la livraison IA 0.3.0
+GitHub run 39072851527 SUCCESS ; APK brut réellement disponible dans delivery/fxextractor-apk, modèle YAMNet et labels embarqués et SHA256 verrouillé. Aucun merge main ni Release. Prochain test matériel Android à effectuer par Fab.
