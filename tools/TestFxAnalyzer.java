@@ -15,6 +15,34 @@ public class TestFxAnalyzer {
         check(FxAnalyzer.analyze(new double[100], 20, 1.0).spans.isEmpty(), "Silence should stay silence");
         double[] noise = new double[90]; java.util.Arrays.fill(noise, 0.03);
         check(FxAnalyzer.analyze(noise, 20, 1.0).spans.isEmpty(), "Continuous noise should not trigger");
+        // Reverb / motor decays: weak audio below the old close threshold
+        // must not be chopped off while clearly above the actual noise floor.
+        double[] decay = new double[220];
+        java.util.Arrays.fill(decay, 0.001);
+        for (int i = 25; i < 38; i++) decay[i] = 0.50;
+        for (int i = 38; i < 115; i++) {
+            decay[i] = 0.030 * Math.exp(-(i - 38) / 65.0);
+        }
+        FxAnalyzer.Result shortTail = FxAnalyzer.analyze(decay, 20, 1.0, 100);
+        FxAnalyzer.Result protectedTail = FxAnalyzer.analyze(decay, 20, 1.0, 1100);
+        check(shortTail.spans.size() == 1 && protectedTail.spans.size() == 1,
+                "A long fading reverb is one FX");
+        check(protectedTail.spans.get(0).endMs > 2400,
+                "Protect a quiet reverb after RMS threshold falls");
+        check(protectedTail.spans.get(0).endMs - shortTail.spans.get(0).endMs >= 900,
+                "Release slider should extend end without cutting tail");
+        check(protectedTail.spans.get(0).startMs < 25 * 20,
+                "Preserve the beginning of effect");
+
+        double[] separated = new double[300];
+        java.util.Arrays.fill(separated, 0.001);
+        for(int i=35; i<47; i++) separated[i] = 0.30;
+        for(int i=175; i<187; i++) separated[i] = 0.30;
+        check(FxAnalyzer.analyze(separated, 20, 1.0, 600).spans.size() == 2,
+                "Distant FX should remain separate with padded release");
+        check(FxAnalyzer.analyze(new double[10], 20, 1.0, 1500).spans.isEmpty(),
+                "Tail padding cannot create audio where there is silence");
+
 
         File wav = File.createTempFile("fxextractor-", ".wav");
         File zip = File.createTempFile("fxextractor-", ".zip");
