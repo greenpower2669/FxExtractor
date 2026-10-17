@@ -45,6 +45,6 @@
 - [x] Moteur YAMNet TensorFlow Lite réel, 521 catégories, traitement PCM16 mono 16kHz.
 - [x] Lancement automatique des propositions de noms après extraction, scores et édition manuelle préservés.
 - [x] CI pour télécharger le modèle officiel à la compilation, embarquer labels et modèle dans l'APK sans Internet sur le téléphone.
-- [ ] Vérifier run GitHub Actions vert, contenu des assets du vrai APK 0.3.0 et lien direct raw.
+- [x] Run 39072658917 SUCCESS, vrai APK 0.3.0 brut 18 888 244 octets sur delivery/fxextractor-apk ; modèle YAMNet et labels inclus, SHA256 contrôlé 4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf.
 - [ ] Tests Samsung Android 16 (latence, mémoire, décodage, sons explosifs/moteurs/voix, cas incertains).
 - [ ] Ajuster catégories/traductions à partir de tests réels, sans inventer de reconnaissance parfaite.

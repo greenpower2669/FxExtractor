@@ -52,6 +52,7 @@ jobs:
           assert 1_000_000 < len(data) < 24_000_000, f'Unexpected YAMNet size: {len(data)}'
           assert data[4:8] == b'TFL3', 'Not a TensorFlow Lite model'
           print('YAMNet SHA256:', hashlib.sha256(data).hexdigest())
+          assert hashlib.sha256(data).hexdigest() == '4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf', 'YAMNet model SHA256 mismatch'
           with zipfile.ZipFile(p) as z:
               files = z.namelist()
               print('Embedded model metadata assets:', files)

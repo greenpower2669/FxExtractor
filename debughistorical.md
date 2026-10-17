@@ -27,3 +27,6 @@ Run `39069953534` success : extraction temporaire GitHub, contrôle contenu APK,
 
 ## D008 — ajout modèle YAMNet (17/10/2026)
 Précédemment, noms manuels et découpe RMS, aucune IA on-device. Ajout d'un vrai interpréteur TensorFlow Lite Android, source de poids Google et extraction des 521 labels embarqués. Modèle distinct du script Qwen PC. Le modèle est téléchargé à la compilation, pas au lancement. Risques à auditer : compatibilité ABI/poids, index de labels, latence et fausses reconnaissances de SFX synthétiques. Aucun test matériel présumé.
+
+### D008 — preuve du modèle et de l'APK
+Run CI 39072658917 vert. SHA256 du modèle YAMNet provenant de Google : 4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf. Les métadonnées du modèle contiennent exactement yamnet_label_list.txt (521 classes). Les étapes de vérification du contenu de l'APK et de publication du fichier brut ont réussi. Un contrôle fixe du checksum est maintenant ajouté à la CI pour éviter les modifications silencieuses des poids.

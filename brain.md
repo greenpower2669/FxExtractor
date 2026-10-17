@@ -24,3 +24,6 @@ Run `39069953534` SUCCESS sur SHA source `92043f757cc18473e1db16e956495dc7d77003
 
 ## 0.3.0 — classification IA Android réelle
 Modèle YAMNet Google TensorFlow Lite 521 classes AudioSet, entrée mono 16kHz / 15 600 float32, inférence FxSoundAI.java. Le modèle et ses labels sont téléchargés/embarqués durant GitHub Actions avant Gradle : téléphone hors ligne et sans permission Internet. IA lance automatiquement des suggestions sur les 40 premiers FX, noms toujours éditables, score visible, classe anglaise conservée faute de traduction. Qwen-Omni reste PC uniquement. Ne jamais confondre IA de classification avec séparation de sources.
+
+### Validation modèle 0.3.0
+Run GitHub 39072658917 SUCCESS ; APK direct brut FxExtractor-0.3.0-debug.apk = 18 888 244 octets ; blob Git aaa1bf532e841ee665b787d91ef93038a49660da. Modèle Google réel et 521 labels extraits, SHA256 4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf ; désormais vérifier cette empreinte fixe à chaque CI.

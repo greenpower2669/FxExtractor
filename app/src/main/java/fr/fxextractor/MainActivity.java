@@ -89,7 +89,7 @@ public final class MainActivity extends Activity {
         summary = text(root, "", 17);
         events = new LinearLayout(this); events.setOrientation(LinearLayout.VERTICAL);
         root.addView(events);
-        text(root, "Limites : les sons superposés à de la musique ne peuvent pas être séparés par une simple détection d'énergie. L'IA Qwen n'est pas incluse dans cette version locale.", 15);
+        text(root, "IA YAMNet locale : suggestions de noms après analyse, toujours modifiables. Les sons superposés ne sont pas séparés ; Qwen n’est pas embarqué.", 15);
         setContentView(scroll);
         refresh();
     }
