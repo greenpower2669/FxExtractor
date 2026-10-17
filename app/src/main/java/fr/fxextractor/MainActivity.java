@@ -30,10 +30,11 @@ public final class MainActivity extends Activity {
     private static final long SOURCE_FILE_LIMIT=1_000_000_000L;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Handler ui = new Handler(Looper.getMainLooper());
-    private Button openButton, analyzeButton, exportButton;
+    private Button openButton, analyzeButton, exportButton, aiButton;
     private TextView state, summary, help;
     private LinearLayout events;
     private final List<EditText> nameInputs = new ArrayList<>();
+    private final List<TextView> aiDetails = new ArrayList<>();
     private File current;
     private String name = "audio.wav";
     private volatile FxAnalyzer.Result result;
@@ -83,6 +84,7 @@ public final class MainActivity extends Activity {
         });
         analyzeButton = button(root, "2 · Analyser les sons", () -> analyze());
         exportButton = button(root, "3 · Exporter les FX nommés en ZIP", () -> save());
+        aiButton = button(root, "🤖 Proposer les noms avec IA locale", () -> suggestNames());
         state = text(root, "Choisis une vidéo ou un son pour commencer.", 18);
         summary = text(root, "", 17);
         events = new LinearLayout(this); events.setOrientation(LinearLayout.VERTICAL);
@@ -106,6 +108,7 @@ public final class MainActivity extends Activity {
         openButton.setEnabled(!busy);
         analyzeButton.setEnabled(!busy && current != null);
         exportButton.setEnabled(!busy && result != null && !result.spans.isEmpty());
+        if (aiButton != null) aiButton.setEnabled(!busy && result != null && !result.spans.isEmpty());
     }
     private void setBusy(boolean value, String message) {
         busy=value; if(state!=null)state.setText(message); refresh();
@@ -176,7 +179,7 @@ public final class MainActivity extends Activity {
                     ui.post(() -> {
                         File previous = current;
                         current = ready;
-                        name = selected; result = null; info = null; events.removeAllViews(); nameInputs.clear();
+                        name = selected; result = null; info = null; events.removeAllViews(); nameInputs.clear(); aiDetails.clear();
                         summary.setText("");
                         if (!directWav) source.delete();
                         if (previous != null && !previous.equals(ready)) previous.delete();
@@ -237,6 +240,7 @@ public final class MainActivity extends Activity {
                         found.spans.size(),found.threshold,found.releaseMs));
                     events.removeAllViews();
                     nameInputs.clear();
+                    aiDetails.clear();
                     if (!found.spans.isEmpty())
                         text(events, "Écoute chaque effet, puis donne-lui un nom : Explosion, Moteur, Voix… Le nom sera utilisé dans les fichiers WAV.", 17);
                     if(found.spans.isEmpty()) text(events,"Aucun événement isolé trouvé. Essaie une sensibilité plus élevée (vers la gauche).",17);
@@ -253,14 +257,68 @@ public final class MainActivity extends Activity {
                         customName.setContentDescription("Nom du son numéro " + index + ", modifiable");
                         events.addView(customName);
                         nameInputs.add(customName);
+                        TextView aiScore = text(events, "IA : reconnaissance en attente", 15);
+                        aiDetails.add(aiScore);
                     }
                     if(found.spans.size()>40)
                         text(events,"40 premiers extraits renommables ; les autres seront exportés en FX_041, FX_042…",16);
-                    setBusy(false,"Analyse terminée. Appuie sur ▶ pour écouter un extrait.");
+                    setBusy(false, "Découpe terminée. Reconnaissance sonore IA locale...");
+                    if (!found.spans.isEmpty()) suggestNames();
                 });
             } catch(Exception e) { ui.post(()->setBusy(false,"Analyse impossible : "+safe(e))); }
         });
     }
+    /** Classify WAV clips on the background worker; never send files to any server. */
+    private void suggestNames() {
+        FxAnalyzer.Result analyzed = result;
+        WavIO.Info format = info;
+        File source = current;
+        if (analyzed == null || format == null || source == null || busy) return;
+        int count = Math.min(40, analyzed.spans.size());
+        if (count == 0) return;
+        setBusy(true, "🤖 YAMNet : reconnaissance audio hors ligne (0/" + count + ")...");
+        worker.execute(() -> {
+            try (FxSoundAI classifier = new FxSoundAI(getApplicationContext());
+                 RandomAccessFile wav = new RandomAccessFile(source, "r")) {
+                WavIO.Info live = WavIO.readInfo(wav);
+                if (live.rate != format.rate || live.channels != format.channels
+                        || live.bytes != format.bytes)
+                    throw new IOException("Source audio modifiée depuis l'analyse");
+                for (int i = 0; i < count; i++) {
+                    if (Thread.currentThread().isInterrupted()) throw new IOException("IA interrompue");
+                    FxSoundAI.Prediction prediction = classifier.predict(wav, live, analyzed.spans.get(i));
+                    final int position = i;
+                    ui.post(() -> {
+                        if (result != analyzed || position >= nameInputs.size()) return;
+                        EditText name = nameInputs.get(position);
+                        TextView description = aiDetails.get(position);
+                        if (prediction == null) {
+                            description.setText("IA : son incertain — choisis un nom.");
+                        } else {
+                            // Never overwrite a correction that Fab has already made.
+                            if (name.getText().toString().trim().isEmpty())
+                                name.setText(prediction.label);
+                            description.setText(String.format(Locale.FRANCE,
+                                    "IA : %s · score %.0f %% · nom modifiable",
+                                    prediction.original, prediction.score * 100));
+                        }
+                        state.setText("🤖 IA locale : " + (position + 1) + "/" + count + " sons analysés.");
+                    });
+                }
+                ui.post(() -> {
+                    if (result == analyzed)
+                        setBusy(false, "🤖 Suggestions IA terminées. Tu peux corriger tous les noms avant export.");
+                });
+            } catch (Exception e) {
+                ui.post(() -> {
+                    if (result == analyzed)
+                        setBusy(false, "IA indisponible : " + safe(e)
+                                + ". Tu peux toujours nommer tes sons manuellement.");
+                });
+            }
+        });
+    }
+
     private void preview(FxAnalyzer.Span span) {
         if (current == null || busy) return;
         stopPlayback();
