@@ -44,3 +44,6 @@ python tools/qwen_tag_fx.py FxExtractor_segments.zip etiquettes-qwen.json --allo
 ```
 
 L'inférence Qwen n'a pas été validée dans notre CI sans GPU. Le modèle est distribué sous licence **qwen-research** : vérifier cette licence avant utilisation commerciale. Ne pas confondre avec le Qwen3.5 Vision du projet VisionMaxRead.
+
+### Livraison CI validée (17 octobre 2026)
+Code fonctionnel SHA `6e2f2c13760b46ec5e5e6f01c3a8f3b093b7ab33`, [run GitHub Actions vert](https://github.com/greenpower2669/FxExtractor/actions/runs/39060083448). [**APK Android direct**](https://github.com/greenpower2669/FxExtractor/actions/runs/39060083448/artifacts/12111057669) (24 377 octets, debug test) ; [**AAB distinct non signé**](https://github.com/greenpower2669/FxExtractor/actions/runs/39060083448/artifacts/12111236375) (non installable, pas pour publication sans signature). APK non testé physiquement sur Samsung. Les éventuels commits documentaires suivants ne modifient pas le code dont la CI a établi la compilation.
