@@ -4,3 +4,6 @@ Demande de Fab : « Ok, fait le mon repo FxExtractor », dans le contexte de l'a
 
 ## Qwen optionnel
 Un adaptateur Python Qwen2.5-Omni-3B, limité aux FX WAV issus des ZIP, produit des descriptions françaises. Aucun poids n'est installé dans l'APK ; aucune analyse sémantique Android n'est revendiquée. Inférence GPU/conditions de licence à confirmer séparément.
+
+## Règle immuable — livraison APK
+À chaque livraison autorisée, GitHub Actions extrait l’artefact dans `RUNNER_TEMP`, vérifie le `.apk` et fournit à Fab un **lien direct vers le fichier `.apk`**, installable sans dézipper. Ne jamais fournir un ZIP ou un lien d’artefact imposant une extraction manuelle. Aucune Release sans accord explicite.
