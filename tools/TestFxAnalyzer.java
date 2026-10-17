@@ -1,6 +1,8 @@
 import fr.fxextractor.*;
 import java.io.*;
 import java.util.zip.*;
+import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
 
 public class TestFxAnalyzer {
     private static void check(boolean b, String message) { if (!b) throw new AssertionError(message); }
@@ -44,8 +46,18 @@ public class TestFxAnalyzer {
                 "Tail padding cannot create audio where there is silence");
 
 
+        check(WavIO.exportFileName("Explosion spatiale", 1).equals("Explosion_spatiale_001.wav"),
+                "Manual names become predictable safe filenames");
+        check(WavIO.exportFileName("Éclat / ../ explosion", 2).equals("Eclat_explosion_002.wav"),
+                "Accents and path separators must be sanitized");
+        check(WavIO.exportFileName("../", 3).equals("FX_003.wav"),
+                "Unsafe-only names must fall back to FX");
+        check(WavIO.exportFileName(null, 4).equals("FX_004.wav"),
+                "Blank labels stay backward compatible");
+
         File wav = File.createTempFile("fxextractor-", ".wav");
         File zip = File.createTempFile("fxextractor-", ".zip");
+        File namedZip = File.createTempFile("fxextractor-named-", ".zip");
         try {
             try (FileOutputStream out = new FileOutputStream(wav)) {
                 int rate = 8000, n = 8000;
@@ -63,6 +75,24 @@ public class TestFxAnalyzer {
                 check(scanned.spans.size() == 1, "1 wav event");
                 WavIO.zip(input, info, scanned, "test.wav", output);
             }
+            try (RandomAccessFile input = new RandomAccessFile(wav, "r");
+                 OutputStream output = new FileOutputStream(namedZip)) {
+                WavIO.Info info = WavIO.readInfo(input);
+                FxAnalyzer.Result scanned = FxAnalyzer.analyze(WavIO.envelope(input, info), 20, 1);
+                WavIO.zip(input, info, scanned, "test.wav",
+                        Arrays.asList("Explosion spatiale"), output);
+            }
+            try (ZipFile z = new ZipFile(namedZip)) {
+                check(z.getEntry("Explosion_spatiale_001.wav") != null,
+                        "Named sound must be included in ZIP");
+                try (InputStream in = z.getInputStream(z.getEntry("events.json"))) {
+                    String json = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                    check(json.contains("\"label\":\"Explosion spatiale\""),
+                            "Editable label preserved in JSON");
+                    check(json.contains("\"file\":\"Explosion_spatiale_001.wav\""),
+                            "Report filename must match ZIP");
+                }
+            }
             try (ZipFile z = new ZipFile(zip)) {
                 check(z.getEntry("events.json") != null, "manifest");
                 check(z.getEntry("FX_001.wav") != null, "actual audio");
@@ -70,7 +100,7 @@ public class TestFxAnalyzer {
                     check(in.read() == 'R', "RIFF header in export");
                 }
             }
-        } finally { wav.delete(); zip.delete(); }
+        } finally { wav.delete(); zip.delete(); namedZip.delete(); }
         System.out.println("PASS FxAnalyzer: segmentation/silence/WAV/ZIP");
     }
 }
