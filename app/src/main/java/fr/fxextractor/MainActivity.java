@@ -34,6 +34,7 @@ public final class MainActivity extends Activity {
     private volatile FxAnalyzer.Result result;
     private volatile WavIO.Info info;
     private int sensitivityProgress = 33;
+    private int releaseMs = FxAnalyzer.DEFAULT_RELEASE_MS;
     private boolean busy;
     private MediaPlayer player;
     private Runnable stopPreview;
@@ -59,6 +60,21 @@ public final class MainActivity extends Activity {
             }
             @Override public void onStartTrackingTouch(SeekBar b) {}
             @Override public void onStopTrackingTouch(SeekBar b) { if(current != null) result = null; refresh(); }
+        });
+        TextView releaseLabel = text(root, "Préserver les fins de sons : " + releaseMs + " ms", 17);
+        SeekBar releaseBar = new SeekBar(this);
+        releaseBar.setMax(28); // 100..1500ms, steps of 50ms
+        releaseBar.setProgress((releaseMs - 100) / 50);
+        root.addView(releaseBar);
+        releaseBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar b, int progress, boolean fromUser) {
+                if (!fromUser) return;
+                releaseMs = 100 + 50 * progress;
+                releaseLabel.setText("Préserver les fins de sons : " + releaseMs + " ms");
+                result = null; refresh();
+            }
+            @Override public void onStartTrackingTouch(SeekBar b) {}
+            @Override public void onStopTrackingTouch(SeekBar b) {}
         });
         analyzeButton = button(root, "2 · Analyser les sons", () -> analyze());
         exportButton = button(root, "3 · Exporter les FX en ZIP", () -> save());
@@ -200,17 +216,17 @@ public final class MainActivity extends Activity {
         if(current==null) return;
         stopPlayback();
         setBusy(true,"Mesure de l'énergie et des silences...");
-        File file=current; String sourceName=name; double sens=sensitivity();
+        File file=current; String sourceName=name; double sens=sensitivity(); int release=releaseMs;
         worker.execute(() -> {
             try(RandomAccessFile wav = new RandomAccessFile(file,"r")) {
                 WavIO.Info analyzed = WavIO.readInfo(wav);
-                FxAnalyzer.Result found = FxAnalyzer.analyze(WavIO.envelope(wav,analyzed),20,sens);
+                FxAnalyzer.Result found = FxAnalyzer.analyze(WavIO.envelope(wav,analyzed),20,sens,release);
                 ui.post(() -> {
                     info=analyzed; result=found;
                     summary.setText(String.format(Locale.FRANCE,
-                        "%s · %.1f s · %d Hz · %d canaux\n%d événement(s) · seuil RMS %.4f",
+                        "%s · %.1f s · %d Hz · %d canaux\\n%d événement(s) · seuil RMS %.4f · fin +%d ms",
                         sourceName,analyzed.durationMs()/1000.0,analyzed.rate,analyzed.channels,
-                        found.spans.size(),found.threshold));
+                        found.spans.size(),found.threshold,found.releaseMs));
                     events.removeAllViews();
                     if(found.spans.isEmpty()) text(events,"Aucun événement isolé trouvé. Essaie une sensibilité plus élevée (vers la gauche).",17);
                     for(int i=0;i<Math.min(40,found.spans.size());i++) {
@@ -226,16 +242,32 @@ public final class MainActivity extends Activity {
         });
     }
     private void preview(FxAnalyzer.Span span) {
-        if(current==null || busy) return;
+        if (current == null || busy) return;
         stopPlayback();
         try {
-            MediaPlayer m=new MediaPlayer(); player=m;
-            m.setDataSource(current.getAbsolutePath()); m.prepare();
-            m.seekTo((int)Math.min(Integer.MAX_VALUE,span.startMs));
+            MediaPlayer m = new MediaPlayer(); player = m;
+            m.setDataSource(current.getAbsolutePath());
+            m.prepare();
+            m.setOnCompletionListener(mp -> { if (player == m) stopPlayback(); });
+            m.seekTo((int)Math.min(Integer.MAX_VALUE, span.startMs));
             m.start();
-            stopPreview=()->{ if(player==m)stopPlayback(); };
-            ui.postDelayed(stopPreview,Math.max(50,span.endMs-span.startMs));
-        }catch(Exception e) { stopPlayback(); state.setText("Écoute indisponible : "+safe(e)); }
+            // Do not stop based on elapsed wall time: seeking and startup
+            // previously consumed part of the scheduled preview duration.
+            Runnable watcher = new Runnable() {
+                @Override public void run() {
+                    if (player != m) return;
+                    try {
+                        if (m.getCurrentPosition() >= span.endMs - 20) stopPlayback();
+                        else ui.postDelayed(this, 65);
+                    } catch (Exception e) { stopPlayback(); }
+                }
+            };
+            stopPreview = watcher;
+            ui.postDelayed(watcher, 65);
+        } catch (Exception e) {
+            stopPlayback();
+            state.setText("Écoute indisponible : " + safe(e));
+        }
     }
     private void stopPlayback() {
         if(stopPreview!=null){ui.removeCallbacks(stopPreview);stopPreview=null;}
