@@ -2,6 +2,7 @@ package fr.fxextractor;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -104,8 +105,33 @@ public final class WavIO {
         }
         return out.append('\"').toString();
     }
+    /** Keep user-visible names separate from safe ZIP-entry names. */
+    public static String safeFileLabel(String label) {
+        if (label == null || label.trim().isEmpty()) return "FX";
+        String ascii = Normalizer.normalize(label.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .replaceAll("[^a-zA-Z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
+        if (ascii.isEmpty()) return "FX";
+        if (ascii.length() > 40) ascii = ascii.substring(0, 40).replaceAll("_+$", "");
+        return ascii.isEmpty() ? "FX" : ascii;
+    }
+
+    public static String exportFileName(String label, int index) {
+        if (index < 1 || index > 999) throw new IllegalArgumentException("Bad FX index");
+        return String.format(Locale.ROOT, "%s_%03d.wav", safeFileLabel(label), index);
+    }
+
+    /** Original CLI and callers stay compatible: unnamed exports use FX_001.wav. */
     public static void zip(RandomAccessFile r, Info in, FxAnalyzer.Result result,
                            String name, OutputStream destination) throws IOException {
+        zip(r, in, result, name, null, destination);
+    }
+
+    /** Labels are positional, with blank/missing labels defaulting to FX. */
+    public static void zip(RandomAccessFile r, Info in, FxAnalyzer.Result result,
+                           String name, List<String> labels, OutputStream destination)
+                           throws IOException {
         byte[] buffer = new byte[32768];
         try (ZipOutputStream z = new ZipOutputStream(destination)) {
             z.putNextEntry(new ZipEntry("events.json"));
@@ -116,9 +142,13 @@ public final class WavIO {
                     .append(String.format(Locale.ROOT, "%.7f", result.threshold)).append(",\"events\":[");
             for (int i = 0; i < result.spans.size(); i++) {
                 FxAnalyzer.Span x = result.spans.get(i);
+                String label = labelAt(labels, i);
+                String filename = exportFileName(label, i + 1);
                 if (i > 0) report.append(',');
-                report.append("{\"file\":\"FX_").append(String.format(Locale.ROOT, "%03d", i + 1))
-                      .append(".wav\",\"startMs\":").append(x.startMs).append(",\"endMs\":").append(x.endMs).append('}');
+                report.append("{\"file\":").append(jsonQuote(filename))
+                        .append(",\"label\":").append(jsonQuote(label))
+                        .append(",\"startMs\":").append(x.startMs)
+                        .append(",\"endMs\":").append(x.endMs).append('}');
             }
             report.append("]}");
             z.write(report.toString().getBytes(StandardCharsets.UTF_8));
@@ -129,7 +159,7 @@ public final class WavIO {
                 long to = Math.max(from, Math.min(in.frames(), span.endMs * in.rate / 1000));
                 long bytes = (to - from) * in.channels * 2L;
                 if (bytes == 0) continue;
-                String filename = String.format(Locale.ROOT, "FX_%03d.wav", i + 1);
+                String filename = exportFileName(labelAt(labels, i), i + 1);
                 z.putNextEntry(new ZipEntry(filename));
                 header(z, in.rate, in.channels, bytes);
                 r.seek(in.offset + from * in.channels * 2L);
@@ -141,5 +171,14 @@ public final class WavIO {
                 z.closeEntry();
             }
         }
+    }
+
+    private static String labelAt(List<String> labels, int index) {
+        if (labels == null || index >= labels.size() || labels.get(index) == null)
+            return "FX";
+        String label = labels.get(index).trim();
+        // Avoid excessively large or pathological manifest names.
+        if (label.length() > 80) label = label.substring(0, 80);
+        return label.isEmpty() ? "FX" : label;
     }
 }
