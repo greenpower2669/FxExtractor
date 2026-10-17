@@ -18,3 +18,6 @@ Run GitHub Actions `39068622333` SUCCESS sur code `439be695651a26a13f01697f11b98
 
 ## 0.2.2 — nommage et option IA
 Saisie manuelle accessible d'un libellé pour chacun des 40 premiers FX. L'export WAV utilise un nom sécurisé (ex. Explosion_001.wav), et events.json contient le label original. WavIO.zip ancien appel conserve FX_NNN. IA son sur smartphone à étudier : YAMNet/TFLite compact, détection indicatrice et toujours corrigeable. Qwen PC seulement. CI publie APK brut sur `delivery/fxextractor-apk` après extraction et vérification, sans main/Release.
+
+## Preuve CI et binaire v0.2.2 (17/10/2026)
+Run `39069953534` SUCCESS sur SHA source `92043f757cc18473e1db16e956495dc7d7700390`. APK direct brut publié sur branche indépendante `delivery/fxextractor-apk`, chemin `apk/FxExtractor-0.2.2-debug.apk` (33 989 octets ; git blob `115bf1714c982e4e8ac6b95b21a26a43e863e6d3`), tests pure JVM et build Android verts. Aucun essai Samsung matériel ni IA classifiante encore validés.

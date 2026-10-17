@@ -37,6 +37,6 @@
 - [x] Saisie de noms sous les 40 premiers sons (Explosion, Moteur, Voix, etc.).
 - [x] Noms WAV sûrs, libellé original dans events.json, compatibilité FX_NNN et tests de sécurité.
 - [x] Publication prévue APK brut depuis CI vers branche de livraison dédiée après extraction RUNNER_TEMP.
-- [ ] CI 0.2.2 verte avec vérification d'existence du lien raw direct.
+- [x] CI 0.2.2 verte (run `39069953534`, SHA source `92043f757cc18473e1db16e956495dc7d7700390`) : tests JVM, Android APK/AAB, extraction RUNNER_TEMP, publication raw. La branche `delivery/fxextractor-apk` contient `apk/FxExtractor-0.2.2-debug.apk` (33 989 octets, blob SHA `115bf1714c982e4e8ac6b95b21a26a43e863e6d3`).
 - [ ] Tester clavier et export nom personnalisé sur Samsung ; les autres effets restent FX_NNN.
 - [ ] Étudier YAMNet/TFLite local et mapping FR, mesurer vitesse/qualité/licence ; ne pas présenter comme déjà embarqué.

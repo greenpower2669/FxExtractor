@@ -16,3 +16,6 @@ Retour Fab : impressions de sons tronqués avant fin et question sur les librair
 
 ## 17/10/2026 — noms des sons et IA future
 Demande Fab : « Une ia est intégrable ou un nom modifiable comme explosio ». Chaque FX doit pouvoir recevoir un nom éditable, ex. Explosion_001.wav, conservé dans events.json. IA sonore possible mais non intégrée : étudier YAMNet local ; Qwen-Omni reste outil PC. Maintenir la règle immuable : APK réellement brut accessible via lien raw sur branche de livraison séparée, décompressé/vérifié dans RUNNER_TEMP GitHub. Aucun merge main ni Release sans accord.
+
+### Preuve livraison v0.2.2
+CI 39069953534 verte, fichier `apk/FxExtractor-0.2.2-debug.apk` de 33 989 octets présent dans `delivery/fxextractor-apk` ; lien raw dans README, sans ZIP côté Fab. La branche main reste intacte.

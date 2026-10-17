@@ -21,3 +21,6 @@ Run `39068622333` SUCCESS : tests JVM (silence, sons séparés, réverbération 
 
 ## D007 — noms et livraison APK
 La 0.2.1 n'avait ni saisie des noms, ni IA embarquée. La 0.2.2 rend les libellés éditables avant export et normalise les noms WAV ; tests anti-traversée ZIP. Le lien d'artefact Actions peut rester une archive même si nommé .apk : la CI ajoute une publication de fichier brut sur la branche `delivery/fxextractor-apk`. Contrôler avant remise du lien.
+
+### D007 — validation CI
+Run `39069953534` success : extraction temporaire GitHub, contrôle contenu APK, push de `apk/FxExtractor-0.2.2-debug.apk` sur branche delivery. Git tree direct contient blob binaire 33 989 octets. Anciennes pages d'artefacts Actions restent sujettes au ZIP ; seul lien raw de branche est livré comme fichier brut. Pas de tests sur téléphone.
