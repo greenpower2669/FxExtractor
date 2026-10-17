@@ -20,6 +20,6 @@
 - [x] Import SAF vidéo/audio et décodage piste audio vers WAV PCM16 avec MediaExtractor et MediaCodec sans réseau.
 - [x] Limites 1 Go source, 200 Mo PCM, 90 min, bascule stéréo simplifiée pour le multicanal.
 - [x] Livraison via extraction GitHub RUNNER_TEMP, comparaison et vérification APK, artefact APK direct.
-- [ ] CI du code Android v0.2.0 à vérifier et corriger si rouge.
+- [x] CI Android + tests Java **SUCCESS** sur SHA `290dbec2c7a58d9800da6ca49b4efa2f157bd158`, run `39067220630`. APK direct ID `12113557221`, AAB séparé ID `12112789366`.
 - [ ] Test Samsung Android 16 : MP4/AAC, MOV, WebM/Opus, MKV, MP3/M4A, silence, absence piste, ZIP et lecture.
 - [ ] Autres formats / codecs non pris en charge par Android à étudier séparément (AVI/DRM).

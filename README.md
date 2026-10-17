@@ -50,3 +50,6 @@ Code fonctionnel SHA `6e2f2c13760b46ec5e5e6f01c3a8f3b093b7ab33`, [run GitHub Act
 
 ## v0.2.0 — Import vidéo/audio
 Choisir une vidéo ou un audio via le sélecteur Android. MediaExtractor et MediaCodec lisent la première piste audio décodable, ignorent l'image et produisent un WAV PCM16 analysé comme auparavant ; sons multicanaux rabattus en stéréo approximativement. Les DRM, certains AVI, codecs exotiques ou fichiers sans piste sonore peuvent échouer. Aucun accès Internet ni modèle IA ajouté au téléphone. Source maximale 1 Go, WAV décodé 200 Mo / 90 min. Tests matériels requis sur Samsung ; la compilation seule ne garantit pas les codecs. La CI met l'APK dans une archive de transit, l'extrait dans RUNNER_TEMP, vérifie ses octets et publie l'APK brut via upload-artifact sans zip supplémentaire.
+
+### APK v0.2.0 validé par GitHub Actions
+[**Télécharger FxExtractor-0.2.0-debug.apk (fichier direct, sans ZIP)**](https://github.com/greenpower2669/FxExtractor/actions/runs/39067220630/artifacts/12113557221). Code et CI verts : commit `290dbec2`, run `39067220630`, APK 31 557 octets. AAB test non signé [séparément](https://github.com/greenpower2669/FxExtractor/actions/runs/39067220630/artifacts/12112789366). Essai physique Samsung à faire.

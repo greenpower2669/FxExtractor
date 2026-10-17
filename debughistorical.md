@@ -9,3 +9,6 @@ Run `39059711095` : SDK `android-actions/setup-android@v3` échoue en demandant 
 
 ## D004 — import vidéo refusé
 Cause 0.1.0 : filtre SAF audio/WAV et lecteur PCM16 seul. Version 0.2.0 : SAF audio/vidéo + MediaExtractor/MediaCodec vers WAV local, sans changer FxAnalyzer. Compatibilité Android selon conteneur/codec ; tester sur Samsung. DRM/AVI et séparation de sources restent hors garantie.
+
+## D005 — preuve CI vidéo/audio
+GitHub Actions `39067220630` SUCCESS : étape de packaging temporaire GitHub (zip de transit, extraction RUNNER_TEMP, comparaison CMP, vérification ZIP interne de l'APK), tests Java et build APK+AAB. La réussite CI ne garantit pas que le MediaCodec du Samsung décodera tous les conteneurs.
