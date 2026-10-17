@@ -34,3 +34,13 @@ L'application ne demande ni INTERNET ni READ_EXTERNAL_STORAGE, ne contacte aucun
 ### Vérifications
 - Test `tools/TestFxAnalyzer.java` : deux événements, absence d'événements en silence, bruit constant, lecture WAV, export ZIP.
 - La CI prouve la compilation et les tests **mais ne remplace pas un test physique Android**, notamment l'écoute MediaPlayer et les accès SAF.
+
+## Analyse sémantique Qwen (option GPU expérimentale)
+L'application Android **ne charge pas Qwen-Omni**. Pour comprendre/nommer des sons déjà exportés, l'adaptateur `tools/qwen_tag_fx.py` utilise **Qwen2.5-Omni-3B** sur un ordinateur disposant de mémoire/GPU. Il écrit un JSON de descriptions distinct du ZIP initial (les sources ne sont pas modifiées). Il n'envoie aucun extrait à une API externe ; le téléchargement des poids depuis Hugging Face requiert `--allow-download`. Les poids **ne sont jamais téléchargés dans les builds Android**.
+
+```sh
+python -m pip install 'transformers>=4.52.3' accelerate torch qwen-omni-utils soundfile
+python tools/qwen_tag_fx.py FxExtractor_segments.zip etiquettes-qwen.json --allow-download
+```
+
+L'inférence Qwen n'a pas été validée dans notre CI sans GPU. Le modèle est distribué sous licence **qwen-research** : vérifier cette licence avant utilisation commerciale. Ne pas confondre avec le Qwen3.5 Vision du projet VisionMaxRead.

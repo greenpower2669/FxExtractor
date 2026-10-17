@@ -10,6 +10,7 @@
 - [ ] Tests matériels d'accessibilité (taille de police, TalkBack) et rotation.
 - [ ] Support MP3, OGG, M4A par décodage MediaCodec avant analyse, sans perte d'exactitude temporelle.
 - [ ] Détection multi-pistes, réduction de bruit, segmentation d'impacts difficiles.
+- [x] Fournir l'adaptateur facultatif Qwen-Omni PC/GPU, sans téléchargement implicite (inférence GPU à valider).
 - [ ] Comparer Qwen-Omni pour **l'étiquetage sémantique** des extraits ; ne pas faire dépendre l'application du téléchargement d'un modèle massif ni d'un serveur.
 - [ ] Valider un modèle on-device si mémoire/latence/qualité mesurées ; sinon garder l'analyse DSP autonome.
 - [ ] Envisager les imports/exports de la bibliothèque Djipie sur consentement explicite.
