@@ -1,0 +1,59 @@
+name: FxExtractor Android and DSP tests
+on:
+  push:
+    branches: [main, feature/audio-fx-analyzer-v1]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Pure Java WAV / FX tests
+        run: |
+          mkdir -p build/dsp-test
+          javac -d build/dsp-test app/src/main/java/fr/fxextractor/FxAnalyzer.java app/src/main/java/fr/fxextractor/WavIO.java app/src/main/java/fr/fxextractor/FxCli.java tools/TestFxAnalyzer.java
+          java -cp build/dsp-test TestFxAnalyzer
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android platform
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Build APK and AAB
+        run: gradle --no-daemon :app:assembleDebug :app:bundleRelease
+      - name: Name direct installable APK
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/FxExtractor-0.1.0-debug.apk
+          sha256sum dist/FxExtractor-0.1.0-debug.apk app/build/outputs/bundle/release/app-release.aab > dist/SHA256SUMS.txt
+          test -s dist/FxExtractor-0.1.0-debug.apk
+      - uses: actions/upload-artifact@v7
+        with:
+          path: dist/FxExtractor-0.1.0-debug.apk
+          archive: false
+          retention-days: 30
+      - uses: actions/upload-artifact@v7
+        with:
+          path: app/build/outputs/bundle/release/app-release.aab
+          archive: false
+          retention-days: 30
+      - uses: actions/upload-artifact@v7
+        with:
+          path: dist/SHA256SUMS.txt
+          archive: false
+          retention-days: 30
