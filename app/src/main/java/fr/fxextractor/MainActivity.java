@@ -20,10 +20,10 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/** Local WAV FX slicer; no storage permission, no network, no recording. */
+/** Local audio/video FX slicer; no storage permission, no network, no recording. */
 public final class MainActivity extends Activity {
-    private static final int OPEN_WAV=11, SAVE_ZIP=12;
-    private static final int FILE_LIMIT=200_000_100;
+    private static final int OPEN_MEDIA=11, SAVE_ZIP=12;
+    private static final long SOURCE_FILE_LIMIT=1_000_000_000L;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Handler ui = new Handler(Looper.getMainLooper());
     private Button openButton, analyzeButton, exportButton;
@@ -47,8 +47,8 @@ public final class MainActivity extends Activity {
         TextView title = new TextView(this);
         title.setText("🎛 FxExtractor"); title.setTextSize(28); title.setTextColor(0xFF10253D);
         root.addView(title);
-        help = text(root, "Détecter, écouter et découper les événements sonores d'un fichier WAV PCM 16 bits. Tout reste sur ton téléphone.", 18);
-        openButton = button(root, "1 · Choisir un son WAV", () -> open());
+        help = text(root, "Choisis une vidéo (MP4, MOV, MKV, WebM, 3GP…) ou un audio (MP3, M4A, WAV, OGG…). Le son sera extrait sur ton téléphone, puis découpé en effets.", 18);
+        openButton = button(root, "1 · Choisir une vidéo ou un audio", () -> open());
         TextView sensitivityLabel = text(root, "Sensibilité de détection (plus à gauche = sons plus faibles)", 17);
         SeekBar bar = new SeekBar(this); bar.setMax(100); bar.setProgress(sensitivityProgress);
         root.addView(bar);
@@ -62,7 +62,7 @@ public final class MainActivity extends Activity {
         });
         analyzeButton = button(root, "2 · Analyser les sons", () -> analyze());
         exportButton = button(root, "3 · Exporter les FX en ZIP", () -> save());
-        state = text(root, "Choisis un WAV pour commencer.", 18);
+        state = text(root, "Choisis une vidéo ou un son pour commencer.", 18);
         summary = text(root, "", 17);
         events = new LinearLayout(this); events.setOrientation(LinearLayout.VERTICAL);
         root.addView(events);
@@ -91,9 +91,9 @@ public final class MainActivity extends Activity {
     }
     private void open() {
         Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        pick.setType("audio/*"); pick.addCategory(Intent.CATEGORY_OPENABLE);
-        pick.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"audio/wav","audio/x-wav","audio/wave","audio/vnd.wave","application/octet-stream"});
-        startActivityForResult(pick, OPEN_WAV);
+        pick.setType("*/*"); pick.addCategory(Intent.CATEGORY_OPENABLE);
+        // No restrictive MIME filter: video and audio providers use varied MIME types.
+        startActivityForResult(pick, OPEN_MEDIA);
     }
     private void save() {
         Intent create = new Intent(Intent.ACTION_CREATE_DOCUMENT);
@@ -105,32 +105,65 @@ public final class MainActivity extends Activity {
         super.onActivityResult(requestCode,resultCode,data);
         if(resultCode != RESULT_OK || data==null || data.getData()==null) return;
         Uri uri = data.getData();
-        if(requestCode==OPEN_WAV) {
+        if(requestCode==OPEN_MEDIA) {
             stopPlayback();
-            setBusy(true,"Import local du son...");
+            setBusy(true,"Import vidéo/audio en cours...");
             worker.execute(() -> {
-                File tmp = new File(getCacheDir(), "fx_input.wav");
                 String selected = displayName(uri);
-                try (InputStream input = getContentResolver().openInputStream(uri);
-                     OutputStream out = new FileOutputStream(tmp)) {
-                    if (input==null) throw new IOException("Fichier inaccessible");
-                    int count=0, n; byte[] buf = new byte[65536];
-                    while((n=input.read(buf))!=-1) {
-                        count+=n;
-                        if(count>FILE_LIMIT) throw new IOException("Fichier trop gros (>200 Mo)");
-                        out.write(buf,0,n);
+                String extension = ".media";
+                int dot = selected.lastIndexOf('.');
+                if (dot >= 0 && dot >= selected.length() - 9) {
+                    String ext = selected.substring(dot).toLowerCase(Locale.ROOT);
+                    if (ext.matches("\\.[a-z0-9]{1,8}")) extension = ext;
+                }
+                File source = new File(getCacheDir(), "fx_source_" + System.nanoTime() + extension);
+                File decoded = new File(getCacheDir(), "fx_decoded_" + System.nanoTime() + ".wav");
+                File active = null;
+                try {
+                    try (InputStream input = getContentResolver().openInputStream(uri);
+                         OutputStream out = new FileOutputStream(source)) {
+                        if (input == null) throw new IOException("Fichier inaccessible");
+                        long count = 0; int n; byte[] buf = new byte[65536];
+                        while ((n = input.read(buf)) != -1) {
+                            if (Thread.currentThread().isInterrupted()) throw new IOException("Import interrompu");
+                            count += n;
+                            if (count > SOURCE_FILE_LIMIT)
+                                throw new IOException("Vidéo/audio de plus de 1 Go : sélectionne un extrait plus court");
+                            out.write(buf, 0, n);
+                        }
                     }
-                    try(RandomAccessFile wav=new RandomAccessFile(tmp,"r")) {
-                        WavIO.readInfo(wav); // fail fast on incompatible/corrupt file
+                    boolean pcmWav = false;
+                    try (RandomAccessFile wav = new RandomAccessFile(source, "r")) {
+                        WavIO.Info check = WavIO.readInfo(wav);
+                        if (check.bytes > 200_000_000L || check.durationMs() > 90L * 60_000L)
+                            throw new IOException("Audio PCM trop long (200 Mo / 90 min)");
+                        pcmWav = true;
+                    } catch (IOException e) {
+                        // Only a valid standard WAV can skip MediaCodec.
+                        // Unknown containers are decoded below.
                     }
+                    if (pcmWav) {
+                        active = source;
+                    } else {
+                        ui.post(() -> state.setText("Décodage de la piste audio de " + selected + "…"));
+                        MediaAudioDecoder.toWav(source, decoded);
+                        active = decoded;
+                    }
+                    final File ready = active;
+                    final boolean directWav = pcmWav;
                     ui.post(() -> {
-                        current=tmp; name=selected; result=null; info=null; events.removeAllViews();
-                        summary.setText(""); setBusy(false,"Prêt : "+name+"\nLance l'analyse.");
+                        File previous = current;
+                        current = ready;
+                        name = selected; result = null; info = null; events.removeAllViews();
+                        summary.setText("");
+                        if (!directWav) source.delete();
+                        if (previous != null && !previous.equals(ready)) previous.delete();
+                        setBusy(false, "Prêt : " + name + "\\nAudio extrait. Lance l'analyse des FX.");
                     });
-                } catch(Exception e) {
-                    tmp.delete();
-                    ui.post(() -> { current=null; result=null; info=null; events.removeAllViews(); summary.setText("");
-                        setBusy(false,"Import refusé : "+safe(e)); });
+                } catch (Exception e) {
+                    source.delete(); decoded.delete();
+                    ui.post(() -> setBusy(false, "Import impossible : " + safe(e)
+                            + "\\nEssaie MP4/AAC, M4A, MP3, MKV, WebM ou WAV pris en charge par Android."));
                 }
             });
         } else if(requestCode==SAVE_ZIP && result!=null && info!=null && current!=null) {
