@@ -8,3 +8,5 @@
 - `todo.md` : chantiers et validations non terminés.
 - `debughistorical.md` : observations de défauts.
 - `ordres-de-mission.md` : décisions et autorisations.
+
+- `app/src/main/java/fr/fxextractor/MediaAudioDecoder.java` : première piste audio d'une vidéo via MediaExtractor/MediaCodec, conversion PCM16 WAV locale.

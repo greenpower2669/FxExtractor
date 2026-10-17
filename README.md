@@ -1,9 +1,9 @@
 # 🎛 FxExtractor — découpeur sonore local (Android + CLI)
 
-**Prototype v0.1.0** créé sur `feature/audio-fx-analyzer-v1`, sans fusion automatique vers `main`.
+**Prototype v0.2.0** créé sur `feature/audio-fx-analyzer-v1`, sans fusion automatique vers `main`.
 
 ## Fonctions disponibles
-- Choisir un fichier **WAV PCM 16 bits**, mono ou stéréo (8–192 kHz), jusqu'à **200 Mo**.
+- Importer directement une vidéo ou un son (MP4, MOV, MKV, WebM, 3GP, MP3, M4A, OGG, WAV) **si le codec est pris en charge par Android** ; extraire sa piste audio localement vers WAV PCM16, puis détecter les FX. Source max 1 Go, son décodé max 200 Mo ou 90 min.
 - Détection de sons isolés par énergie RMS sur fenêtres de ~20 ms : seuil adaptatif, silence, marge de 80–100 ms, fusion de petits blancs (<140 ms) et suppression des micro-événements (<70 ms).
 - Régler la sensibilité, consulter des horodatages, écouter les 40 premiers événements.
 - Exporter un **ZIP de WAV indépendants** et un rapport `events.json` avec les bornes en millisecondes.
@@ -12,7 +12,7 @@
 - Tests Java synthétiques + workflow GitHub Actions générant **APK directement téléchargeable sans ZIP supplémentaire** et AAB distinct.
 
 ### Installer depuis GitHub Actions
-Ouvrir [Actions](https://github.com/greenpower2669/FxExtractor/actions), workflow *FxExtractor Android and DSP tests*, dernier run **vert** sur la branche de travail, puis télécharger l'artefact `FxExtractor-0.1.0-debug.apk`. Cet APK debug est destiné au test : **ce n'est pas une publication Play**. Aucun lien d'APK n'est déclaré valide tant que la CI n'a pas réussi.
+Ouvrir [Actions](https://github.com/greenpower2669/FxExtractor/actions), workflow *FxExtractor Android and DSP tests*, dernier run **vert** sur la branche de travail, puis télécharger l'artefact `FxExtractor-0.2.0-debug.apk`. Cet APK debug est destiné au test : **ce n'est pas une publication Play**. Aucun lien d'APK n'est déclaré valide tant que la CI n'a pas réussi.
 
 ### Version PC
 ```sh
@@ -47,3 +47,6 @@ L'inférence Qwen n'a pas été validée dans notre CI sans GPU. Le modèle est 
 
 ### Livraison CI validée (17 octobre 2026)
 Code fonctionnel SHA `6e2f2c13760b46ec5e5e6f01c3a8f3b093b7ab33`, [run GitHub Actions vert](https://github.com/greenpower2669/FxExtractor/actions/runs/39060083448). [**APK Android direct**](https://github.com/greenpower2669/FxExtractor/actions/runs/39060083448/artifacts/12111057669) (24 377 octets, debug test) ; [**AAB distinct non signé**](https://github.com/greenpower2669/FxExtractor/actions/runs/39060083448/artifacts/12111236375) (non installable, pas pour publication sans signature). APK non testé physiquement sur Samsung. Les éventuels commits documentaires suivants ne modifient pas le code dont la CI a établi la compilation.
+
+## v0.2.0 — Import vidéo/audio
+Choisir une vidéo ou un audio via le sélecteur Android. MediaExtractor et MediaCodec lisent la première piste audio décodable, ignorent l'image et produisent un WAV PCM16 analysé comme auparavant ; sons multicanaux rabattus en stéréo approximativement. Les DRM, certains AVI, codecs exotiques ou fichiers sans piste sonore peuvent échouer. Aucun accès Internet ni modèle IA ajouté au téléphone. Source maximale 1 Go, WAV décodé 200 Mo / 90 min. Tests matériels requis sur Samsung ; la compilation seule ne garantit pas les codecs. La CI met l'APK dans une archive de transit, l'extrait dans RUNNER_TEMP, vérifie ses octets et publie l'APK brut via upload-artifact sans zip supplémentaire.

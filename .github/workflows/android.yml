@@ -40,15 +40,20 @@ jobs:
           gradle-version: '8.11.1'
       - name: Build APK and AAB
         run: gradle --no-daemon :app:assembleDebug :app:bundleRelease
-      - name: Name direct installable APK
+      - name: Extract APK on GitHub into a temporary folder
         run: |
-          mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/FxExtractor-0.1.0-debug.apk
-          sha256sum dist/FxExtractor-0.1.0-debug.apk app/build/outputs/bundle/release/app-release.aab > dist/SHA256SUMS.txt
-          test -s dist/FxExtractor-0.1.0-debug.apk
+          mkdir -p dist "$RUNNER_TEMP/fx-packed" "$RUNNER_TEMP/fx-unpacked"
+          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/fx-packed/FxExtractor-0.2.0-debug.apk"
+          (cd "$RUNNER_TEMP/fx-packed" && zip -q "$RUNNER_TEMP/fx-packed.zip" FxExtractor-0.2.0-debug.apk)
+          unzip -q "$RUNNER_TEMP/fx-packed.zip" -d "$RUNNER_TEMP/fx-unpacked"
+          cmp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.2.0-debug.apk" app/build/outputs/apk/debug/app-debug.apk
+          unzip -tqq "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.2.0-debug.apk"
+          cp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.2.0-debug.apk" dist/
+          sha256sum dist/FxExtractor-0.2.0-debug.apk app/build/outputs/bundle/release/app-release.aab > dist/SHA256SUMS.txt
+          test -s dist/FxExtractor-0.2.0-debug.apk
       - uses: actions/upload-artifact@v7
         with:
-          path: dist/FxExtractor-0.1.0-debug.apk
+          path: dist/FxExtractor-0.2.0-debug.apk
           archive: false
           retention-days: 30
       - uses: actions/upload-artifact@v7

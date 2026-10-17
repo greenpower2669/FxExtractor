@@ -132,16 +132,17 @@ public final class MainActivity extends Activity {
                             out.write(buf, 0, n);
                         }
                     }
-                    boolean pcmWav = false;
+                    WavIO.Info detectedWav = null;
                     try (RandomAccessFile wav = new RandomAccessFile(source, "r")) {
-                        WavIO.Info check = WavIO.readInfo(wav);
-                        if (check.bytes > 200_000_000L || check.durationMs() > 90L * 60_000L)
-                            throw new IOException("Audio PCM trop long (200 Mo / 90 min)");
-                        pcmWav = true;
-                    } catch (IOException e) {
-                        // Only a valid standard WAV can skip MediaCodec.
-                        // Unknown containers are decoded below.
+                        detectedWav = WavIO.readInfo(wav);
+                    } catch (IOException ignored) {
+                        // Not an uncompressed PCM16 WAV: try Android's media decoders.
                     }
+                    if (detectedWav != null
+                            && (detectedWav.bytes > 200_000_000L
+                            || detectedWav.durationMs() > 90L * 60_000L))
+                        throw new IOException("Audio PCM trop long (200 Mo / 90 min)");
+                    boolean pcmWav = detectedWav != null;
                     if (pcmWav) {
                         active = source;
                     } else {
@@ -158,12 +159,12 @@ public final class MainActivity extends Activity {
                         summary.setText("");
                         if (!directWav) source.delete();
                         if (previous != null && !previous.equals(ready)) previous.delete();
-                        setBusy(false, "Prêt : " + name + "\\nAudio extrait. Lance l'analyse des FX.");
+                        setBusy(false, "Prêt : " + name + "\nAudio extrait. Lance l'analyse des FX.");
                     });
                 } catch (Exception e) {
                     source.delete(); decoded.delete();
                     ui.post(() -> setBusy(false, "Import impossible : " + safe(e)
-                            + "\\nEssaie MP4/AAC, M4A, MP3, MKV, WebM ou WAV pris en charge par Android."));
+                            + "\nEssaie MP4/AAC, M4A, MP3, MKV, WebM ou WAV pris en charge par Android."));
                 }
             });
         } else if(requestCode==SAVE_ZIP && result!=null && info!=null && current!=null) {
@@ -188,7 +189,7 @@ public final class MainActivity extends Activity {
     }
     private String displayName(Uri uri) {
         try(Cursor c=getContentResolver().query(uri,new String[]{OpenableColumns.DISPLAY_NAME},null,null,null)){
-            if(c!=null && c.moveToFirst()) return c.getString(0);
+            if(c!=null && c.moveToFirst() && c.getString(0)!=null) return c.getString(0);
         }catch(Exception ignored){}
         return "audio.wav";
     }

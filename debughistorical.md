@@ -6,3 +6,6 @@ Enveloppe RMS sur WAV PCM16 uniquement. Une superposition musique/bruit ne peut 
 
 ## D003 — CI Android (17/10/2026)
 Run `39059711095` : SDK `android-actions/setup-android@v3` échoue en demandant le paquet retiré `tools`, les tests Java sont verts. Run `39059798918` : tentative sdkmanager direct sans setup échoue car non dans PATH. Correctif `android-actions/setup-android@v4` avec `packages: ''` suivi de `sdkmanager platforms;android-35 build-tools;35.0.0`. Run `39059864373` : Android + tests verts. Run final `39060083448` : syntaxe adaptateur Qwen + tests Java + APK/AAB tous verts. Android/Samsung réel et Qwen GPU non testés.
+
+## D004 — import vidéo refusé
+Cause 0.1.0 : filtre SAF audio/WAV et lecteur PCM16 seul. Version 0.2.0 : SAF audio/vidéo + MediaExtractor/MediaCodec vers WAV local, sans changer FxAnalyzer. Compatibilité Android selon conteneur/codec ; tester sur Samsung. DRM/AVI et séparation de sources restent hors garantie.

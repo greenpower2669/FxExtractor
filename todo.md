@@ -15,3 +15,11 @@
 - [ ] Valider un modèle on-device si mémoire/latence/qualité mesurées ; sinon garder l'analyse DSP autonome.
 - [ ] Envisager les imports/exports de la bibliothèque Djipie sur consentement explicite.
 - [ ] Demander l'accord avant merge main, tag Release et signature Play.
+
+## v0.2.0 — Vidéo/audio
+- [x] Import SAF vidéo/audio et décodage piste audio vers WAV PCM16 avec MediaExtractor et MediaCodec sans réseau.
+- [x] Limites 1 Go source, 200 Mo PCM, 90 min, bascule stéréo simplifiée pour le multicanal.
+- [x] Livraison via extraction GitHub RUNNER_TEMP, comparaison et vérification APK, artefact APK direct.
+- [ ] CI du code Android v0.2.0 à vérifier et corriger si rouge.
+- [ ] Test Samsung Android 16 : MP4/AAC, MOV, WebM/Opus, MKV, MP3/M4A, silence, absence piste, ZIP et lecture.
+- [ ] Autres formats / codecs non pris en charge par Android à étudier séparément (AVI/DRM).
