@@ -12,3 +12,6 @@ GitHub Actions run `39067220630` SUCCESS sur commit source `290dbec2c7a58d9800da
 
 ## 0.2.1 — protection des queues sonores
 La détection RMS reste la base ; entrée sur seuil haut, suivi basse énergie pour les décroissances, 220 ms de silence puis ajout de fin réglable de 100 à 1 500 ms (600 ms par défaut). La pré-écoute MediaPlayer s'arrête en vérifiant la position sonore plutôt que le temps écoulé. Ne pas qualifier ceci de séparation ou de compréhension IA. Qwen-Omni reste uniquement dans `tools/qwen_tag_fx.py`, Python PC facultatif, sans poids téléchargeables dans l'APK.
+
+### CI 0.2.1 validée le 17/10/2026
+Run GitHub Actions `39068622333` SUCCESS sur code `439be695651a26a13f01697f11b98d026a9faf30` ; tests Java incluant décroissance et édition de queue, build Android APK et AAB. APK brut direct `FxExtractor-0.2.1-debug.apk` 32 609 octets, artefact `12114461455` ; AAB non signé `12114685969`. La CI ne confirme pas la qualité d'écoute sur Samsung.

@@ -63,3 +63,6 @@ Choisir une vidéo ou un audio via le sélecteur Android. MediaExtractor et Medi
 
 ### Où se trouve Qwen ?
 L'unique adaptateur Qwen est **`tools/qwen_tag_fx.py`**, outil PC Python hors de l'APK ; il dépend de `torch`, `transformers`, `qwen-omni-utils` et du checkpoint `Qwen/Qwen2.5-Omni-3B` (~12 Go de poids). Le modèle **n'est ni committé au dépôt, ni inclus dans l'APK, ni exécuté par Android**. Le script ne télécharge les poids que sur instruction explicite `--allow-download` et son inférence réelle reste à vérifier. Licence de ces poids : `qwen-research` (voir fiche officielle).
+
+### ✅ APK 0.2.1 vérifié en CI
+[**Télécharger l'APK 0.2.1 directement (sans ZIP)**](https://github.com/greenpower2669/FxExtractor/actions/runs/39068622333/artifacts/12114461455) (32 609 octets, debug). [AAB séparé non signé](https://github.com/greenpower2669/FxExtractor/actions/runs/39068622333/artifacts/12114685969). Code SHA `439be695` ; run 39068622333 SUCCESS. `main` n'est pas fusionnée. Test matériel Samsung et intégration future de l'IA audio encore nécessaires.

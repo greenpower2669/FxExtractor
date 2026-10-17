@@ -29,6 +29,6 @@
 - [x] Suivre les queues faibles avec un seuil plus bas et silence 220 ms ; fin réglable de 100 à 1500 ms (600 ms par défaut).
 - [x] Pré-écoute basée sur la position réelle MediaPlayer (plutôt qu'un délai fixe après un seek).
 - [x] Ajouter tests Java de reverb, réglage fin, événements séparés et silence.
-- [ ] Confirmer CI Android de la version 0.2.1, SHA artefact et fournir le fichier APK direct non zippé via RUNNER_TEMP.
+- [x] CI 0.2.1 validée : run `39068622333`, code SHA `439be695651a26a13f01697f11b98d026a9faf30`, tests JVM + APK/AAB verts. APK brut ID `12114461455` (32 609 octets) ; AAB unsigned ID `12114685969`.
 - [ ] Tester sur Samsung les fins de sons réels et risques de regroupement de deux FX rapprochés ; ajuster au besoin.
 - [ ] IA audio Android : **non intégrée** ; choisir un modèle compatible hors ligne et tester mémoire/latence/qualité, sans prétendre que Qwen PC est déjà dans l'APK.
