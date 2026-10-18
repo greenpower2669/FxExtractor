@@ -62,3 +62,6 @@ Risques connus : CORS/Hugging Face dans Android WebView, espace de stockage des 
  
 ## 18/10/2026 — échec silencieux du chargement MIDI 0.3.5
 Retour Fab : aucun retour visuel après « Charger », commandes grisées. Défaut vérifiable dans le code : le diagnostic en bas de page est sous les commandes, non visible immédiatement ; import JavaScript statique pouvait bloquer tout l'enregistrement des actions. Cause profonde éventuelle (réseau/model/WebView) encore inconnue sans journal. 0.3.6 met le diagnostic en haut, charge les modules dynamiquement, prend en charge le timeout des petits fichiers, annulation, copie journal native et test régression. Ne pas présumer que l'inférence v5 marche avant essai physique.
+
+### État correctif UI 0.3.6
+CI 39153583595 SUCCESS : tests Node d'affichage immédiat et de reprise après échec de module, compilation Android/MP3/YAMNet, extraction et livraison .apk brute. Le diagnostic utilisateur réel (éventuel blocage réseau / WASM) reste à recueillir ; ne pas conclure que l'inférence est réparée sans test sur téléphone.

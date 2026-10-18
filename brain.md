@@ -61,3 +61,5 @@ CI compilation 0.3.5 validée : GitHub run 39150975283 SUCCESS, modèle runtime 
  
 ## v0.3.6 — diagnostic MIDI
 Retour Fab (18/10) : appui sur Charger sans réaction, options grisées. La 0.3.5 cachait le statut loin sous les boutons et utilisait les imports statiques sans gestion d'échec visible. En 0.3.6, interface de diagnostic avant chargement dynamique, copie native et bouton test hors ligne, progression près de charger, annulation et reprise après échec. Compilation/test Android à vérifier ; test réel d'inférence encore nécessaire. Ne pas fusionner main.
+
+Preuve CI 0.3.6 : run GitHub 39153583595 SUCCESS, APK debug brut `delivery/fxextractor-apk/apk/FxExtractor-0.3.6-MIDI-v5-debug.apk` (27 401 723 octets, blob `5200331c92c3223612ad2570f7ebf4445b4e8254`), AAB distinct non signé, test JS de gestion d'échec passé. Aucun essai matériel réel nouveau.

@@ -98,6 +98,6 @@
 - [x] Démarrer l'UI avant l'import des modules ONNX, afficher étapes, progression et erreurs juste sous Charger.
 - [x] Test hors ligne des boutons, annulation, réessai, copie du diagnostic via Android Clipboard.
 - [x] Ajouter smoke test Node du clic et de la reprise après échec de module JS.
-- [ ] CI Android/Node verte avec 0.3.6 et livraison APK brut GitHub confirmée ; consigner run et SHA.
+- [x] CI Android/Node SUCCESS run 39153583595, code 670977b1 : test anti-blocage MIDI, YAMNet, MP3 et APK/AAB ; APK brut 27 401 723 octets, blob 5200331c92c3223612ad2570f7ebf4445b4e8254. Essai Samsung encore requis.
 - [ ] Essai Samsung : bouton test, téléchargement CPU (~115 Mo), sortie explicite de chaque étape, RAM et vraie génération.
 - [ ] Si diagnostic « Accès réseau », « WebGPU », « WASM » ou crash WebView, corriger le moteur spécifique à partir du rapport réel.
