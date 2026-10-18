@@ -25,8 +25,17 @@ public class TestFxAnalyzer {
         for (int i = 38; i < 115; i++) {
             decay[i] = 0.030 * Math.exp(-(i - 38) / 65.0);
         }
+        check(FxAnalyzer.DEFAULT_RELEASE_MS == 0, "Default must have no artificial tail");
+        FxAnalyzer.Result zeroTail = FxAnalyzer.analyze(decay, 20, 1.0, 0);
+        FxAnalyzer.Result implicitTail = FxAnalyzer.analyze(decay, 20, 1.0);
+        check(zeroTail.spans.size() == 1 && implicitTail.spans.size() == 1,
+                "0ms release must preserve exactly the detected effect");
+        check(zeroTail.spans.get(0).endMs == implicitTail.spans.get(0).endMs,
+                "Implicit default must equal explicit 0ms");
         FxAnalyzer.Result shortTail = FxAnalyzer.analyze(decay, 20, 1.0, 100);
         FxAnalyzer.Result protectedTail = FxAnalyzer.analyze(decay, 20, 1.0, 1100);
+        check(shortTail.spans.get(0).endMs - zeroTail.spans.get(0).endMs >= 100,
+                "A positive setting should extend 0ms by its precise duration");
         check(shortTail.spans.size() == 1 && protectedTail.spans.size() == 1,
                 "A long fading reverb is one FX");
         check(protectedTail.spans.get(0).endMs > 2400,
