@@ -130,3 +130,5 @@
 - [ ] Vérifier test Chromium (prévu 180 s), puis build Android, APK >100 Mo en artifact non zippé, SHA modèle.
 - [ ] Tester physiquement le Samsung : lancement CPU hors ligne puis génération 128 tokens, temps/ mémoire, écoute.
 - [ ] Si navigateur Linux réussit mais Samsung échoue, relever la stack complète et différences WebView.
+
+- [ ] Première CI v0.3.8 run 39158913666 échouée sur **outil test Playwright**, page fermée sans diagnostic ONNX. Remplacé par serveur HTTP streaming local ; relancer test réel sur navigateur et inspecter sortie.

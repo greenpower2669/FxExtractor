@@ -77,3 +77,7 @@ CI GitHub 39157742071 SUCCESS : tests, MP3, YAMNet, téléchargement/contrôle d
 
 ## 18/10 — échec 0.3.7 au démarrage ONNX après lecture complète
 Logs exacts : WASM 27.0 Mio local, modèle CPU 109.3/109.3 Mio chargé en RAM, erreur async `Cannot read properties of undefined (reading 'Xe')` à l'étape 4. La précédente panne de fetch WASM est réglée. Nouvelle hypothèse forte : incompatibilité d'artefacts (JS ort.webgpu.bundle + JSEP WASM) pour le CPU ; selon le contrat ONNX Runtime Web, utiliser le bundle `ort.wasm.bundle.min.mjs` + `ort-wasm-simd-threaded.wasm` de même version. Introduire vraie initialisation automatisée Chromium Playwright en CI au lieu d'affirmer qu'un test de syntaxe garantit l'inférence.
+
+
+### Échec du premier test Chromium v0.3.8
+Run 39158913666 : les tests Java étaient verts, mais Chromium Playwright s'est fermé abruptement pendant `page.waitForFunction` lors du test de modèle, sans message ONNX. Le banc d'essai utilisait `page.route().fulfill({path})` sur un fichier de 109Mio : risque mémoire/IPC et mort du navigateur. Nouveau test via serveur HTTP local en streaming et base URI dérivée, affichage logs/crash ; ne pas conclure à un défaut de modèle avec ce premier résultat.

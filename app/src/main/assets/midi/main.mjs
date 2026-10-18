@@ -5,7 +5,7 @@ let ort, detect, loadMidigen, newScore, newTrack, writeMidi, mspqOf, parseMidi;
 let mg = null, currentMidi = null, audio = null, activeOsc = [], controller = null;
 let loadController = null;
 let trace = ["FxExtractor 0.3.8 MIDI CPU · initialisation"];
-const ASSET_ROOT = "https://appassets.androidplatform.net/midi/";
+const ASSET_ROOT = document.baseURI ? new URL("./", document.baseURI).href : "https://appassets.androidplatform.net/midi/";
 let startedLoading = false;
 const native = globalThis.FxNative;
 const status = txt => {
