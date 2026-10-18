@@ -52,6 +52,23 @@ jobs:
               urlretrieve('https://raw.githubusercontent.com/Stability-AI/stable-audio-3/main/optimized/tflite/models/tokenizer.model',str(tok))
           shutil.copyfile(tok,base/'tokenizer.model')
           PY
+      - name: Inspect exact checkpoint SignatureDef names and raw buffer orders
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          from ai_edge_litert.interpreter import Interpreter
+          root=Path(os.environ['RUNNER_TEMP'])/'sa3ref/optimized/tflite/models/tflite'
+          for p in [root/'sa3-sm-music/dit_w8a8.tflite',
+                    root/'t5gemma/encoder_fp16.tflite',
+                    root/'same-s/dec_w8a8.tflite',
+                    root/'same-s/enc_w8a8.tflite']:
+              it=Interpreter(model_path=str(p))
+              print('SIGNATURE',p.name,repr(it.get_signature_list()),flush=True)
+              ins=it.get_input_details()
+              print('RAW INPUTS',p.name,[(d['name'],d['shape'].tolist()) for d in ins],flush=True)
+              print('RAW OUTPUTS',p.name,[(d['name'],d['shape'].tolist()) for d in it.get_output_details()],flush=True)
+          PY
       - name: Run official REAL SA3 text-to-audio inference
         timeout-minutes: 50
         run: |
