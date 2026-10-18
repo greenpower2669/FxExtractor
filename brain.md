@@ -90,3 +90,7 @@ Branche indépendante `feature/stable-audio3-local-v1` : ajout `StableAudioActiv
 
 ### CI 0.4.0-dev socle
 Run GitHub Actions 39166381192 SUCCESS : LiteRT 2.3 + YAMNet Kotlin compilent, tests Java sampler pingpong/WAV passent. APK préliminaire brut 155643725 octets artifact 12150472873 ; aucune génération Stable Audio 3 démontrée, poids absents, bouton désactivé. Ne pas présenter cette version comme finalité, éviter téléchargement inutile à Fab. Ajout tools/verify_sa3_model_pack.py pour valider SHA/tailles/modèles **après** accord Gemma & Stability, sans bypass.
+
+
+### 18 octobre — extension amorce sonore et port neuronal en cours
+Fab demande version Stable Audio 3 TERMINÉE et souhaite un son d'amorce. Coder 2 modes : texte→musique et audio+texte→variation. Fichiers : StableAudioEngine.kt (T5Gemma, DiT rung+gcond, sampler pingpong, SAME-S enc/dec, réduction RAM par fermeture entre étapes), StableAudioSeedInput.kt (WAV PCM16 + MediaExtractor/MediaCodec offline MP3/M4A/etc, resample 44,1 kHz), StableAudioActivity.java (écran accessible, prompt durée/variation, sélection amorce, génération asynchrone, écoute, export WAV). Ajouter dépendance tokenizer-native Android et converter Python avec comparaison rigoureuse à la SentencePiece officielle. NOTE IMPORTANTE : IA native non vérifiée sur Samsung, ni poids complets livrés avant exécution intégrale et licences. Ne pas présenter build préliminaire comme produit fini.

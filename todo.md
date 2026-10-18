@@ -165,3 +165,13 @@
 - [x] CI premier socle 0.4.0-dev : run 39166381192 SUCCESS (tests Java sampler et WAV, compilation Kotlin LiteRT/Android). Artefact brut 12150472873 de 155 643 725 octets, **non livrable comme IA musicale fonctionnelle**.
 - [x] Code d'audit d'un pack de 4 modèles : tools/verify_sa3_model_pack.py, validation tailles, magic TFL3, SHA, licence explicite du responsable de packaging, pas de contournement HF.
 - [ ] Le portage réel T5Gemma/SentencePiece/DiT rung/SAME-S et la génération WAV non silencieuse manquent encore ; les tester avec vrais poids après obtention autorisée. Besoin d'accord aux licences Gemma et Stability AI.
+
+## Stable Audio 3 complet — demande explicite Fab
+- [x] Programmer architecture des deux parcours : texte→musique, amorce audio+texte→variation (sigmaMax 0.2..1, SAME-S encodeur quantifié).
+- [x] Programmer encodeur texte T5Gemma, DiT rung Small-Music gcond + bruit gaussian pingpong, décodage SAME-S, contrôle RMS non silencieux, sortie WAV.
+- [x] Programmer import WAV/MP3/M4A via MediaCodec/MediaExtractor + conversion 44,1 kHz stéréo, entrée via sélecteur fichiers Android, écouter et exporter.
+- [x] Programmer conversion tokenizer.model -> tokenizer.json locale et test de parité référence SentencePiece obligatoire.
+- [ ] Faire passer compilation Kotlin/Android complète ; adapter les noms réels des signatures TFLite d'après métadonnées du checkpoint et tester tous les calculs sur poids réels.
+- [ ] Intégrer **cinq modèles** dans l'APK (T5, Small-DiT, SAME-S enc + dec et tokenizer) avec licences et hashes ; nécessité validation des conditions Stability AI Community et Gemma.
+- [ ] Effectuer inférence Linux sur vrais poids avec un audio témoin non silencieux puis test Samsung Android 16 hors ligne, contrôler mémoire et stabilité.
+- [ ] Publier seul l'APK complet, pas le dev 0.4.1 inachevé. Aucune fusion main/release sans Fab.

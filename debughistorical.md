@@ -100,3 +100,6 @@ La version d'extraction FxExtractor utilisait tensorflow-lite 2.16.1 pour YAMNet
 
 ### Jalon expérimental compilé
 CI 39166381192 SUCCESS, Kotlin LiteRT 2.3 et extraction YAMNet compilent, tests sampler/WAV en JVM passent ; aucune preuve de non-régression **sur Samsung**, YAMNet et Stable Audio 3 à tester sur matériel. APK 0.4.0-dev 155643725 octets sans poids Stable Audio, à ne pas appeler générateur musical. Modèles Stability/Gemma à obtenir sous licences, portage neuronal restant.
+
+### 18/10 — réel pipeline SA3 local en migration
+Deux modes implémentés : texte + amorce via SAME-S encoder. Les signatures DiT supposées args_0..6/output_0 sont à confronter à la SignatureDef officielle (sans le fichier ~0.5 Go, pas encore vérifiable). L'encodeur T5Gemma utilise Rust HuggingFace tokenizer, exporté depuis SentencePiece par transformers, validé par tests de parité stricts. Le runtime poids réel, Android mémoire, génération non-silence et le packaging APK >1Go sont encore NON VALIDÉS. Ne pas confondre compilation CI et fonctionnement du réseau.

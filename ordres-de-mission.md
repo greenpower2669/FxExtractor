@@ -69,3 +69,6 @@ Fab : « Oui, ton premier choix mon ange ». Suite à la proposition de Stable A
 
 ### 18 octobre 2026 — ordre « Il faut le coder ça »
 Fab autorise démarrage du codage du deuxième laboratoire Stable Audio 3 Small-Music, en conservant l'IA MIDI v5 et extraction FX. Cadre : vraie génération audio locale, modèles poids compris dans APK final, pas de réseau téléphone, pas de faux son/bouton inerte présenté comme prêt ; branche expérimentale isolée, tests CI et Android puis livraison APK brut vérifié, pas de merge main/release sans approbation. Premier jalon : UI, audit des modèles, sampler réel, migration LiteRT/YAMNet. Suite : tokenizer, T5Gemma, DiT, SAME-S, licences, packaging.
+
+## Autorisation 18 octobre — finir Stable Audio 3 et amorce son
+Fab : « Ok termine alors, je veux la version terminée et si on peut y mettre un bout de son en amorce ». Mission : livrer APK **réellement complet** avec génération audio locale texte→musique et audio→variation guidée par texte, écoute/export WAV, sans téléchargements on-device. Ne pas solliciter de tests ni livrer une fausse version finale avant réussite de test end-to-end avec vrais modèles. Branches main et release non modifiées. Le modèle audio de départ doit être analysé par SAME-S et injecté en latents (non concaténé). Respecter licences Gemma, Stability AI Community, et provenance du son.
