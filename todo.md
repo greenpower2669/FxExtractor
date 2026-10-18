@@ -177,7 +177,7 @@
 - [ ] Publier seul l'APK complet, pas le dev 0.4.1 inachevé. Aucune fusion main/release sans Fab.
 
 ## 19/10/2026 — Extension / prolongation de sons (demande Fab)
-- [ ] Ajouter mode « Prolonger un son » distinct de « Variation depuis une amorce » : importer un extrait, choisir durée supplémentaire (par ex. +5, +10, +20, +30 s), décrire la continuité souhaitée, écouter et exporter.
+- [ ] Ajouter mode « Prolonger un son » distinct de « Variation depuis une amorce » : importer un extrait, choisir **jusqu'à +60 secondes supplémentaires** (par ex. +5, +10, +20, +30, +45, +60 s), décrire la continuité souhaitée, écouter et exporter. La durée choisie est le temps AJOUTÉ au son original, pas la durée totale; jusqu'à 120 s par génération SA3, blocs chaînés si nécessaire.
 - [ ] Tester outpainting via SAME-S encoder + `--inpaint-range` (référence upstream SA3) : étendre le signal d'entrée au total souhaité, encoder son préfixe, conserver la zone originale via `keep_mask`, générer uniquement la partie manquante avec `local_add_cond` et la réinjection des latents conservés à chaque étape.
 - [ ] Préserver **exactement** l'audio utilisateur d'origine dans le fichier final en réassemblant ses échantillons PCM originaux avec la continuation, et gérer la jonction par courte transition/crossfade facultative. Éviter de confondre fidélité du préfixe final et qualité du codec SAME-S.
 - [ ] Pour une extension dépassant la limite 120 s du Small-Music, générer des blocs successifs avec contexte glissant, raccords et tests d'accumulation d'erreurs ; performance/mémoire Samsung à vérifier.
