@@ -71,6 +71,6 @@
 - [x] Encoder AAC en M4A local via MediaCodec/MediaMuxer et rééchantillonnage linéaire vers 44,1 kHz.
 - [x] Conserver ZIP global WAV pour tous les clips, y compris après le 40e.
 - [x] Ajouter test JVM direct WAV lossless, durée et en-tête valide.
-- [ ] Valider CI 0.3.3 Android + Java puis fichier APK brut direct.
+- [x] CI 0.3.3 Android + Java SUCCESS, run 39123489681 (code 711bba56575f4624fa73653c579ba56becbea3cb). Fichier APK brut `apk/FxExtractor-0.3.3-debug.apk` 18 904 624 octets sur branche delivery, Git blob e9b922107d0ae18364404e82d07f0be099255184. Compilation M4A valide, test matériel encore nécessaire.
 - [ ] Test Samsung : sauvegarde unitaire WAV/M4A, résolution de nom, lecture M4A, pas de ZIP, qualité et durée.
 - [ ] Envisager formats supplémentaires après évaluation réels codecs/licences ; ne pas annoncer MP3 absent.

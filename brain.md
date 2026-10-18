@@ -42,3 +42,6 @@ Run GitHub 39082262856 SUCCESS sur commit code d9761b9ad042a65d5e083dacee6524c0b
 
 ## v0.3.3 — sauvegarde individuelle (18/10/2026)
 Après l'analyse, chacune des 40 lignes affichées possède « Enregistrer ce son » ; sélecteur de fichier Android pour sauvegarder directement l'extrait dans le dossier choisi, sans ZIP. Sélecteur de formats général : WAV PCM16 sans perte (rate source) ou M4A/AAC-LC compressé par MediaCodec/MediaMuxer Android (44,1 kHz, débit cible 96/160 kbit/s mono/stéréo). WAV direct partagé par WavIO.writeClip, ZIP global WAV inchangé, noms manuels ou YAMNet suivis et assainis, aucune permission réseau. Le téléchargement du logiciel APK brut GitHub reste séparé de l'export des sons sur le téléphone. Toujours livrer APK brut sur delivery/fxextractor-apk, sans merge main/Release.
+
+### Livraison 0.3.3 confirmée
+Run Actions `39123489681` SUCCESS sur SHA source `711bba56575f4624fa73653c579ba56becbea3cb` ; tests JVM incluant WAV individuel, test YAMNet réel Linux, compilation Android avec nouveau module M4A, package `.apk` extrait et poussé brut dans `delivery/fxextractor-apk/apk/FxExtractor-0.3.3-debug.apk` (18 904 624 octets, git blob `e9b922107d0ae18364404e82d07f0be099255184`). Encodage M4A non encore essayé sur Samsung.

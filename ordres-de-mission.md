@@ -37,3 +37,6 @@ GitHub Actions 39082262856 SUCCESS sur code d9761b9, APK brut direct 18 888 244 
 
 ## 18/10/2026 — sauvegarde directe par son et formats
 Demande de Fab : « Super proposer un téléchargement direct par ligne et des option de format de sortie ». L'application doit permettre de **sauvegarder chaque effet affiché individuellement directement dans un fichier audio choisi dans Android, sans ZIP**, avec nom IA ou manuel. Ajouter choix réel **WAV PCM16 sans perte / M4A AAC compressé** ; ne pas faire croire que MP3 est pris en charge. Garder archive ZIP WAV pour export global de tous les sons, sans rupture de l'extraction, du curseur de fin à 0 ms, ni du modèle YAMNet. Tester JVM WAV et compiler AAC Android, puis livrer **vrai APK brut** via RUNNER_TEMP et branche delivery. Aucun merge main ni Release.
+
+### Vérification livraison v0.3.3
+GitHub Actions run 39123489681 vert ; APK brut `delivery/fxextractor-apk/apk/FxExtractor-0.3.3-debug.apk` confirmé 18 904 624 octets, sans ZIP, pas de merge main ni Release. Tester M4A sur téléphone pour confirmer le codec.

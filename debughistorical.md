@@ -45,3 +45,6 @@ Run 39082262856 SUCCESS : test 0 ms et réverbération, test IA LiteRT réel, co
 
 ## D011 — extraction par ligne demandée (18/10/2026)
 Retour utilisateur : souhaite télécharger/enregistrer individuellement chaque son et choisir le format. Jusqu'à 0.3.2 seule l'archive ZIP WAV était exportable. v0.3.3 : bouton par FX (40 lignes affichées), ACTION_CREATE_DOCUMENT direct, WAV sans perte via WavIO.writeClip et M4A AAC-LC comprimé via MediaCodec/MediaMuxer avec temporary file (qui est supprimé). L'export ZIP historique reste inchangé. Les encodeurs AAC étant dépendants d'Android/Samsung, compilation CI ne suffit pas à prouver le résultat matériel ; montrer les erreurs clairement et tester.
+
+### D011 — preuve CI 0.3.3
+GitHub Actions 39123489681 SUCCESS, code 711bba5. Tests WAV individuel, IA YAMNet et compilation AAC Android, APK brut 18 904 624 octets présent dans delivery; aucune Release/main modifiée. Un build compilant MediaCodec ne prouve pas le support réel de l'encodeur sur Samsung ; tester un fichier M4A puis l'écouter.
