@@ -87,7 +87,7 @@
 - [x] Ajouter une activité séparée, sans changer YAMNet ou les exportations audio.
 - [x] Amorce MIDI originale, BPM, créativité, mesure du temps, pré-écoute WebAudio, export .mid.
 - [x] Préparer packaging CI du moteur JS/ONNX Web v5 en versions épinglées et téléchargement optionnel des poids sur smartphone.
-- [ ] Vérifier CI Android, assets MIDI dans l'APK et binaire brut direct ; noter run et SHA.
+- [x] CI Android + Java SUCCESS, run 39150975283 sur code 44f3cfef : MIDI JS/ONNX WASM embarqués ; APK brut 27 399 299 octets, Git blob 2e42c5b4e781383dd5acbe43d08fbc5d2801e667.
 - [ ] Essai Samsung Android 16 : premier téléchargement, cache, latence, stabilité RAM, WebGPU, export.
 - [ ] Si navigateur WebView est trop lent/instable, étudier ORT Android natif et un vrai lecteur SoundFont.
 - [ ] Valider la qualité musicale et licence avant inclusion dans BlockBoost.

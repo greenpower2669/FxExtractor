@@ -139,3 +139,5 @@ Test MP3 Linux : encoder via JNI la forme d'onde WAV, vérifier au ffprobe qu'il
 - Compilation GitHub Actions : modules source en .mjs + binaire WASM embarqués, modèle ONNX distant seulement sur clic. L'exécution réelle et la vitesse sur le Samsung **ne sont pas encore validées**.
 - Après CI réussie, APK brut attendu dans `delivery/fxextractor-apk/apk/FxExtractor-0.3.5-MIDI-v5-debug.apk`, sans fusion main/Release.
 - Sources : https://github.com/nicholasbien/midigenai et https://github.com/microsoft/onnxruntime.
+
+**Livraison test v0.3.5 vérifiée (GitHub Actions) :** [APK brut direct .apk](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.5-MIDI-v5-debug.apk) — 27 399 299 octets, [run CI 39150975283 SUCCESS](https://github.com/greenpower2669/FxExtractor/actions/runs/39150975283) ; [AAB non signé séparé](https://github.com/greenpower2669/FxExtractor/actions/runs/39150975283). L'inférence MIDI sur appareil n'est pas encore attestée.
