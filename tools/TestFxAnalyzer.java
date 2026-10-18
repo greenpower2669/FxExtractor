@@ -67,6 +67,7 @@ public class TestFxAnalyzer {
         File wav = File.createTempFile("fxextractor-", ".wav");
         File zip = File.createTempFile("fxextractor-", ".zip");
         File namedZip = File.createTempFile("fxextractor-named-", ".zip");
+        File soloWav = File.createTempFile("fxextractor-direct-", ".wav");
         try {
             try (FileOutputStream out = new FileOutputStream(wav)) {
                 int rate = 8000, n = 8000;
@@ -102,6 +103,19 @@ public class TestFxAnalyzer {
                             "Report filename must match ZIP");
                 }
             }
+            try (RandomAccessFile input = new RandomAccessFile(wav, "r");
+                 OutputStream direct = new FileOutputStream(soloWav)) {
+                WavIO.Info format = WavIO.readInfo(input);
+                FxAnalyzer.Result events = FxAnalyzer.analyze(WavIO.envelope(input, format), 20, 1);
+                check(events.spans.size() == 1, "One direct-export event expected");
+                WavIO.writeClip(input, format, events.spans.get(0), direct);
+            }
+            try (RandomAccessFile direct = new RandomAccessFile(soloWav, "r")) {
+                WavIO.Info clip = WavIO.readInfo(direct);
+                check(clip.rate == 8000 && clip.channels == 1, "Direct WAV keeps sample format");
+                check(clip.durationMs() > 250 && clip.durationMs() <= 1000,
+                        "Direct WAV duration bounded by detected event");
+            }
             try (ZipFile z = new ZipFile(zip)) {
                 check(z.getEntry("events.json") != null, "manifest");
                 check(z.getEntry("FX_001.wav") != null, "actual audio");
@@ -109,7 +123,7 @@ public class TestFxAnalyzer {
                     check(in.read() == 'R', "RIFF header in export");
                 }
             }
-        } finally { wav.delete(); zip.delete(); namedZip.delete(); }
+        } finally { wav.delete(); zip.delete(); namedZip.delete(); soloWav.delete(); }
         System.out.println("PASS FxAnalyzer: segmentation/silence/WAV/ZIP");
     }
 }
