@@ -54,16 +54,16 @@ public final class MainActivity extends Activity {
         final FxAnalyzer.Result result;
         final FxAnalyzer.Span span;
         final String filename;
-        final boolean aac;
+        final int format; // 0: WAV, 1: M4A/AAC, 2: MP3/Shine
 
         PendingClip(File source, WavIO.Info info, FxAnalyzer.Result result,
-                    FxAnalyzer.Span span, String filename, boolean aac) {
+                    FxAnalyzer.Span span, String filename, int format) {
             this.source = source;
             this.info = info;
             this.result = result;
             this.span = span;
             this.filename = filename;
-            this.aac = aac;
+            this.format = format;
         }
     }
 
@@ -110,13 +110,13 @@ public final class MainActivity extends Activity {
         outputFormat = new Spinner(this);
         ArrayAdapter<String> formats = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item,
-                new String[] { "WAV · sans perte", "M4A (AAC) · compressé" });
+                new String[] { "WAV · sans perte", "M4A (AAC) · compressé", "MP3 · compressé" });
         formats.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         outputFormat.setAdapter(formats);
         outputFormat.setSelection(0);
-        outputFormat.setContentDescription("Choisir le format de sortie individuel : WAV ou M4A");
+        outputFormat.setContentDescription("Choisir le format de sortie individuel : WAV, M4A ou MP3");
         root.addView(outputFormat);
-        text(root, "Sous chaque extrait, « Enregistrer ce son » crée directement un fichier WAV ou M4A dans le dossier choisi. Le ZIP reste disponible pour tous les extraits (en WAV).", 15);
+        text(root, "Sous chaque extrait, « Enregistrer ce son » crée directement un fichier WAV, M4A ou MP3 dans le dossier choisi. Le ZIP reste disponible pour tous les extraits (en WAV).", 15);
         exportButton = button(root, "3 · Exporter tous les FX en ZIP (WAV)", () -> save());
         aiButton = button(root, "🤖 Proposer les noms avec IA locale", () -> suggestNames());
         aiStatus = text(root, "IA : importe une vidéo puis lance l'analyse. Les résultats apparaissent sous chaque extrait.", 17);
@@ -168,15 +168,16 @@ public final class MainActivity extends Activity {
             state.setText("Analyse d'abord les sons pour activer l'enregistrement individuel.");
             return;
         }
-        boolean aac = outputFormat.getSelectedItemPosition() == 1;
+        int format = outputFormat.getSelectedItemPosition();
         String label = nameInputs.get(index).getText().toString();
         String filename = WavIO.exportFileName(label, index + 1);
-        if (aac) filename = filename.substring(0, filename.length() - 4) + ".m4a";
+        if (format == 1) filename = filename.substring(0, filename.length() - 4) + ".m4a";
+        else if (format == 2) filename = filename.substring(0, filename.length() - 4) + ".mp3";
         pendingClip = new PendingClip(current, info, snapshot, snapshot.spans.get(index),
-                filename, aac);
+                filename, format);
         Intent create = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         create.addCategory(Intent.CATEGORY_OPENABLE);
-        create.setType(aac ? "audio/mp4" : "audio/wav");
+        create.setType(format == 2 ? "audio/mpeg" : format == 1 ? "audio/mp4" : "audio/wav");
         create.putExtra(Intent.EXTRA_TITLE, filename);
         startActivityForResult(create, SAVE_CLIP);
     }
@@ -210,14 +211,17 @@ public final class MainActivity extends Activity {
                     if (check.rate != clip.info.rate || check.channels != clip.info.channels
                             || check.bytes != clip.info.bytes)
                         throw new IOException("Le son d'origine a changé");
-                    if (clip.aac) {
+                    if (clip.format == 1) {
                         temp = File.createTempFile("fx-single-", ".m4a", getCacheDir());
                         ClipAacEncoder.writeM4a(wav, check, clip.span, temp);
+                    } else if (clip.format == 2) {
+                        temp = File.createTempFile("fx-single-", ".mp3", getCacheDir());
+                        Mp3ShineEncoder.writeMp3(wav, check, clip.span, temp);
                     }
                     OutputStream output = getContentResolver().openOutputStream(uri, "wt");
                     if (output == null) throw new IOException("Destination inaccessible");
                     try (OutputStream destination = output) {
-                        if (clip.aac) {
+                        if (clip.format != 0) {
                             try (InputStream encoded = new FileInputStream(temp)) {
                                 byte[] dataBuffer = new byte[32768]; int n;
                                 while ((n = encoded.read(dataBuffer)) != -1)
@@ -229,8 +233,10 @@ public final class MainActivity extends Activity {
                     }
                     ui.post(() -> setBusy(false, "Fichier enregistré directement : "
                             + clip.filename + " (sans ZIP)."));
-                } catch (Exception e) {
-                    ui.post(() -> setBusy(false, "Enregistrement impossible : " + safe(e)
+                } catch (Exception | LinkageError e) {
+                    String detail = e.getMessage() != null ? e.getMessage()
+                            : e.getClass().getSimpleName();
+                    ui.post(() -> setBusy(false, "Enregistrement impossible : " + detail
                             + " (vérifie le fichier partiel dans le dossier choisi)."));
                 } finally {
                     if (temp != null) temp.delete();
