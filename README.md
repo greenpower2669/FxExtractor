@@ -96,3 +96,8 @@ L'initialisation du modèle YAMNet échouait : l'APK attendait strictement une e
 Le bouton IA reste cliquable pour expliquer les prérequis et les opérations déjà en cours. Un texte d'état à côté du bouton indique chargement, avancement 1/N, réussite ou erreur. Les résultats de chaque extrait sont visibles près de son champ de nom. Les erreurs de chargement natif TensorFlow Lite sont désormais signalées, sans masquer les champs de renommage.
 
 Test CI supplémentaire : charger le modèle YAMNet avec le runtime LiteRT Python sur le runner GitHub, vérifier les dimensions et exécuter une véritable inférence sur un son silencieux, AVANT d'accepter la compilation APK. Cela ne remplace pas un test sur le Samsung Android 16 de Fab.
+
+## 0.3.2 — 0 ms par défaut et correctif IA (18/10/2026)
+**Demande Fab :** la préservation de fin de son doit accepter **0 ms**, valeur **par défaut**. Curseur désormais **0 à 1 500 ms**, par pas de 50 ms. À zéro, **aucune marge de fin supplémentaire** n'est ajoutée après la fin détectée ; la segmentation RMS et la protection de décroissance sont maintenues. L'ancien curseur était limité à 100..1500 ms et commençait à 600 ms.
+
+Les correctifs IA 0.3.1 sont inclus : vrai tenseur d'entrée YAMNet `[15600]` (confirmé sur GitHub par inférence réelle sur un silence, classé Silence), bouton reconnaissance explicatif toujours cliquable, progression et erreurs visibles. Le modèle et ses 521 étiquettes sont dans l'APK. Le test réel sur téléphone Samsung reste nécessaire, un succès Linux n'établissant pas le comportement runtime Android.

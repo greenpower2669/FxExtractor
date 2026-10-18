@@ -56,3 +56,10 @@
 - [x] Ajouter smoke test de véritable inférence YAMNet via LiteRT Python avant build Android.
 - [ ] CI v0.3.1 verte et APK direct vérifié avec le nouveau code.
 - [ ] Essai sur Samsung : reconnaissance de plusieurs extraits réels, affichage de scores, noms modifiables.
+
+## 0.3.2 — demande Fab curseur 0 ms
+- [x] Permettre explicitement **0 ms**, valeur par défaut, jusqu'à 1 500 ms par pas de 50 ms.
+- [x] Moteur RMS `DEFAULT_RELEASE_MS = 0` ; aucun padding additionnel à 0, sans dénaturer le suivi naturel des queues.
+- [x] Tests : zéro par défaut égal zéro explicite, valeurs positives plus longues, séparations préservées.
+- [ ] Confirmer CI verte et APK 0.3.2 brut direct dans delivery/fxextractor-apk.
+- [ ] Essai physique Samsung : commande 0 ms, progression IA, résultats, exports.

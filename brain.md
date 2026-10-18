@@ -33,3 +33,6 @@ Run GitHub Actions 39072851527 SUCCESS sur commit code aba5f44c19cc986baf404a401
 
 ## v0.3.1 — problème de bouton IA (18/10/2026)
 Diagnostic : vérification tensorielle erronée de YAMNet. Entrée modèle officiel [15600] au lieu de [1,15600]. Correctif FxSoundAI accepte deux rangs et utilise float[] ou float[][] selon la vraie forme. MainActivity rend états et erreurs visibles près du bouton et des sons, gère prérequis, progression et LinkageError. CI nouvelle inférence vraie sur Linux, sans changer traitement DSP. Test Samsung encore nécessaire, aucun merge ni Release.
+
+## 0.3.2 — 0 ms de fin de son par défaut
+À la demande expresse de Fab, **préservation après fin : 0 ms par défaut**, curseur **0..1500 ms** par pas de 50. Cela ne désactive pas le suivi naturel de décroissance ; cela retire uniquement le supplément après le dernier échantillon reconnu. Test JVM compare option implicite à 0 explicite et garantit extension si durée positive. Le correctif YAMNet rank1 et affichage clair du statut de 0.3.1 est inclus. Pas de merge main ni Release.

@@ -20,3 +20,5 @@
 - .github/workflows/android.yml : emballage du modèle officiel et des étiquettes en assets, compilation, validation et publication du vrai APK.
 
 - tools/test_yamnet_model.py : test de véritable inférence du modèle Google sur le runner GitHub.
+
+- `app/src/main/java/fr/fxextractor/FxAnalyzer.java` : marge finale réglable, défaut 0 ms (à partir de 0.3.2).

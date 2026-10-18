@@ -28,3 +28,6 @@ GitHub run 39072851527 SUCCESS ; APK brut réellement disponible dans delivery/f
 
 ## 18/10/2026 — bouton IA sans réaction
 Retour Fab : « Quand je click reconnaissance par ia il ne se passe rien il me semble ? » Réparer la vraie forme d'entrée YAMNet, assurer un affichage clair prérequis/progrès/erreurs au clic et près des sons, ajouter test d'inférence réelle. Préserver noms manuels, décodage vidéo, découpe FX et règle immuable de lien .apk brut extrait dans GitHub RUNNER_TEMP. Aucun merge main ni Release.
+
+## 18/10/2026 — 0 ms de préservation par défaut
+Instruction de Fab confirmée par capture écran : le curseur « Préserver les fins de sons » doit **permettre 0 ms, et 0 ms est la valeur initiale par défaut**, réglage libre jusqu'à 1500 ms. À 0, pas de rallonge supplémentaire au-delà de la fin détectée (conserver la détection de la décroissance naturelle). Préserver le correctif YAMNet et livrer l'APK 0.3.2 brut vérifié depuis GitHub RUNNER_TEMP ; pas de merge main ni Release.

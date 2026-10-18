@@ -36,3 +36,6 @@ Après correction du texte d'interface et verrouillage SHA256 du modèle, run Gi
 
 ## D009 — bouton reconnaissance semble inactif (18/10/2026)
 Retour Fab : touche reconnaissance IA apparemment sans effet. Cause source identifiable : FxSoundAI exigeait input [1,15600], mais le YAMNet officiel est rank1 [15600], sortie [1,521] ; il refusait de créer le classifieur. L'exception était signalée dans un texte au-dessus des extraits, pouvant échapper à la vue après défilement, et le bouton était désactivé pendant le traitement. Correctifs : supporter les deux dimensions, statut près du bouton et des extraits, erreurs de linkage explicites. Ajout test CI avec vraie inférence TFLite, non seulement modèle présent dans APK. Test matériel toujours requis.
+
+## D010 — curseur ne permet pas 0 ms (18/10/2026)
+Capturé par Fab avec capture écran : valeur de fin minimale 100 ms, défaut 600 ms alors que 0 ms demandé comme défaut. Le slider était codé `max=28`, `releaseMs=100+50*progress`, et `DEFAULT_RELEASE_MS=600`. Correctif 0.3.2 : `max=30`, `releaseMs=50*progress`, `DEFAULT_RELEASE_MS=0` ; nouveau test garantissant absence de queue ajoutée à zéro. Ne pas confondre avec la fin naturelle du son déterminée par seuil RMS.
