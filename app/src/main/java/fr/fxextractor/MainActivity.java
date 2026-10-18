@@ -69,13 +69,13 @@ public final class MainActivity extends Activity {
         });
         TextView releaseLabel = text(root, "Préserver les fins de sons : " + releaseMs + " ms", 17);
         SeekBar releaseBar = new SeekBar(this);
-        releaseBar.setMax(28); // 100..1500ms, steps of 50ms
-        releaseBar.setProgress((releaseMs - 100) / 50);
+        releaseBar.setMax(30); // 0..1500ms, steps of 50ms
+        releaseBar.setProgress(releaseMs / 50);
         root.addView(releaseBar);
         releaseBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar b, int progress, boolean fromUser) {
                 if (!fromUser) return;
-                releaseMs = 100 + 50 * progress;
+                releaseMs = 50 * progress;
                 releaseLabel.setText("Préserver les fins de sons : " + releaseMs + " ms");
                 result = null; refresh();
             }
