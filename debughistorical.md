@@ -54,3 +54,38 @@ Android ne garantit pas d'encodeur MP3, seulement son décodeur. Choix de Shine 
 
 ### D012 — résultat CI
 Run 39126300413 entièrement vert : Shine génère réellement MPEG Layer III, ffprobe détecte codec_name=mp3 à 44 100 Hz, FFmpeg décode sans erreur, build NDK trois ABI, gradle compile, APK de 19 063 004 octets contient libshinefx.so et copie LGPL. Sur téléphone réel non encore validé.
+
+
+## 18/10/2026 — expérimentation MIDI Gen AI v5
+Risques connus : CORS/Hugging Face dans Android WebView, espace de stockage des poids (~73/115 Mo), mémoire WASM, WebGPU indisponible, latence CPU, différences entre GM MIDI et synthèse WebAudio de démonstration. Les tests CI ne prouvent pas l'inférence sur appareil. Aucun effet audio personnel transmis ; le droit INTERNET sert au téléchargement des poids sur consentement.
+
+ 
+## 18/10/2026 — échec silencieux du chargement MIDI 0.3.5
+Retour Fab : aucun retour visuel après « Charger », commandes grisées. Défaut vérifiable dans le code : le diagnostic en bas de page est sous les commandes, non visible immédiatement ; import JavaScript statique pouvait bloquer tout l'enregistrement des actions. Cause profonde éventuelle (réseau/model/WebView) encore inconnue sans journal. 0.3.6 met le diagnostic en haut, charge les modules dynamiquement, prend en charge le timeout des petits fichiers, annulation, copie journal native et test régression. Ne pas présumer que l'inférence v5 marche avant essai physique.
+
+### État correctif UI 0.3.6
+CI 39153583595 SUCCESS : tests Node d'affichage immédiat et de reprise après échec de module, compilation Android/MP3/YAMNet, extraction et livraison .apk brute. Le diagnostic utilisateur réel (éventuel blocage réseau / WASM) reste à recueillir ; ne pas conclure que l'inférence est réparée sans test sur téléphone.
+
+
+## 18/10/2026 — explication de l'erreur WASM puis v0.3.7
+Retour réel Samsung : 109,3 / 109,3 Mio téléchargés correctement, puis ONNX `no available backend found; both async and sync fetching of the wasm failed`, HTTP wasm streaming non-OK. Le moteur WASM était embarqué dans APK 0.3.6 mais ONNX n'y accédait pas ; le modèle CPU restait externe. Correction 0.3.7 : lecture explicite du WASM local via `wasmBinary` et poids CPU intégrés à la compilation, aucun chargement depuis le réseau sur Android. CI reste à valider et inférence matériel encore non prouvée. APK complet >100Mo donc Git blob delivery impossible, passer par artefact Actions non-zippé.
+
+
+### Build v0.3.7
+CI GitHub 39157742071 SUCCESS : tests, MP3, YAMNet, téléchargement/contrôle de poids MIDI sur runner, packaging APK, validation SHA256 du modèle à l'intérieur et moteur WASM inclus. APK debug brut 162 031 457 octets via GitHub Actions artifact 12148160390 (archive:false), pas de raw branch (limite 100Mo). Aucune preuve encore que génération fonctionne sur le Samsung ; retour test à collecter.
+
+
+## 18/10 — échec 0.3.7 au démarrage ONNX après lecture complète
+Logs exacts : WASM 27.0 Mio local, modèle CPU 109.3/109.3 Mio chargé en RAM, erreur async `Cannot read properties of undefined (reading 'Xe')` à l'étape 4. La précédente panne de fetch WASM est réglée. Nouvelle hypothèse forte : incompatibilité d'artefacts (JS ort.webgpu.bundle + JSEP WASM) pour le CPU ; selon le contrat ONNX Runtime Web, utiliser le bundle `ort.wasm.bundle.min.mjs` + `ort-wasm-simd-threaded.wasm` de même version. Introduire vraie initialisation automatisée Chromium Playwright en CI au lieu d'affirmer qu'un test de syntaxe garantit l'inférence.
+
+
+### Échec du premier test Chromium v0.3.8
+Run 39158913666 : les tests Java étaient verts, mais Chromium Playwright s'est fermé abruptement pendant `page.waitForFunction` lors du test de modèle, sans message ONNX. Le banc d'essai utilisait `page.route().fulfill({path})` sur un fichier de 109Mio : risque mémoire/IPC et mort du navigateur. Nouveau test via serveur HTTP local en streaming et base URI dérivée, affichage logs/crash ; ne pas conclure à un défaut de modèle avec ce premier résultat.
+
+
+### Test 0.3.8 Chromium : la cause ONNX réparée
+Run 39159219122 : Chromium affiche `IA MIDI prête en mémoire (1.4 s)`, `ready: true`, modèle de 109,3 Mio et WASM CPU initialisés localement. Échec du job uniquement sur un filtre réseau trop strict qui classait la requête locale `/favicon.ico` comme externe. Corriger l'assertion, relancer build. Pas encore de test Samsung.
+
+
+### CI 0.3.8 finale
+Run 39159447721 SUCCESS : ORT CPU + WASM CPU même version 1.30, vraie session modèle démarrée dans Chromium; pipeline Android compilé, contrôle du modèle + WASM intégrés à APK, MP3/YAMNet préservés. Artifact APK brut 12148450979 147 942 598 octets. Pas encore de résultat physique Samsung.

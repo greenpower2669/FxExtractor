@@ -29,3 +29,12 @@
 - Mp3ShineEncoder.java et shine_bridge.c : sortie MP3 native hors ligne.
 - tools/build_shine.sh et tools/TestMp3Shine.java : build Shine et test MP3 réel décodeur ffmpeg.
 - THIRD_PARTY_NOTICES.md : licence LGPL et provenance.
+
+- `app/src/main/java/fr/fxextractor/MidiAiActivity.java` : écran expérimental IA MIDI, WebView sécurisé, export SAF.
+- `app/src/main/assets/midi/index.html`, `main.mjs` : génération IA locale, interface, écoute WebAudio. Les modules amont/ONNX WASM sont fournis au build GitHub (pas dans Git).
+
+- `tools/test_midi_ui.mjs` : test anti-interface silencieuse en cas d'échec d'import ONNX MIDI.
+
+- `tools/embed_midi_model.py` : téléchargement modèle MIDI CPU v5 uniquement en CI et validation hash/poids avant intégration dans APK, jamais au lancement Android.
+
+- `tools/test_midi_browser.mjs` : test Chromium d'initialisation réelle ONNX CPU avec le modèle MIDI embarqué (pas seulement syntaxe et SHA), assets virtuellement servis depuis l'APK.

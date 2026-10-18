@@ -81,3 +81,60 @@
 - [x] Build multi-ABI et vrai test MP3 decode FFmpeg prévus par CI.
 - [x] GitHub Actions run 39126300413 SUCCESS : vrai MP3 Shine encodé/décodé FFmpeg, test ffprobe 44,1kHz, .so arm64-v8a/armeabi-v7a/x86_64 vérifiées, YAMNet test, APK brut FxExtractor-0.3.4-debug.apk 19 063 004 octets livré en branche delivery (git blob b5f6d3ed23ad221e2125509b47ddf621e7cac432).
 - [ ] Tester sur Samsung et écouter MP3, comparer WAV/M4A.
+
+
+## v0.3.5 — laboratoire MIDI Gen AI v5
+- [x] Ajouter une activité séparée, sans changer YAMNet ou les exportations audio.
+- [x] Amorce MIDI originale, BPM, créativité, mesure du temps, pré-écoute WebAudio, export .mid.
+- [x] Préparer packaging CI du moteur JS/ONNX Web v5 en versions épinglées et téléchargement optionnel des poids sur smartphone.
+- [x] CI Android + Java SUCCESS, run 39150975283 sur code 44f3cfef : MIDI JS/ONNX WASM embarqués ; APK brut 27 399 299 octets, Git blob 2e42c5b4e781383dd5acbe43d08fbc5d2801e667.
+- [ ] Essai Samsung Android 16 : premier téléchargement, cache, latence, stabilité RAM, WebGPU, export.
+- [ ] Si navigateur WebView est trop lent/instable, étudier ORT Android natif et un vrai lecteur SoundFont.
+- [ ] Valider la qualité musicale et licence avant inclusion dans BlockBoost.
+
+ 
+## v0.3.6 — correction « Charger ne fait rien »
+- [x] Retour Samsung identifié : boutons du bas gris + statut éloigné ; impossibilité de diagnostiquer un échec de module ou réseau.
+- [x] Démarrer l'UI avant l'import des modules ONNX, afficher étapes, progression et erreurs juste sous Charger.
+- [x] Test hors ligne des boutons, annulation, réessai, copie du diagnostic via Android Clipboard.
+- [x] Ajouter smoke test Node du clic et de la reprise après échec de module JS.
+- [x] CI Android/Node SUCCESS run 39153583595, code 670977b1 : test anti-blocage MIDI, YAMNet, MP3 et APK/AAB ; APK brut 27 401 723 octets, blob 5200331c92c3223612ad2570f7ebf4445b4e8254. Essai Samsung encore requis.
+- [ ] Essai Samsung : bouton test, téléchargement CPU (~115 Mo), sortie explicite de chaque étape, RAM et vraie génération.
+- [ ] Si diagnostic « Accès réseau », « WebGPU », « WASM » ou crash WebView, corriger le moteur spécifique à partir du rapport réel.
+
+## 18/10/2026 — clarification de Fab : modèle MIDI embarqué et initialisation en mémoire
+- [x] Audit de la version 0.3.6 : les modules JS ONNX et le runtime WASM sont déjà empaquetés dans l’APK par GitHub Actions ; `main.mjs` lance ensuite un vrai téléchargement externe des poids CPU (~115 Mo) ou GPU (~73 Mo) et du manifest/tokenizer depuis Hugging Face sur « Charger ». Ce n’est donc pas seulement une mise en mémoire ; l’erreur précise WASM sur Samsung n’est pas encore identifiée.
+- [ ] Intégrer les poids CPU MIDI Gen AI v5 **à la compilation** (comme pour YAMNet), avec manifest/tokenizer, empreintes vérifiées, et accès local depuis l’APK. Aucun téléchargement réseau requis sur le téléphone pour le modèle de base. Réserver les variantes additionnelles à une option explicite, sans toucher aux autres fonctions FX.
+- [ ] Initialiser le modèle local automatiquement à l’ouverture du laboratoire MIDI, de préférence de façon asynchrone pour préserver la réactivité et la mémoire des autres écrans. Libérer les ressources quand le laboratoire n’est plus utilisé si les tests le justifient.
+- [ ] Clarifier tous les libellés : « Préparation de l’IA en mémoire… », puis « IA chargée en mémoire » / « IA prête ». Si déclenchement manuel nécessaire, appeler le bouton « Charger en mémoire » ; n’utiliser « Télécharger » que pour une récupération depuis Internet.
+- [ ] Tester hors réseau sur Samsung Android 16 : existence et résolution de l’exact fichier WASM, accès local manifest/tokenizer/poids, RAM, génération réelle et export .mid ; ne pas confondre validation CI avec validation sur téléphone.
+- [ ] Auditer la distribution avant build : l’APK embarquant ~115 Mo de poids risque de dépasser le seuil GitHub de **100 Mio par objet Git**, incompatible avec le push direct sur `delivery/fxextractor-apk`. Trouver un vrai lien APK direct sans ZIP et sans Release/merge main non autorisés ; ne pas annoncer de livraison avant vérification effective.
+
+
+## 0.3.7 — poids MIDI embarqués et WASM réparé
+- [x] Diagnostic utilisateur exact : CPU ONNX 109,3 Mio téléchargé, échec de l'initialisation du moteur WebAssembly dans WebView.
+- [x] Préparer CI : embarquer modèle CPU, tokenizer, manifest, WASM, hash SHA256 ; supprimer INTERNET du manifeste.
+- [x] Fixer explicitement `wasmBinary` sur les octets du moteur intégré pour éviter la résolution WASM en échec.
+- [x] Auto-initialiser dans l'écran MIDI seulement ; terminologie « charger en mémoire », aucun téléchargement Android.
+- [ ] Vérifier run GitHub Actions, signature, APK brut >100 Mo en artefact sans ZIP, taille réelle, modèle extrait du ZIP APK et son hash.
+- [ ] Test Samsung sans connexion : application ouverte, générer quelques notes, écouter, exporter .mid ; mesurer RAM et latence.
+- [ ] Étudier dans les options un import de modèles additionnels compatibles, après validation v5 CPU.
+
+- [x] GitHub Actions run 39157742071 SUCCESS : packaging CPU MIDI 109 Mio vérifié par empreinte SHA256, WASM et tokenizer dans APK ; binaire brut 162 031 457 octets, artefact non zippé ID 12148160390. Publication dans branche Git impossible >100Mo, sans Release.
+
+
+## v0.3.8 — ONNX CPU cohérent
+- [x] Diagnostiquer `Xe` : moteur WebGPU/JSEP employé dans un labo CPU, mélange de variantes.
+- [x] Code : import ONNX CPU standard et WASM CPU standard issus de 1.30.0, garder `wasmBinary` pour WebView.
+- [x] Ajouter essai réel de session MIDI v5 en Chromium, entièrement hors ligne, en CI avant publication.
+- [ ] Vérifier test Chromium (prévu 180 s), puis build Android, APK >100 Mo en artifact non zippé, SHA modèle.
+- [ ] Tester physiquement le Samsung : lancement CPU hors ligne puis génération 128 tokens, temps/ mémoire, écoute.
+- [ ] Si navigateur Linux réussit mais Samsung échoue, relever la stack complète et différences WebView.
+
+- [ ] Première CI v0.3.8 run 39158913666 échouée sur **outil test Playwright**, page fermée sans diagnostic ONNX. Remplacé par serveur HTTP streaming local ; relancer test réel sur navigateur et inspecter sortie.
+
+- [x] Test réel CPU ONNX + poids 109,3 Mio **réussi sur Chromium** dans run 39159219122 (1,4s). Le build a été arrêté à tort par le filtre anti-réseau incluant le favicon local ; ajustement effectué.
+- [ ] Relancer CI après correctif du test/favicon, obtenir APK 0.3.8 brut en Actions et confirmer SHA.
+
+- [x] Run GitHub Actions 39159447721 **SUCCESS** : vraie initialisation Chromium du modèle MIDI CPU, build Android, packaging vérifié. APK brut 147 942 598 octets artifact 12148450979. Contrat sans dézipage Fab respecté.
+- [ ] Test de Fab sur Samsung hors ligne : prêt en mémoire, Générer MIDI 128 tokens, écouter et sauver .mid ; relever temps réel ou trace d'échec.

@@ -51,3 +51,31 @@ Choix par extrait WAV (sans perte), M4A (AAC) ou MP3 Shine natif LGPL-2.0. Encod
 
 ### Livraison 0.3.4 prouvée
 GitHub Actions 39126300413 SUCCESS sur SHA source 6ce5fe99fcdfa4e7e21d7e9023bbff0d4e357b5a ; encoder Shine JNI réel testé par ffprobe/FFmpeg, libs Android multi-ABI, tests JVM/YAMNet, APK brut dans delivery/fxextractor-apk/apk/FxExtractor-0.3.4-debug.apk (19 063 004 octets, blob b5f6d3ed23ad221e2125509b47ddf621e7cac432). Aucun test Samsung physique, aucun merge main/Release.
+
+
+## v0.3.5 — laboratoire expérimental MIDI
+Accord Fab : tester MIDI Gen AI v5 à l'intérieur de FxExtractor, sans modifier le moteur d'extraction. UI séparée WebView locale ; modules MIT et runtime WebAssembly embarqués ; poids CPU ~115 Mo / GPU ~73 Mo téléchargés seulement sur clic, inférence ensuite locale, cache selon WebView. Pré-écoute Web Audio simplifiée, export .mid par SAF. Aucun envoi d'audio utilisateur. Essai Samsung / latence non validés. Pas de merge main/Release.
+
+CI compilation 0.3.5 validée : GitHub run 39150975283 SUCCESS, modèle runtime JS/ONNX inclus ; APK brut FxExtractor-0.3.5-MIDI-v5-debug.apk (27 399 299 octets), blob 2e42c5b4e781383dd5acbe43d08fbc5d2801e667. AAB non signé distinct. Génération réelle sur Samsung encore à tester.
+
+ 
+## v0.3.6 — diagnostic MIDI
+Retour Fab (18/10) : appui sur Charger sans réaction, options grisées. La 0.3.5 cachait le statut loin sous les boutons et utilisait les imports statiques sans gestion d'échec visible. En 0.3.6, interface de diagnostic avant chargement dynamique, copie native et bouton test hors ligne, progression près de charger, annulation et reprise après échec. Compilation/test Android à vérifier ; test réel d'inférence encore nécessaire. Ne pas fusionner main.
+
+Preuve CI 0.3.6 : run GitHub 39153583595 SUCCESS, APK debug brut `delivery/fxextractor-apk/apk/FxExtractor-0.3.6-MIDI-v5-debug.apk` (27 401 723 octets, blob `5200331c92c3223612ad2570f7ebf4445b4e8254`), AAB distinct non signé, test JS de gestion d'échec passé. Aucun essai matériel réel nouveau.
+
+
+## v0.3.7 — IA MIDI intégralement embarquée
+Décision Fab (18/10) : moteur et poids dans APK, démarrage automatique en mémoire quand le laboratoire s'ouvre ; pas de vocabulaire ambigu « télécharger/charger » ; import facultatif de poids ultérieurs à étudier après tests. Runtime ONNX/WASM livré local avec `wasmBinary`, modèle v5 CPU int8 ~109,3 Mio, tokenizer/manifest et SHA256 validés en CI. Aucune permission INTERNET. Taille du fichier Android >100 Mo probable : utiliser artifact GitHub Actions archive:false, pas branche Git brute, sans Release ni merge. Inférence réelle à tester sur Samsung.
+
+
+### Preuve CI modèle embarqué v0.3.7
+Run 39157742071 SUCCESS ; APK `FxExtractor-0.3.7-MIDI-OFFLINE-debug.apk` 162 031 457 octets (GitHub Actions artifact 12148160390, archive:false). SHA256 des poids CPU et binaire WASM vérifiés dans l'APK ; pas de téléchargement au téléphone, pas de droit INTERNET. Branch `delivery/fxextractor-apk` reste inchangée pour ce paquet >100Mo, limite Git. Test d'inférence sur Samsung et lecture MIDI encore nécessaires.
+
+
+## v0.3.8 — corriger la variante ONNX CPU (18/10)
+Journal physique Fab : 0.3.7 atteint 109,3/109,3 Mio, WASM 27Mio présent, étape 4 échec interne JS `reading 'Xe'`. Le code combinait `ort.webgpu.bundle.min.mjs` avec `ort-wasm-simd-threaded.jsep.wasm` ; v0.3.8 utilise strictement `ort.wasm.bundle.min.mjs` + `ort-wasm-simd-threaded.wasm` de onnxruntime-web 1.30.0. Nouveau test réel de chargement de modèle ONNX via Chromium Playwright avant build Android ; ne pas qualifier l'inférence Samsung de réussie sans essai. Préserver mode hors ligne, auto-initialisation, poids 109Mio, branches isolées.
+
+
+### Preuve CI 0.3.8 (18/10)
+Run 39159447721 **SUCCESS**, code 05a9c03f63ffa2b63a97655ede8826aa4e4c9404 : authentique modèle CPU + JS/WASM CPU compatibles initialisés en Chromium en ~1,4s lors du test précédent et revalidés sans erreur réseau. APK brut `FxExtractor-0.3.8-MIDI-CPU-debug.apk` 147 942 598 octets, artifact GitHub Actions non zippé 12148450979. Poids hash vérifiés dans l'APK. Samsung non encore testé, conserver diagnostic et limiter affirmation à navigateur Linux. Pas de merge main.

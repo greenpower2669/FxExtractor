@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FxExtractor — IA MIDI v5</title><style>
+body{font:18px system-ui,sans-serif;background:#0e1830;color:#eef5ff;margin:0;padding:18px;line-height:1.45}
+h1{font-size:26px;margin:0 0 8px} h2{font-size:20px}
+.panel{background:#1c2a46;padding:16px;border-radius:15px;margin:12px 0}
+button,select,input{font:inherit;border-radius:9px;padding:12px;margin:6px 0;border:1px solid #9aabc7}
+button{background:#62dabf;color:#09231e;font-weight:700;width:100%;min-height:52px}
+button:disabled{opacity:.4}select,input{background:#0d1a2e;color:white;max-width:100%;box-sizing:border-box;width:100%}
+label{display:block;margin-top:12px}small{color:#b7c7de}#status,#loadStatus{white-space:pre-wrap;word-break:break-word} .feedback{background:#112d38;border:2px solid #62dabf;border-radius:12px;padding:15px;margin:12px 0;font-weight:600;min-height:60px}
+</style></head><body>
+<h1>🎹 Laboratoire IA MIDI v5</h1>
+<p>Génération de notes par une vraie IA <strong>entièrement locale</strong>. Modèle et moteur inclus dans l’application ; aucune connexion Internet nécessaire.</p>
+<section class="panel"><h2>1 · Préparer le modèle</h2>
+<p>Le moteur et les poids MIDI CPU sont fournis dans l'APK. L'IA se charge automatiquement en mémoire lorsque tu ouvres cet écran. Aucun téléchargement ni connexion Internet nécessaires.</p>
+<p><strong>Moteur installé : CPU · MIDI Gen AI v5 · environ 109 Mio de poids.</strong></p><p>Des modèles supplémentaires pourront être proposés dans les options lors d’une prochaine évolution.</p>
+<button id="ping">🧪 Tester les boutons et JavaScript (hors ligne)</button>
+<button id="load" disabled>⏳ Initialisation automatique en mémoire…</button>
+<div id="loadStatus" class="feedback" role="status" aria-live="polite">Chargement en mémoire depuis l’APK, sans Internet…</div>
+<button id="cancelLoad" disabled>Arrêter l'initialisation en mémoire</button>
+<button id="copy">📋 Copier le diagnostic</button>
+</section>
+<section class="panel"><h2>2 · Composer</h2>
+<label>Ambiance originale<select id="mood"><option value="bouncy">Électronique bondissante</option><option value="calm">Douce et légère</option><option value="arcade">Arcade dynamique</option></select></label>
+<label>Tempo (BPM)<input type="number" id="bpm" min="70" max="180" value="128"></label>
+<label>Créativité (température)<input id="temperature" type="range" min="60" max="150" value="100"><span id="tempvalue">1.00</span></label>
+<label>Longueur de génération<select id="tokens"><option value="128">128 tokens · essai court</option><option value="256">256 tokens</option><option value="384">384 tokens · plus long</option></select></label>
+<button id="generate" disabled>✨ Générer un morceau MIDI</button>
+<button id="cancel" disabled>Arrêter la génération</button>
+<button id="play" disabled>▶ Écouter (synthèse électronique)</button>
+<button id="stop" disabled>■ Arrêter l'écoute</button>
+<button id="save" disabled>💾 Enregistrer ce MIDI (.mid)</button>
+</section>
+<section class="panel"><h2>Diagnostic sur ce téléphone</h2><div id="status" role="status" aria-live="polite">En attente. La génération IA n'a pas commencé.</div></section>
+<p><small>Sources : MIDI Gen AI v5 (Nicholas Bien, MIT) et ONNX Runtime Web (Microsoft, MIT). Modèle embarqué dans la compilation ; activation à l’ouverture de cet écran. Une mélodie inspirée des sons rétro ne doit pas reproduire Popcorn. Performances et mémoire à mesurer sur Samsung Android 16.</small></p>
+<script>
+(function(){
+  function report(s){
+    var m=String(s);
+    document.getElementById('loadStatus').textContent=m;
+    document.getElementById('status').textContent=m;
+    if(window.FxNative&&window.FxNative.trace) window.FxNative.trace(m);
+  }
+  window.addEventListener('error',function(e){report('❌ Erreur au démarrage : '+(e.message||'script absent')+'. Copie le diagnostic.');});
+  window.addEventListener('unhandledrejection',function(e){report('❌ Chargement JavaScript échoué : '+String(e.reason));});
+  setTimeout(function(){
+    if(!window.__fxMidiReady) report('❌ Le moteur de l’interface MIDI ne démarre pas (module JS non chargé). Appuie sur Copier le diagnostic.');
+  },8000);
+})();
+</script>
+<script type="module" src="./main.mjs"></script></body></html>

@@ -128,3 +128,53 @@ Test MP3 Linux : encoder via JNI la forme d'onde WAV, vérifier au ffprobe qu'il
 
 ### APK v0.3.4 confirmé en CI (18 octobre 2026)
 [**Télécharger FxExtractor-0.3.4-debug.apk directement sans ZIP**](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.4-debug.apk) — 19 063 004 octets. GitHub Actions [39126300413](https://github.com/greenpower2669/FxExtractor/actions/runs/39126300413) SUCCESS, source 6ce5fe99, MP3 généré et décodé par FFmpeg sur runner, bibliothèques natives Android ARM64/ARM32/x86_64 effectivement présentes dans l'APK. L'enregistrement et la lecture sur Samsung n'ont pas encore fait l'objet d'un essai physique.
+
+
+## 🎹 v0.3.5 — Laboratoire MIDI Gen AI v5 (branche d'essai, 18/10/2026)
+
+- Nouvel écran « Laboratoire IA MIDI v5 » indépendant de l'extraction de FX, des exports WAV/M4A/MP3 et du modèle YAMNet.
+- Vrai modèle MIDI Gen AI v5, Transformer 113M paramètres, via JS et ONNX Runtime Web, inférence locale sur Android après chargement. Dépendances amont épinglées au commit `17c7fb775789089dc848eb13b5fd477657f024ab` (MIT).
+- **Poids volontairement non inclus dans l'APK** : ~115 Mo (CPU, recommandé) ou ~73 Mo (GPU WebGPU expérimental), téléchargés au premier clic depuis Hugging Face, puis mis en cache localement si WebView l'autorise. Le droit INTERNET ajouté sert à cette récupération optionnelle ; les vidéos, extraits et fichiers MIDI personnels ne sont pas envoyés à des serveurs.
+- Amorce MIDI originale de deux mesures, ambiance rétro au choix, BPM, température et taille de génération ; suivi des tokens et du temps. Pré-écoute via oscillateurs WebAudio simples (pas un SoundFont) et export MIDI direct par Android SAF.
+- Compilation GitHub Actions : modules source en .mjs + binaire WASM embarqués, modèle ONNX distant seulement sur clic. L'exécution réelle et la vitesse sur le Samsung **ne sont pas encore validées**.
+- Après CI réussie, APK brut attendu dans `delivery/fxextractor-apk/apk/FxExtractor-0.3.5-MIDI-v5-debug.apk`, sans fusion main/Release.
+- Sources : https://github.com/nicholasbien/midigenai et https://github.com/microsoft/onnxruntime.
+
+**Livraison test v0.3.5 vérifiée (GitHub Actions) :** [APK brut direct .apk](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.5-MIDI-v5-debug.apk) — 27 399 299 octets, [run CI 39150975283 SUCCESS](https://github.com/greenpower2669/FxExtractor/actions/runs/39150975283) ; [AAB non signé séparé](https://github.com/greenpower2669/FxExtractor/actions/runs/39150975283). L'inférence MIDI sur appareil n'est pas encore attestée.
+
+ 
+## v0.3.6 — correction lancement IA MIDI, diagnostic visible (18/10/2026)
+Retour Samsung : « J'ai voulu charger et il ne se passe rien ; options du bas grisées ». Défaut certain : les messages de chargement de la 0.3.5 étaient très bas hors de l'écran ; les importations JS statiques pouvaient aussi échouer avant d'enregistrer le clic. La 0.3.6 initialise immédiatement les boutons et le diagnostic puis charge dynamiquement ONNX, affiche 4 étapes, progression et erreurs près de Charger, permet annulation, réessai et copie du diagnostic natif. Le bouton « Tester les boutons et JavaScript » fonctionne sans réseau. Test CI Node `tools/test_midi_ui.mjs` : absence de silence lors d'un module indisponible. La génération réelle sur Samsung reste à tester : ne pas annoncer le correctif comme matériellement validé.
+Livraison après GitHub Actions SUCCESS : `https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.6-MIDI-v5-debug.apk`.
+
+**v0.3.6 livrée :** [Télécharger l'APK brut direct](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.6-MIDI-v5-debug.apk), 27 401 723 octets, [CI run 39153583595 réussi](https://github.com/greenpower2669/FxExtractor/actions/runs/39153583595). Les commandes d'extraction existantes passent toujours les tests ; modèle MIDI non encore attesté sur Samsung.
+
+
+## v0.3.7 — moteur et modèle MIDI intégrés dans l'APK (18 octobre 2026)
+
+À la demande de Fab : terminologie précise et **aucun téléchargement sur le téléphone**. Les ressources `ort.webgpu.bundle.min.mjs`, `ort-wasm-simd-threaded.jsep.wasm`, les modules MIDI, `v5/tokenizer.json`, `v5/onnx/manifest.json` et le checkpoint ONNX **CPU int8** (~109,3 Mio) sont ajoutés à l'APK au moment du build CI. `tools/embed_midi_model.py` vérifie intégrité SHA-256 et taille du vrai checkpoint avant packaging. Android n'a plus la permission INTERNET.
+
+Le moteur WebAssembly est lu explicitement depuis l'APK et fourni à ONNX Runtime par `ort.env.wasm.wasmBinary` pour contourner l'erreur Android WebView (« both async and sync fetching of the wasm failed »). Lorsque Fab ouvre l'écran MIDI, le modèle s'initialise automatiquement **en mémoire**, sans bouton « télécharger ». En cas d'échec, un bouton « Réessayer le chargement en mémoire » reste disponible. Les boutons Générer/Écouter/Enregistrer sont liés aux états réels.
+
+⚠️ Conséquence : l'APK contenant les poids dépasse probablement 100 Mo, limite stricte d'un blob GitHub ; impossible de le publier en lien `raw.githubusercontent.com` dans `delivery/fxextractor-apk`. La CI doit utiliser l'artefact GitHub Actions **fichier APK brut** (`archive: false`), sans ZIP à décompresser manuellement. Ne donner un lien qu'après vérification d'un run vert et du fichier de sortie. Test physique de génération sur Samsung encore nécessaire.
+
+La possibilité d'installer d'autres modèles/poids dans les options sera examinée séparément, après validation de ce modèle CPU par défaut. Aucun modèle additionnel n'est prétendu supporté aujourd'hui. Pas de merge main/Release.
+
+
+### ✅ Livraison v0.3.7 hors ligne vérifiée (18 octobre 2026)
+GitHub Actions run [39157742071](https://github.com/greenpower2669/FxExtractor/actions/runs/39157742071) **SUCCESS**, jobs tests+Android verts. L'APK brut `FxExtractor-0.3.7-MIDI-OFFLINE-debug.apk` a été publié comme **artefact GitHub Actions sans archive** (`archive: false`), ID `12148160390`, **162 031 457 octets**. Le modèle CPU ONNX v5 et le WASM ont été vérifiés dans le paquet APK durant la CI (SHA256 contre manifest). L'APK est trop gros pour la branche Git (limite 100 Mo) : pas de lien `raw.githubusercontent.com` en v0.3.7. Télécharger depuis [l'artefact du run GitHub](https://github.com/greenpower2669/FxExtractor/actions/runs/39157742071/artifacts/12148160390). AAB distinct non signé, non installable. Sur Samsung, l'inférence n'est PAS encore testée après cette correction ; vérifier les performances réelles hors ligne.
+
+
+## v0.3.8 — corriger le couple ONNX CPU/WASM, vrai test d'initialisation (18/10/2026)
+
+Retour Samsung 0.3.7 : l'APK embarque bien le modèle et WASM ; 109,3 Mio sont lus, mais l'étape 4 échoue avec `Cannot read properties of undefined (reading 'Xe')`. Cause racine plausible : la variante `ort.webgpu.bundle.min.mjs` a été associée à `ort-wasm-simd-threaded.jsep.wasm` pour une exécution CPU, alors que la distribution ONNX 1.30 possède des variantes distinctes pour CPU, JSEP et WebGPU natif. Pour CPU utiliser exclusivement `ort.wasm.bundle.min.mjs` + `ort-wasm-simd-threaded.wasm` issus **du même paquet NPM 1.30.0**, et injecter ce binaire via `ort.env.wasm.wasmBinary`. Ne pas mélanger variantes GPU et CPU.
+
+Avant emballage APK, le workflow effectue un test réel avec **Chromium Playwright**, en servant les ressources de l'APK hors réseau, en ouvrant le laboratoire et en attendant l'initialisation complète du modèle MIDI CPU. Échec navigateur = build bloqué ; tests statiques et compilation ne suffisent plus. Message d'erreur inclut désormais la pile JS. La véritable exécution sur Samsung demeure à vérifier séparément. Poids CPU dans APK, aucun droit INTERNET, aucun merge main/Release. Nouveau nom APK `FxExtractor-0.3.8-MIDI-CPU-debug.apk` (seulement si CI verte), via artifact GitHub Actions non zippé car fichier >100 Mo.
+
+
+### Vérification Chromium réelle du modèle ONNX CPU 0.3.8
+GitHub Actions run 39159219122 : **le chargement complet CPU réel a réussi en Chromium, 1,4 seconde**, avec ressources 100 % locales, test `tools/test_midi_browser.mjs`. Le job a ensuite échoué uniquement sur une assertion annexe : Chrome demande `/favicon.ico` automatiquement, mais ce fichier n'est pas dans `/midi/` bien qu'il reste sur la même origine locale. L'assertion a été corrigée pour autoriser toute ressource de la même origine locale. Revalider CI et APK avant de fournir à Fab.
+
+
+### Livraison 0.3.8 vérifiée — CI du 18 octobre 2026
+GitHub Actions [run 39159447721](https://github.com/greenpower2669/FxExtractor/actions/runs/39159447721) **SUCCESS** sur commit `05a9c03f63ffa2b63a97655ede8826aa4e4c9404`. Vrai modèle CPU 109,3 Mio exécuté et initialisé en Chromium avec le couple ORT Web CPU + WASM CPU de version 1.30.0, sans appel à Internet. Build Android, extraction de l'APK, contrôles SHA256 des poids à l'intérieur de l'APK, MP3 et YAMNet tous verts. **APK brut direct** [FxExtractor-0.3.8-MIDI-CPU-debug.apk](https://github.com/greenpower2669/FxExtractor/actions/runs/39159447721/artifacts/12148450979), **147 942 598 octets**, artifact `12148450979` publié avec `archive: false` : pas de ZIP à décompresser manuellement. Trop gros pour dépôt GitHub delivery/raw 100 Mo. APK debug de test, aucun merge main/Release, test matériel Samsung encore nécessaire. AAB non signé séparé.

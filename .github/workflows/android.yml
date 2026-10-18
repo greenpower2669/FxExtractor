@@ -1,7 +1,7 @@
 name: FxExtractor Android and DSP tests
 on:
   push:
-    branches: [main, feature/audio-fx-analyzer-v1]
+    branches: [main, feature/audio-fx-analyzer-v1, feature/midi-ai-v5-test]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -75,40 +75,115 @@ jobs:
           python3 tools/test_yamnet_model.py
       - name: Build and test real MP3 Shine encoder
         run: bash tools/build_shine.sh
+      - name: Package pinned MIDI Gen AI v5 web inference engine
+        run: |
+          set -euo pipefail
+          UPSTREAM='17c7fb775789089dc848eb13b5fd477657f024ab'
+          DIR='app/src/main/assets/midi'
+          mkdir -p "$DIR"
+          for name in midigen-web.mjs tasks.mjs midi.mjs tokenizer.mjs attributes.mjs generator.mjs; do
+            curl --fail --location --retry 3 --connect-timeout 20 --max-time 120 \
+              "https://raw.githubusercontent.com/nicholasbien/midigenai/$UPSTREAM/midigenai/web/$name" -o "$DIR/$name"
+            node --check "$DIR/$name"
+          done
+          npm install --prefix "$RUNNER_TEMP/midi-deps" --no-audit --no-fund --no-save 'onnxruntime-web@1.30.0'
+          ORT="$RUNNER_TEMP/midi-deps/node_modules/onnxruntime-web/dist"
+          cp "$ORT/ort.wasm.bundle.min.mjs" "$DIR/"
+          cp "$ORT/ort-wasm-simd-threaded.wasm" "$DIR/"
+          # The Android WebView loads this exact packaged WASM via wasmBinary.
+          python3 tools/embed_midi_model.py
+          node --check "$DIR/main.mjs"
+          node tools/test_midi_ui.mjs
+          node --check "$DIR/ort.wasm.bundle.min.mjs"
+          test -s "$DIR/ort-wasm-simd-threaded.wasm"
+          test -s "$DIR/v5/tokenizer.json"
+          test -s "$DIR/v5/onnx/manifest.json"
+          # Browser integration test: actually start the large MIDI v5 ONNX session
+          # using the same JS and WASM files included in the APK.
+          npm install --no-save --no-package-lock --ignore-scripts 'playwright@1.56.1'
+          npx playwright install --with-deps chromium
+          node tools/test_midi_browser.mjs
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          root=pathlib.Path('app/src/main/assets/midi')
+          m=json.loads((root/'v5/onnx/manifest.json').read_text())
+          f=m['files']['cpu']
+          blob=root/'v5/onnx'/f['file']
+          assert blob.stat().st_size == f['bytes']
+          assert blob.is_file()
+          magic=(root/'ort-wasm-simd-threaded.wasm').read_bytes()[:4]
+          assert magic == b'\x00asm', f'WASM invalid: {magic!r}'
+          print('MIDI OFFLINE ASSETS OK',blob.stat().st_size)
+          PY
       - name: Build APK and AAB
         run: gradle --no-daemon :app:assembleDebug :app:bundleRelease
       - name: Extract APK on GitHub into a temporary folder
         run: |
           mkdir -p dist "$RUNNER_TEMP/fx-packed" "$RUNNER_TEMP/fx-unpacked"
-          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/fx-packed/FxExtractor-0.3.4-debug.apk"
-          (cd "$RUNNER_TEMP/fx-packed" && zip -q "$RUNNER_TEMP/fx-packed.zip" FxExtractor-0.3.4-debug.apk)
+          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/fx-packed/FxExtractor-0.3.8-MIDI-CPU-debug.apk"
+          (cd "$RUNNER_TEMP/fx-packed" && zip -q "$RUNNER_TEMP/fx-packed.zip" FxExtractor-0.3.8-MIDI-CPU-debug.apk)
           unzip -q "$RUNNER_TEMP/fx-packed.zip" -d "$RUNNER_TEMP/fx-unpacked"
-          cmp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" app/build/outputs/apk/debug/app-debug.apk
-          unzip -tqq "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk"
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" | grep -Fx 'assets/yamnet.tflite'
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" | grep -Fx 'assets/yamnet_labels.txt'
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" | grep -Fx 'lib/arm64-v8a/libshinefx.so'
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" | grep -Fx 'assets/shine_lgpl_v2.txt'
-          cp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" dist/
-          sha256sum dist/FxExtractor-0.3.4-debug.apk app/build/outputs/bundle/release/app-release.aab > dist/SHA256SUMS.txt
-          test -s dist/FxExtractor-0.3.4-debug.apk
+          cmp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.8-MIDI-CPU-debug.apk" app/build/outputs/apk/debug/app-debug.apk
+          unzip -tqq "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.8-MIDI-CPU-debug.apk"
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.8-MIDI-CPU-debug.apk" | grep -Fx 'assets/yamnet.tflite'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.8-MIDI-CPU-debug.apk" | grep -Fx 'assets/midi/main.mjs'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.8-MIDI-CPU-debug.apk" | grep -Fx 'assets/midi/index.html'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.8-MIDI-CPU-debug.apk" | grep -Fx 'assets/midi/ort-wasm-simd-threaded.wasm'
+          # Verify the exact CPU ONNX bytes and tokenizer were packaged.
+          python3 - <<'PY'
+          import hashlib,json,pathlib,zipfile
+          apk=pathlib.Path('dist/FxExtractor-0.3.8-MIDI-CPU-debug.apk')
+          if not apk.exists(): apk=pathlib.Path('app/build/outputs/apk/debug/app-debug.apk')
+          with zipfile.ZipFile(apk) as z:
+              names=set(z.namelist())
+              assert 'assets/midi/v5/onnx/manifest.json' in names
+              assert 'assets/midi/v5/tokenizer.json' in names
+              manifest=json.loads(z.read('assets/midi/v5/onnx/manifest.json'))
+              info=manifest['files']['cpu']
+              expected='assets/midi/v5/onnx/'+info['file']
+              assert expected in names
+              h=hashlib.sha256()
+              size=0
+              with z.open(expected) as f:
+                  for part in iter(lambda:f.read(4*1024*1024),b''):
+                      h.update(part);size+=len(part)
+              assert size==info['bytes']
+              assert h.hexdigest()==info['sha256']
+              assert z.read('assets/midi/ort-wasm-simd-threaded.wasm')[:4]==b'\x00asm'
+              print('APK OFFLINE MIDI VERIFIED:',size,'bytes of model,',h.hexdigest())
+          PY
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.8-MIDI-CPU-debug.apk" | grep -Fx 'assets/yamnet_labels.txt'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.8-MIDI-CPU-debug.apk" | grep -Fx 'lib/arm64-v8a/libshinefx.so'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.8-MIDI-CPU-debug.apk" | grep -Fx 'assets/shine_lgpl_v2.txt'
+          cp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.8-MIDI-CPU-debug.apk" dist/
+          sha256sum dist/FxExtractor-0.3.8-MIDI-CPU-debug.apk app/build/outputs/bundle/release/app-release.aab > dist/SHA256SUMS.txt
+          test -s dist/FxExtractor-0.3.8-MIDI-CPU-debug.apk
       - name: Publish raw APK to isolated GitHub delivery branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/audio-fx-analyzer-v1'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/midi-ai-v5-test'
         run: |
           set -euo pipefail
+          # GitHub rejects Git blobs above 100 MB. The full CPU checkpoint
+          # makes the APK larger than that; the file itself is still published
+          # directly (archive:false) by the Actions artifact below.
+          SIZE=$(stat -c%s dist/FxExtractor-0.3.8-MIDI-CPU-debug.apk)
+          if [ "$SIZE" -ge 100000000 ]; then
+            echo "APK has $SIZE bytes (> GitHub 100 MB Git blob limit)."
+            echo "Publish via Actions raw artifact (archive:false), not the delivery git branch."
+            exit 0
+          fi
           git fetch origin 'refs/heads/delivery/fxextractor-apk:refs/remotes/origin/delivery/fxextractor-apk'
           git worktree add -B delivery/fxextractor-apk "$RUNNER_TEMP/fx-delivery" origin/delivery/fxextractor-apk
           mkdir -p "$RUNNER_TEMP/fx-delivery/apk"
-          cp dist/FxExtractor-0.3.4-debug.apk "$RUNNER_TEMP/fx-delivery/apk/FxExtractor-0.3.4-debug.apk"
+          cp dist/FxExtractor-0.3.8-MIDI-CPU-debug.apk "$RUNNER_TEMP/fx-delivery/apk/FxExtractor-0.3.8-MIDI-CPU-debug.apk"
           git -C "$RUNNER_TEMP/fx-delivery" config user.name "github-actions[bot]"
           git -C "$RUNNER_TEMP/fx-delivery" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git -C "$RUNNER_TEMP/fx-delivery" add apk/FxExtractor-0.3.4-debug.apk
-          git -C "$RUNNER_TEMP/fx-delivery" commit -m "build: FxExtractor 0.3.4 verified APK ($GITHUB_SHA)"
+          git -C "$RUNNER_TEMP/fx-delivery" add apk/FxExtractor-0.3.8-MIDI-CPU-debug.apk
+          git -C "$RUNNER_TEMP/fx-delivery" commit -m "build: FxExtractor 0.3.8 MIDI CPU verified APK ($GITHUB_SHA)"
           git -C "$RUNNER_TEMP/fx-delivery" push origin HEAD:refs/heads/delivery/fxextractor-apk
-          echo "Direct APK: https://raw.githubusercontent.com/$GITHUB_REPOSITORY/delivery/fxextractor-apk/apk/FxExtractor-0.3.4-debug.apk"
+          echo "Direct APK: https://raw.githubusercontent.com/$GITHUB_REPOSITORY/delivery/fxextractor-apk/apk/FxExtractor-0.3.8-MIDI-CPU-debug.apk"
       - uses: actions/upload-artifact@v7
         with:
-          path: dist/FxExtractor-0.3.4-debug.apk
+          path: dist/FxExtractor-0.3.8-MIDI-CPU-debug.apk
           archive: false
           retention-days: 30
       - uses: actions/upload-artifact@v7

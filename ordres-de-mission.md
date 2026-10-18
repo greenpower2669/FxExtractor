@@ -46,3 +46,19 @@ Fab : « Mp3 aussi? ». Ajouter format MP3 réel à l'enregistrement individuel 
 
 ### Livraison MP3 v0.3.4
 Run 39126300413 réussi, tests MP3 encode+decode réels, APK brut 19 063 004 octets sur la branche delivery/fxextractor-apk, sans fichier ZIP à décompresser, ni merge main/Release.
+
+
+## 18/10/2026 — mission « tester MIDI Gen AI v5 »
+Fab : « On va la tester, rajoute la à fxextractor notre app apk ». Développer un laboratoire local distinct, permettre la génération et export MIDI, ne pas casser l'extraction FX, préserver les formats et la classification YAMNet. Première récupération des poids uniquement après action explicite ; ensuite inférence sur téléphone. APK brut livré par GitHub Actions sur branche séparée, jamais main/Release sans validation.
+
+ 
+## 18/10/2026 — correction retour MIDI 0.3.5
+Fab : « J'ai lancé le truc midi, j'ai voulu charger et il se passe rien [...] options du bas [...] grisées. » Autorisation implicite de diagnostic et correction ciblée sur branche laboratoire. Corriger retour d'état et rendre erreurs visibles, ne pas changer extraction FX/YAMNet. Livrer .apk brut GitHub et mettre à jour todo.md si test matériel reste en attente, aucune fusion main.
+
+
+## 18/10/2026 — commande Fab sur l'embarquement MIDI
+Fab demande que le moteur ET les poids soient embarqués comme pour Pierre/Voyas. Aucune opération « télécharger » ou « charger un moteur » sur le téléphone ; si nécessaire utiliser seulement « Charger en mémoire » avec initialisation automatique à l'ouverture du laboratoire, sans pénaliser l'écran principal. Conserver une piste pour installer d'autres poids ultérieurement. Corriger l'échec WASM, tests CI de hash/empreinte, livrer APK brut directement utilisable. Ne pas merger main ni publier Release sans approbation.
+
+
+## 18/10/2026 — correction au retour 0.3.7
+Fab fournit la trace : auto-initialisation locale trouve WASM et poids, mais erreur `Xe` interne ONNX. Mission : réparer initialisation ONNX sans retéléchargement sur téléphone, conserver modèle embarqué, UI/diagnostics, extraction audio. Vérifier par vraie initialisation sur navigateur en CI avant nouvel APK. Ne pas merger main/Release.
