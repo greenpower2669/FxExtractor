@@ -51,3 +51,7 @@ Choix par extrait WAV (sans perte), M4A (AAC) ou MP3 Shine natif LGPL-2.0. Encod
 
 ### Livraison 0.3.4 prouvée
 GitHub Actions 39126300413 SUCCESS sur SHA source 6ce5fe99fcdfa4e7e21d7e9023bbff0d4e357b5a ; encoder Shine JNI réel testé par ffprobe/FFmpeg, libs Android multi-ABI, tests JVM/YAMNet, APK brut dans delivery/fxextractor-apk/apk/FxExtractor-0.3.4-debug.apk (19 063 004 octets, blob b5f6d3ed23ad221e2125509b47ddf621e7cac432). Aucun test Samsung physique, aucun merge main/Release.
+
+
+## v0.3.5 — laboratoire expérimental MIDI
+Accord Fab : tester MIDI Gen AI v5 à l'intérieur de FxExtractor, sans modifier le moteur d'extraction. UI séparée WebView locale ; modules MIT et runtime WebAssembly embarqués ; poids CPU ~115 Mo / GPU ~73 Mo téléchargés seulement sur clic, inférence ensuite locale, cache selon WebView. Pré-écoute Web Audio simplifiée, export .mid par SAF. Aucun envoi d'audio utilisateur. Essai Samsung / latence non validés. Pas de merge main/Release.

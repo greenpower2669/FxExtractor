@@ -29,3 +29,6 @@
 - Mp3ShineEncoder.java et shine_bridge.c : sortie MP3 native hors ligne.
 - tools/build_shine.sh et tools/TestMp3Shine.java : build Shine et test MP3 réel décodeur ffmpeg.
 - THIRD_PARTY_NOTICES.md : licence LGPL et provenance.
+
+- `app/src/main/java/fr/fxextractor/MidiAiActivity.java` : écran expérimental IA MIDI, WebView sécurisé, export SAF.
+- `app/src/main/assets/midi/index.html`, `main.mjs` : génération IA locale, interface, écoute WebAudio. Les modules amont/ONNX WASM sont fournis au build GitHub (pas dans Git).

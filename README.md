@@ -128,3 +128,14 @@ Test MP3 Linux : encoder via JNI la forme d'onde WAV, vérifier au ffprobe qu'il
 
 ### APK v0.3.4 confirmé en CI (18 octobre 2026)
 [**Télécharger FxExtractor-0.3.4-debug.apk directement sans ZIP**](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.4-debug.apk) — 19 063 004 octets. GitHub Actions [39126300413](https://github.com/greenpower2669/FxExtractor/actions/runs/39126300413) SUCCESS, source 6ce5fe99, MP3 généré et décodé par FFmpeg sur runner, bibliothèques natives Android ARM64/ARM32/x86_64 effectivement présentes dans l'APK. L'enregistrement et la lecture sur Samsung n'ont pas encore fait l'objet d'un essai physique.
+
+
+## 🎹 v0.3.5 — Laboratoire MIDI Gen AI v5 (branche d'essai, 18/10/2026)
+
+- Nouvel écran « Laboratoire IA MIDI v5 » indépendant de l'extraction de FX, des exports WAV/M4A/MP3 et du modèle YAMNet.
+- Vrai modèle MIDI Gen AI v5, Transformer 113M paramètres, via JS et ONNX Runtime Web, inférence locale sur Android après chargement. Dépendances amont épinglées au commit `17c7fb775789089dc848eb13b5fd477657f024ab` (MIT).
+- **Poids volontairement non inclus dans l'APK** : ~115 Mo (CPU, recommandé) ou ~73 Mo (GPU WebGPU expérimental), téléchargés au premier clic depuis Hugging Face, puis mis en cache localement si WebView l'autorise. Le droit INTERNET ajouté sert à cette récupération optionnelle ; les vidéos, extraits et fichiers MIDI personnels ne sont pas envoyés à des serveurs.
+- Amorce MIDI originale de deux mesures, ambiance rétro au choix, BPM, température et taille de génération ; suivi des tokens et du temps. Pré-écoute via oscillateurs WebAudio simples (pas un SoundFont) et export MIDI direct par Android SAF.
+- Compilation GitHub Actions : modules source en .mjs + binaire WASM embarqués, modèle ONNX distant seulement sur clic. L'exécution réelle et la vitesse sur le Samsung **ne sont pas encore validées**.
+- Après CI réussie, APK brut attendu dans `delivery/fxextractor-apk/apk/FxExtractor-0.3.5-MIDI-v5-debug.apk`, sans fusion main/Release.
+- Sources : https://github.com/nicholasbien/midigenai et https://github.com/microsoft/onnxruntime.

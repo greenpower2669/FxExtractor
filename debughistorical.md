@@ -54,3 +54,7 @@ Android ne garantit pas d'encodeur MP3, seulement son décodeur. Choix de Shine 
 
 ### D012 — résultat CI
 Run 39126300413 entièrement vert : Shine génère réellement MPEG Layer III, ffprobe détecte codec_name=mp3 à 44 100 Hz, FFmpeg décode sans erreur, build NDK trois ABI, gradle compile, APK de 19 063 004 octets contient libshinefx.so et copie LGPL. Sur téléphone réel non encore validé.
+
+
+## 18/10/2026 — expérimentation MIDI Gen AI v5
+Risques connus : CORS/Hugging Face dans Android WebView, espace de stockage des poids (~73/115 Mo), mémoire WASM, WebGPU indisponible, latence CPU, différences entre GM MIDI et synthèse WebAudio de démonstration. Les tests CI ne prouvent pas l'inférence sur appareil. Aucun effet audio personnel transmis ; le droit INTERNET sert au téléchargement des poids sur consentement.

@@ -46,3 +46,7 @@ Fab : « Mp3 aussi? ». Ajouter format MP3 réel à l'enregistrement individuel 
 
 ### Livraison MP3 v0.3.4
 Run 39126300413 réussi, tests MP3 encode+decode réels, APK brut 19 063 004 octets sur la branche delivery/fxextractor-apk, sans fichier ZIP à décompresser, ni merge main/Release.
+
+
+## 18/10/2026 — mission « tester MIDI Gen AI v5 »
+Fab : « On va la tester, rajoute la à fxextractor notre app apk ». Développer un laboratoire local distinct, permettre la génération et export MIDI, ne pas casser l'extraction FX, préserver les formats et la classification YAMNet. Première récupération des poids uniquement après action explicite ; ensuite inférence sur téléphone. APK brut livré par GitHub Actions sur branche séparée, jamais main/Release sans validation.

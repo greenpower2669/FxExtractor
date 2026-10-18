@@ -20,3 +20,10 @@ Internet. You may replace or rebuild Shine subject to the license's conditions.
 Shine does not implement a modern psychoacoustic model: MP3 quality may be
 lower than a modern encoder at the same bitrate. Use WAV for lossless source
 preservation.
+
+
+## MIDI Gen AI v5 — MIT
+Nicholas Bien : https://github.com/nicholasbien/midigenai. Code et modèles MIT, modules web épinglés à `17c7fb775789089dc848eb13b5fd477657f024ab` ; les poids sont facultatifs et récupérés sur Hugging Face à la demande.
+
+## ONNX Runtime Web 1.30.0 — MIT
+Microsoft : https://github.com/microsoft/onnxruntime. JS et WASM embarqués lors de la CI depuis npm. Respecter les notices MIT amont.

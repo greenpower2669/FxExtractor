@@ -81,3 +81,13 @@
 - [x] Build multi-ABI et vrai test MP3 decode FFmpeg prévus par CI.
 - [x] GitHub Actions run 39126300413 SUCCESS : vrai MP3 Shine encodé/décodé FFmpeg, test ffprobe 44,1kHz, .so arm64-v8a/armeabi-v7a/x86_64 vérifiées, YAMNet test, APK brut FxExtractor-0.3.4-debug.apk 19 063 004 octets livré en branche delivery (git blob b5f6d3ed23ad221e2125509b47ddf621e7cac432).
 - [ ] Tester sur Samsung et écouter MP3, comparer WAV/M4A.
+
+
+## v0.3.5 — laboratoire MIDI Gen AI v5
+- [x] Ajouter une activité séparée, sans changer YAMNet ou les exportations audio.
+- [x] Amorce MIDI originale, BPM, créativité, mesure du temps, pré-écoute WebAudio, export .mid.
+- [x] Préparer packaging CI du moteur JS/ONNX Web v5 en versions épinglées et téléchargement optionnel des poids sur smartphone.
+- [ ] Vérifier CI Android, assets MIDI dans l'APK et binaire brut direct ; noter run et SHA.
+- [ ] Essai Samsung Android 16 : premier téléchargement, cache, latence, stabilité RAM, WebGPU, export.
+- [ ] Si navigateur WebView est trop lent/instable, étudier ORT Android natif et un vrai lecteur SoundFont.
+- [ ] Valider la qualité musicale et licence avant inclusion dans BlockBoost.

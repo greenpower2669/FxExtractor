@@ -121,6 +121,8 @@ public final class MainActivity extends Activity {
         aiButton = button(root, "🤖 Proposer les noms avec IA locale", () -> suggestNames());
         aiStatus = text(root, "IA : importe une vidéo puis lance l'analyse. Les résultats apparaissent sous chaque extrait.", 17);
         aiStatus.setContentDescription("État de la reconnaissance audio par intelligence artificielle");
+        text(root, "🎹 Nouveau : compose des phrases MIDI avec une IA locale séparée. Téléchargement du modèle uniquement sur demande.", 15);
+        button(root, "🎹 Laboratoire IA MIDI v5", () -> startActivity(new Intent(this, MidiAiActivity.class)));
         state = text(root, "Choisis une vidéo ou un son pour commencer.", 18);
         summary = text(root, "", 17);
         events = new LinearLayout(this); events.setOrientation(LinearLayout.VERTICAL);

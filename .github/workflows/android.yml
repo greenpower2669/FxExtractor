@@ -1,7 +1,7 @@
 name: FxExtractor Android and DSP tests
 on:
   push:
-    branches: [main, feature/audio-fx-analyzer-v1]
+    branches: [main, feature/audio-fx-analyzer-v1, feature/midi-ai-v5-test]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -75,40 +75,60 @@ jobs:
           python3 tools/test_yamnet_model.py
       - name: Build and test real MP3 Shine encoder
         run: bash tools/build_shine.sh
+      - name: Package pinned MIDI Gen AI v5 web inference engine
+        run: |
+          set -euo pipefail
+          UPSTREAM='17c7fb775789089dc848eb13b5fd477657f024ab'
+          DIR='app/src/main/assets/midi'
+          mkdir -p "$DIR"
+          for name in midigen-web.mjs tasks.mjs midi.mjs tokenizer.mjs attributes.mjs generator.mjs; do
+            curl --fail --location --retry 3 --connect-timeout 20 --max-time 120 \
+              "https://raw.githubusercontent.com/nicholasbien/midigenai/$UPSTREAM/midigenai/web/$name" -o "$DIR/$name"
+            node --check "$DIR/$name"
+          done
+          npm install --prefix "$RUNNER_TEMP/midi-deps" --no-audit --no-fund --no-save 'onnxruntime-web@1.30.0'
+          ORT="$RUNNER_TEMP/midi-deps/node_modules/onnxruntime-web/dist"
+          cp "$ORT/ort.webgpu.bundle.min.mjs" "$DIR/"
+          cp "$ORT/ort-wasm-simd-threaded.jsep.wasm" "$DIR/"
+          node --check "$DIR/main.mjs"
+          node --check "$DIR/ort.webgpu.bundle.min.mjs"
+          test -s "$DIR/ort-wasm-simd-threaded.jsep.wasm"
       - name: Build APK and AAB
         run: gradle --no-daemon :app:assembleDebug :app:bundleRelease
       - name: Extract APK on GitHub into a temporary folder
         run: |
           mkdir -p dist "$RUNNER_TEMP/fx-packed" "$RUNNER_TEMP/fx-unpacked"
-          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/fx-packed/FxExtractor-0.3.4-debug.apk"
-          (cd "$RUNNER_TEMP/fx-packed" && zip -q "$RUNNER_TEMP/fx-packed.zip" FxExtractor-0.3.4-debug.apk)
+          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/fx-packed/FxExtractor-0.3.5-MIDI-v5-debug.apk"
+          (cd "$RUNNER_TEMP/fx-packed" && zip -q "$RUNNER_TEMP/fx-packed.zip" FxExtractor-0.3.5-MIDI-v5-debug.apk)
           unzip -q "$RUNNER_TEMP/fx-packed.zip" -d "$RUNNER_TEMP/fx-unpacked"
-          cmp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" app/build/outputs/apk/debug/app-debug.apk
-          unzip -tqq "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk"
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" | grep -Fx 'assets/yamnet.tflite'
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" | grep -Fx 'assets/yamnet_labels.txt'
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" | grep -Fx 'lib/arm64-v8a/libshinefx.so'
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" | grep -Fx 'assets/shine_lgpl_v2.txt'
-          cp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" dist/
-          sha256sum dist/FxExtractor-0.3.4-debug.apk app/build/outputs/bundle/release/app-release.aab > dist/SHA256SUMS.txt
-          test -s dist/FxExtractor-0.3.4-debug.apk
+          cmp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.5-MIDI-v5-debug.apk" app/build/outputs/apk/debug/app-debug.apk
+          unzip -tqq "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.5-MIDI-v5-debug.apk"
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.5-MIDI-v5-debug.apk" | grep -Fx 'assets/yamnet.tflite'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.5-MIDI-v5-debug.apk" | grep -Fx 'assets/midi/main.mjs'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.5-MIDI-v5-debug.apk" | grep -Fx 'assets/midi/ort-wasm-simd-threaded.jsep.wasm'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.5-MIDI-v5-debug.apk" | grep -Fx 'assets/yamnet_labels.txt'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.5-MIDI-v5-debug.apk" | grep -Fx 'lib/arm64-v8a/libshinefx.so'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.5-MIDI-v5-debug.apk" | grep -Fx 'assets/shine_lgpl_v2.txt'
+          cp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.5-MIDI-v5-debug.apk" dist/
+          sha256sum dist/FxExtractor-0.3.5-MIDI-v5-debug.apk app/build/outputs/bundle/release/app-release.aab > dist/SHA256SUMS.txt
+          test -s dist/FxExtractor-0.3.5-MIDI-v5-debug.apk
       - name: Publish raw APK to isolated GitHub delivery branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/audio-fx-analyzer-v1'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/midi-ai-v5-test'
         run: |
           set -euo pipefail
           git fetch origin 'refs/heads/delivery/fxextractor-apk:refs/remotes/origin/delivery/fxextractor-apk'
           git worktree add -B delivery/fxextractor-apk "$RUNNER_TEMP/fx-delivery" origin/delivery/fxextractor-apk
           mkdir -p "$RUNNER_TEMP/fx-delivery/apk"
-          cp dist/FxExtractor-0.3.4-debug.apk "$RUNNER_TEMP/fx-delivery/apk/FxExtractor-0.3.4-debug.apk"
+          cp dist/FxExtractor-0.3.5-MIDI-v5-debug.apk "$RUNNER_TEMP/fx-delivery/apk/FxExtractor-0.3.5-MIDI-v5-debug.apk"
           git -C "$RUNNER_TEMP/fx-delivery" config user.name "github-actions[bot]"
           git -C "$RUNNER_TEMP/fx-delivery" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git -C "$RUNNER_TEMP/fx-delivery" add apk/FxExtractor-0.3.4-debug.apk
-          git -C "$RUNNER_TEMP/fx-delivery" commit -m "build: FxExtractor 0.3.4 verified APK ($GITHUB_SHA)"
+          git -C "$RUNNER_TEMP/fx-delivery" add apk/FxExtractor-0.3.5-MIDI-v5-debug.apk
+          git -C "$RUNNER_TEMP/fx-delivery" commit -m "build: FxExtractor 0.3.5 MIDI v5 verified APK ($GITHUB_SHA)"
           git -C "$RUNNER_TEMP/fx-delivery" push origin HEAD:refs/heads/delivery/fxextractor-apk
-          echo "Direct APK: https://raw.githubusercontent.com/$GITHUB_REPOSITORY/delivery/fxextractor-apk/apk/FxExtractor-0.3.4-debug.apk"
+          echo "Direct APK: https://raw.githubusercontent.com/$GITHUB_REPOSITORY/delivery/fxextractor-apk/apk/FxExtractor-0.3.5-MIDI-v5-debug.apk"
       - uses: actions/upload-artifact@v7
         with:
-          path: dist/FxExtractor-0.3.4-debug.apk
+          path: dist/FxExtractor-0.3.5-MIDI-v5-debug.apk
           archive: false
           retention-days: 30
       - uses: actions/upload-artifact@v7
