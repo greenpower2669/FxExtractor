@@ -62,3 +62,7 @@ Fab demande que le moteur ET les poids soient embarqués comme pour Pierre/Voyas
 
 ## 18/10/2026 — correction au retour 0.3.7
 Fab fournit la trace : auto-initialisation locale trouve WASM et poids, mais erreur `Xe` interne ONNX. Mission : réparer initialisation ONNX sans retéléchargement sur téléphone, conserver modèle embarqué, UI/diagnostics, extraction audio. Vérifier par vraie initialisation sur navigateur en CI avant nouvel APK. Ne pas merger main/Release.
+
+
+## 18/10/2026 — Stable Audio 3 Small-Music en local
+Fab : « Oui, ton premier choix mon ange ». Suite à la proposition de Stable Audio 3 Small-Music et du gros APK tout compris, choix retenu : véritable génération musicale WAV directe à partir d'un descriptif, sans réseau sur le Samsung, poids et moteur contenus dans l'APK. Conserver laboratoire MIDI. Mission sur branche isolée `feature/stable-audio3-local-v1` avec validation technique obligatoire avant livraison. Lire `docs/stable_audio3_android_plan.md`. Pas de faux moteur ni de sortie préenregistrée ; pas de merge main/release.

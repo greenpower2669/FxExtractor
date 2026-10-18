@@ -38,3 +38,5 @@
 - `tools/embed_midi_model.py` : téléchargement modèle MIDI CPU v5 uniquement en CI et validation hash/poids avant intégration dans APK, jamais au lancement Android.
 
 - `tools/test_midi_browser.mjs` : test Chromium d'initialisation réelle ONNX CPU avec le modèle MIDI embarqué (pas seulement syntaxe et SHA), assets virtuellement servis depuis l'APK.
+
+- `docs/stable_audio3_android_plan.md` : mission d'un second laboratoire musical direct Stable Audio 3 Small-Music pour Android, plan des quatre modèles/tokenizer et des vrais tests de portage hors ligne. **Étude en cours, pas encore d'APK SA3 fonctionnel.**

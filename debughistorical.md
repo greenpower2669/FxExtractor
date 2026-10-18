@@ -89,3 +89,7 @@ Run 39159219122 : Chromium affiche `IA MIDI prête en mémoire (1.4 s)`, `ready:
 
 ### CI 0.3.8 finale
 Run 39159447721 SUCCESS : ORT CPU + WASM CPU même version 1.30, vraie session modèle démarrée dans Chromium; pipeline Android compilé, contrôle du modèle + WASM intégrés à APK, MP3/YAMNet préservés. Artifact APK brut 12148450979 147 942 598 octets. Pas encore de résultat physique Samsung.
+
+
+## 18/10/2026 — pivot de l'IA MIDI vers audio généré
+Après validation du moteur MIDI CPU dans Chromium, Fab trouve le résultat musical décevant et choisit une seconde IA directe « comme Suno » : Stable Audio 3 Small-Music. Le modèle officiel CPU nécessite de porter LiteRT, T5Gemma, SentencePiece, DiT et SAME-S à Android (les scripts publiés ciblent Python/desktop). Ne pas confondre disponibilité de fichiers TFLite et application Android fonctionnelle. Branche expérimentation séparée ; aucune preuve d'inférence sur Samsung encore.

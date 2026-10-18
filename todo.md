@@ -138,3 +138,16 @@
 
 - [x] Run GitHub Actions 39159447721 **SUCCESS** : vraie initialisation Chromium du modèle MIDI CPU, build Android, packaging vérifié. APK brut 147 942 598 octets artifact 12148450979. Contrat sans dézipage Fab respecté.
 - [ ] Test de Fab sur Samsung hors ligne : prêt en mémoire, Générer MIDI 128 tokens, écouter et sauver .mid ; relever temps réel ou trace d'échec.
+
+
+## Stable Audio 3 Small-Music — nouveau laboratoire audio, 18/10/2026
+- [x] Décision : conserver MIDI v5 ; ajouter Stable Audio 3 Small-Music CPU hors ligne en APK tout compris (Fab privilégie premier choix).
+- [x] Vérifier source officielle de la version quantifiée LiteRT et composants T5Gemma/DiT/SAME-S/tokenizer, ordres de grandeur (1,2 Go de poids).
+- [x] Identifier la contrainte de licence Stability AI Community + Gemma et de distribution (« Powered by Stability AI », notices).
+- [x] Ouvrir une branche de travail indépendante, sans merge, et consigner contrat dans `docs/stable_audio3_android_plan.md`.
+- [ ] Test LiteRT 2.2+ sur Android arm64 avec graphes multi-signatures, pas de réutilisation aveugle de tensorflow-lite 2.16.1.
+- [ ] Port SentencePiece et modèle d'encodeur T5Gemma en vrai test instrumental.
+- [ ] Port réel du sampler DiT w8a8 et décodeur SAME-S, WAV non silencieux vérifié en CI.
+- [ ] Audit mémoire Samsung, génération de 20/30 secondes et arrêt propre.
+- [ ] Embarquer les poids complets et licences uniquement une fois le moteur prouvé ; APK brut GitHub sans ZIP utilisateur ; comparaison hash et installation réelle.
+- [ ] Conserver extraction audio/MP3/YAMNet et l'IA MIDI 0.3.8 sans régression ; ne pas merger main ni release sans validation.
