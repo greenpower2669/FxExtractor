@@ -9,15 +9,15 @@ android {
         applicationId 'fr.fxextractor'
         minSdk 26
         targetSdk 35
-        versionCode 15
-        versionName '0.4.1-sa3-dev'
+        versionCode 16
+        versionName '0.4.2-sa3-test'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
     buildTypes { release { minifyEnabled false } }
-    androidResources { noCompress 'tflite', 'onnx', 'wasm' }
+    androidResources { noCompress 'tflite', 'onnx', 'wasm', 'model' }
 }
 
 dependencies {

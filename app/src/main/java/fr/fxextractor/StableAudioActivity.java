@@ -11,6 +11,8 @@ import android.os.Looper;
 import android.provider.OpenableColumns;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.media.MediaMetadataRetriever;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -38,6 +40,7 @@ public final class StableAudioActivity extends Activity {
     private Button generate, play, export, pick, clear;
     private EditText prompt;
     private SeekBar duration, variation;
+    private CheckBox extensionMode;
     private Uri seedUri;
     private File audioFile;
     private MediaPlayer player;
@@ -66,12 +69,16 @@ public final class StableAudioActivity extends Activity {
         prompt=new EditText(this);prompt.setTextSize(18);prompt.setMinLines(3);
         prompt.setSingleLine(false);prompt.setText("Upbeat retro arcade synthpop, bouncy bass, crisp drums, joyful electronic melody, instrumental.");
         root.addView(prompt);
-        label(root,"Durée de la musique :",18);
+        extensionMode=new CheckBox(this);
+        extensionMode.setText("🔁 Prolonger le son original jusqu'à +60 secondes");
+        extensionMode.setTextSize(19);
+        root.addView(extensionMode);
+        label(root,"Durée de génération :",18);
         durationName=label(root,"8 secondes",17);
         duration=new SeekBar(this);duration.setMax(29);duration.setProgress(7);
         root.addView(duration);
         duration.setOnSeekBarChangeListener(new SimpleSeek(){@Override public void onProgressChanged(SeekBar s,int p,boolean user){
-            durationName.setText((p+1)+" secondes");
+            durationName.setText(extensionMode.isChecked()?"Ajouter +"+(p+1)+" secondes":(p+1)+" secondes");
         }});
         seedName=label(root,"Amorce : aucune. Création libre à partir du texte.",18);
         pick=button(root,"🎧 Choisir un morceau de son en amorce",this::selectSeed);
@@ -80,7 +87,7 @@ public final class StableAudioActivity extends Activity {
         variation=new SeekBar(this);variation.setMax(80);variation.setProgress(45);
         root.addView(variation);
         variation.setOnSeekBarChangeListener(new SimpleSeek(){@Override public void onProgressChanged(SeekBar s,int p,boolean user){
-            variationName.setText("Force de variation : "+(p+20)+" % (20 % fidèle, 100 % libre)");
+            if(!extensionMode.isChecked())variationName.setText("Force de variation : "+(p+20)+" % (20 % fidèle, 100 % libre)");
         }});
         state=label(root,"⏳ Vérification de la présence des modèles IA dans l’APK…",18);
         state.setContentDescription("Journal de progression de la génération musicale");
@@ -90,6 +97,16 @@ public final class StableAudioActivity extends Activity {
         play.setEnabled(false);
         export=button(root,"💾 Enregistrer la musique au format WAV",this::save);
         export.setEnabled(false);
+        extensionMode.setOnCheckedChangeListener((button,checked)->{
+            duration.setMax(checked?59:29);
+            duration.setProgress(checked?9:7);
+            variation.setEnabled(!checked);
+            variationName.setText(checked?
+                "Prolongation : original conservé, nouvelle suite créée par IA":
+                "Force de variation : "+(variation.getProgress()+20)+" %");
+            durationName.setText(checked?"Ajouter +10 secondes":"8 secondes");
+        });
+        button(root,"📜 Licences Stable Audio / Gemma",this::readLicenses);
         button(root,"🔍 Vérifier les modèles intégrés",this::checkAssets);
         button(root,"↩ Retour à FxExtractor",this::finish);
         setContentView(scroll);
@@ -199,13 +216,35 @@ public final class StableAudioActivity extends Activity {
     private void setBusy(boolean value,String status){
         busy=value;state.setText(status);generate.setEnabled(!busy && packPresent);
         pick.setEnabled(!busy);clear.setEnabled(!busy);
+        extensionMode.setEnabled(!busy);
         play.setEnabled(!busy&&audioFile!=null);export.setEnabled(!busy&&audioFile!=null);
     }
     private void generate(){
         if(busy||!packPresent)return;
+        if(!getPreferences(MODE_PRIVATE).getBoolean("sa3_licence_accept",false)){
+            new android.app.AlertDialog.Builder(this)
+                .setTitle("Licences des modèles Stable Audio et Gemma")
+                .setMessage("Cette IA embarque Stable Audio 3 (licence Stability AI Community) et T5Gemma (conditions Google Gemma). "+
+                    "La redistribution et certains usages sont encadrés par ces licences. "+
+                    "Lis les textes complets grâce au bouton « Licences Stable Audio / Gemma ». "+
+                    "En continuant, tu acceptes ces conditions, notamment les restrictions d’utilisation Gemma. "+
+                    "Powered by Stability AI.")
+                .setPositiveButton("J'accepte", (dialog,which)->{
+                    getPreferences(MODE_PRIVATE).edit().putBoolean("sa3_licence_accept",true).apply();
+                    generate();
+                })
+                .setNegativeButton("Annuler",(dialog,which)->state.setText("Conditions non acceptées. Génération non lancée."))
+                .show();
+            return;
+        }
         final String description=prompt.getText().toString().trim();
         if(description.isEmpty()){state.setText("Écris une ambiance musicale.");return;}
         final float seconds=duration.getProgress()+1;
+        final boolean extend=extensionMode.isChecked();
+        if(extend && seedUri==null){
+            state.setText("Pour prolonger un son, choisis d'abord un extrait.");
+            return;
+        }
         final float strength=(variation.getProgress()+20)/100f;
         final Uri startAudio=seedUri;
         final long randomSeed=new java.security.SecureRandom().nextLong();
@@ -214,16 +253,31 @@ public final class StableAudioActivity extends Activity {
         worker.execute(()->{
             try {
                 kotlin.Pair<float[],float[]> userAudio=null;
+                float originalSeconds=0f;
                 if(startAudio!=null){
-                    ui.post(()->state.setText("⏳ Décodage de ton extrait sonore en mémoire, hors ligne…"));
-                    userAudio=StableAudioSeedInput.INSTANCE.load(getApplicationContext(),startAudio,seconds);
+                    if(extend) {
+                        MediaMetadataRetriever metadata=new MediaMetadataRetriever();
+                        try {
+                            metadata.setDataSource(getApplicationContext(),startAudio);
+                            String millis=metadata.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                            if(millis==null)throw new IOException("Impossible de lire la durée originale");
+                            originalSeconds=Float.parseFloat(millis)/1000f;
+                        } finally { metadata.release(); }
+                        if(originalSeconds<0.5f || originalSeconds>60f)
+                            throw new IOException("L'original doit durer de 0,5 à 60 secondes pour ce mode.");
+                    }
+                    final float decodeSeconds=extend?Math.max(1f,originalSeconds):seconds;
+                    ui.post(()->state.setText("⏳ Décodage de ton extrait hors ligne…"));
+                    userAudio=StableAudioSeedInput.INSTANCE.load(getApplicationContext(),startAudio,decodeSeconds);
                 }
                 StableAudioEngine engine=new StableAudioEngine(getApplicationContext());
-                StableAudioEngine.Music result=engine.render(description,seconds,randomSeed,
-                    userAudio,strength,detail->{
-                        ui.post(()->{if(!isFinishing()&&!isDestroyed())state.setText("🎹 "+detail);});
-                        return kotlin.Unit.INSTANCE;
-                    });
+                kotlin.jvm.functions.Function1<String,kotlin.Unit> progress=detail->{
+                    ui.post(()->{if(!isFinishing()&&!isDestroyed())state.setText("🎹 "+detail);});
+                    return kotlin.Unit.INSTANCE;
+                };
+                StableAudioEngine.Music result;
+                if(extend)result=engine.extend(description,userAudio,originalSeconds,seconds,randomSeed,progress);
+                else result=engine.render(description,seconds,randomSeed,userAudio,strength,progress);
                 File output=new File(getFilesDir(),"stable_audio3_last.wav");
                 try(FileOutputStream stream=new FileOutputStream(output)){
                     StableAudioMath.writeWav(stream,result.getLeft(),result.getRight(),result.getLeft().length);
@@ -231,8 +285,9 @@ public final class StableAudioActivity extends Activity {
                 ui.post(()->{
                     if(isFinishing()||isDestroyed())return;
                     audioFile=output;
-                    setBusy(false,"✅ Musique réellement générée par Stable Audio 3, durée "+
-                        ((int)seconds)+" s. Tu peux écouter ou enregistrer le WAV.");
+                    setBusy(false,"✅ "+(extend?"Son prolongé, original préservé":"Musique générée par Stable Audio 3")+
+                        ", durée finale "+String.format(Locale.FRANCE,"%.1f",result.getLeft().length/44100f)+
+                        " secondes. Tu peux écouter ou enregistrer le WAV.");
                 });
             }catch(Throwable e){
                 android.util.Log.e("FxExtractor-SA3","Échec génération audio IA",e);
@@ -257,6 +312,28 @@ public final class StableAudioActivity extends Activity {
         intent.setType("audio/wav");intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.putExtra(Intent.EXTRA_TITLE,"FxExtractor-StableAudio3.wav");
         startActivityForResult(intent,SAVE_WAV);
+    }
+    private void readLicenses(){
+        StringBuilder text=new StringBuilder("Powered by Stability AI.\n");
+        for(String f:new String[]{"LICENSE.md","LICENSE_GEMMA.md","NOTICE"}){
+            text.append("\n—— ").append(f).append(" ——\n");
+            try(InputStream input=getAssets().open("sa3/"+f)){
+                java.io.ByteArrayOutputStream output=new java.io.ByteArrayOutputStream();
+                byte[] buffer=new byte[4096];int n;
+                while((n=input.read(buffer))>=0){
+                    if(output.size()+n>150000)throw new IOException("Licence trop longue");
+                    output.write(buffer,0,n);
+                }
+                text.append(output.toString("UTF-8"));
+            }catch(Exception e){text.append("Texte non intégré : ").append(e.getMessage());}
+        }
+        TextView legal=new TextView(this);
+        legal.setTextSize(19);legal.setTextColor(Color.BLACK);
+        legal.setText(text.toString());legal.setTextIsSelectable(true);
+        legal.setPadding(24,20,24,22);
+        ScrollView viewport=new ScrollView(this);viewport.addView(legal);
+        new android.app.AlertDialog.Builder(this).setTitle("Licences des modèles IA")
+            .setView(viewport).setPositiveButton("Fermer",(dialog,which)->{}).show();
     }
     @Override protected void onDestroy(){
         worker.shutdownNow();

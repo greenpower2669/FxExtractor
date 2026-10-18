@@ -111,7 +111,8 @@ internal class StableAudioEngine(private val context: Context) {
     }
     private fun sample(hidden:FloatArray,mask:FloatArray,seconds:Float,
                        init:FloatArray?,noise:Float,seed:Long,
-                       progress:(String)->Unit):FloatArray {
+                       progress:(String)->Unit,
+                       preservePrefix:Int=0):FloatArray {
         val L=StableAudioMath.latentLength(seconds.toDouble())
         val R=ditRungs.first{it>=L};val sig="s"+R
         val rng=Random(seed)
@@ -120,6 +121,16 @@ internal class StableAudioEngine(private val context: Context) {
             if(init==null)n else (1f-noise)*init[i]+noise*n
         }
         val schedule=StableAudioMath.pingpongSchedule(8,noise)
+        require(preservePrefix in 0..L && (preservePrefix==0 || init!=null))
+        // SA3 inpainting conditioning: 1 channel keep_mask plus 256 channels masked latents.
+        // The original audio is reinserted losslessly in PCM later; masked latents keep
+        // model context fixed while only the new tail is generated.
+        val masked=FloatArray(257*R)
+        if(preservePrefix>0) {
+            for(t in 0 until preservePrefix) masked[t]=1f
+            for(ch in 0 until 256) for(t in 0 until preservePrefix)
+                masked[(ch+1)*R+t]=init!![ch*L+t]
+        }
         model("sa3/sa3-sm-music/dit_w8a8.tflite").use{g->
             val m=g.model;val oname=outputName(m,sig)
             val ins=mutableMapOf<String,TensorBuffer>()
@@ -132,7 +143,7 @@ internal class StableAudioEngine(private val context: Context) {
                 ins.getValue("args_2").writeFloat(hidden)
                 ins.getValue("args_3").writeFloat(mask)
                 ins.getValue("args_4").writeFloat(floatArrayOf(seconds))
-                ins.getValue("args_5").writeFloat(FloatArray(257*R))
+                ins.getValue("args_5").writeFloat(masked)
                 ins.getValue("args_6").writeFloat(FloatArray(64+R){i->if(i>=64+L)-1e9f else 0f})
                 val pad=FloatArray(256*R)
                 for(k in 0..7){
@@ -155,6 +166,8 @@ internal class StableAudioEngine(private val context: Context) {
                     for(ch in 0 until 256)System.arraycopy(pv,ch*R,v,ch*L,L)
                     val gaussian=if(next==0f)null else FloatArray(state.size){rng.nextGaussian().toFloat()}
                     StableAudioMath.pingpongStep(state,v,gaussian,current,next)
+                    if(preservePrefix>0) for(ch in 0 until 256)
+                        System.arraycopy(init!!,ch*L,state,ch*L,preservePrefix)
                     progress("3/4 · Synthèse IA étape "+(k+1)+"/8")
                 }
             }finally{close(ins.values.toList(),outs.values.toList(),gi,go)}
@@ -200,6 +213,55 @@ internal class StableAudioEngine(private val context: Context) {
         }
         check(sqrt(power/(2.0*n))>1e-6){"Le réseau a renvoyé du silence"}
         return Music(pcm[0],pcm[1])
+    }
+    /**
+     * Audio outpainting, not an audio crossfade trick:
+     * SAME-S encodes the original prefix; DiT preserves its latent channels at
+     * every diffusion step and generates the appended region only.
+     * Original PCM is copied sample-perfect, then 30ms of new audio is
+     * smoothed from the original endpoint without modifying the original prefix.
+     *
+     * Requires existing input up to 60s; supports 1..60s EXTRA (<=120s total).
+     */
+    fun extend(prompt:String,original:Pair<FloatArray,FloatArray>,
+               originalSeconds:Float,extraSeconds:Float,seed:Long,
+               progress:(String)->Unit):Music{
+        require(prompt.isNotBlank() && prompt.length<=1200)
+        require(originalSeconds in 0.5f..60f && extraSeconds in 1f..60f)
+        val seconds=originalSeconds+extraSeconds
+        val L=StableAudioMath.latentLength(seconds.toDouble())
+        val keep=StableAudioMath.latentLength(originalSeconds.toDouble())
+        require(keep<L)
+        val(hidden,mask)=text(prompt,progress)
+        interrupt()
+        // Encode the full timeline with zero padding after the preserved sound,
+        // exactly as upstream inpainting uses local_add_cond.
+        val init=encodeSeed(original,L,progress)
+        interrupt()
+        val x=sample(hidden,mask,seconds,init,1f,seed,progress,keep)
+        interrupt()
+        val generated=decode(x,L,seconds,progress)
+        val originalFrames=Math.round(originalSeconds*StableAudioMath.SAMPLE_RATE)
+        val fullFrames=Math.round(seconds*StableAudioMath.SAMPLE_RATE)
+        require(originalFrames>0 && originalFrames<fullFrames)
+        val left=FloatArray(fullFrames);val right=FloatArray(fullFrames)
+        val rawLeft=original.first;val rawRight=original.second
+        require(rawLeft.size>=originalFrames && rawRight.size>=originalFrames)
+        System.arraycopy(rawLeft,0,left,0,originalFrames)
+        System.arraycopy(rawRight,0,right,0,originalFrames)
+        System.arraycopy(generated.left,originalFrames,left,originalFrames,fullFrames-originalFrames)
+        System.arraycopy(generated.right,originalFrames,right,originalFrames,fullFrames-originalFrames)
+        // Keep every original sample bit-for-bit. Only adjust generated tail.
+        val transition=min(fullFrames-originalFrames,1323) // 30ms
+        if(transition>0){
+            val endL=rawLeft[originalFrames-1];val endR=rawRight[originalFrames-1]
+            for(i in 0 until transition){
+                val w=(i+1).toFloat()/(transition+1)
+                left[originalFrames+i]=endL*(1f-w)+left[originalFrames+i]*w
+                right[originalFrames+i]=endR*(1f-w)+right[originalFrames+i]*w
+            }
+        }
+        return Music(left,right)
     }
     fun render(prompt:String,seconds:Float,seed:Long,
                audioSeed:Pair<FloatArray,FloatArray>?,variation:Float,

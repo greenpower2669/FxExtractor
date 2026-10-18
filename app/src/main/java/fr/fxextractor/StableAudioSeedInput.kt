@@ -180,7 +180,7 @@ internal object StableAudioSeedInput {
     }
     private fun resample(left:FloatArray,right:FloatArray,count:Int,rate:Int,
                          seconds:Float):Pair<FloatArray,FloatArray> {
-        val frames=(seconds*StableAudioMath.SAMPLE_RATE).toInt()
+        val frames=Math.round(seconds*StableAudioMath.SAMPLE_RATE)
         val a=FloatArray(frames);val b=FloatArray(frames)
         for(i in 0 until frames){
             val pos=i.toDouble()*rate/StableAudioMath.SAMPLE_RATE

@@ -183,3 +183,12 @@
 - [ ] Pour une extension dépassant la limite 120 s du Small-Music, générer des blocs successifs avec contexte glissant, raccords et tests d'accumulation d'erreurs ; performance/mémoire Samsung à vérifier.
 - [ ] Ne pas promettre une continuation parfaite pour des impacts très brefs ni pour les sons non musicaux : tester Stable Audio Small-Music, comparer au modèle Small-SFX sans intégrer un second poids massif par défaut.
 - [ ] Aucun essai/validation Android de l'outpainting n'est encore réalisé. Ne pas afficher « Prolonger » comme fonction achevée avant vraie inférence vérifiée.
+
+## 19/10/2026 — implémentation prolongation +60s et intégration complète (jalon)
+- [x] Programmer StableAudioEngine.extend() : inpainting latent SAME-S avec masque de conservation du préfixe, local_add_cond [keep; masked], remise en place du contexte après chaque passe DiT, collage PCM original non modifié et raccord 30ms sur la continuation seulement. LIMITATION explicite : origine 0,5–60s ; prolongation 1–60s ; total <=120s.
+- [x] Ajouter interface case « Prolonger » +60s, choisir son, force variation désactivée dans ce mode, export WAV et lecture conservés.
+- [x] Programmer contrôle préalable des licences Stability AI Community et Gemma dans l'application, accès aux textes intégrés.
+- [ ] Vérifier compilation Android de la nouvelle UI/extension et adapter les défauts.
+- [ ] Fabriquer APK 0.4.2 intégrant automatiquement 4 TFLite (DiT/T5Gemma/SAME-S enc+dec) plus tokenizer, licences et manifestes SHA256, dans la branche de test dédiée ; pas de poids dans Git.
+- [ ] Tester première génération SA3 **dans le véritable Android** ; la réussite Linux Python en CI ne suffit pas.
+- [ ] Tester une prolongation réellement générée et écouter la jonction ; mesurer RAM sur SM-A576B et corriger si nécessaire.
