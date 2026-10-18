@@ -25,6 +25,8 @@ jobs:
       - name: Check tokenizer version dependencies
         run: |
           gradle :app:dependencies --configuration debugRuntimeClasspath | grep -Ei 'djl|tokenizer|slf4j|kotlin-stdlib' || true
+      - name: Assemble native Android libraries including libc++ shared runtime
+        run: bash tools/build_shine.sh
       - name: Assemble small diagnostic APK without downloading 1.26GB models
         run: gradle --no-daemon :app:assembleDebug
       - name: Inspect compiled DEX class and Android native library
@@ -39,6 +41,7 @@ jobs:
               classes=['ai/djl/huggingface/tokenizers/jni/LibUtils',
                        'ai/djl/huggingface/tokenizers/HuggingFaceTokenizer',
                        'ai/djl/huggingface/tokenizers/jni/TokenizersLibrary']
+              assert any(n.endswith('libc++_shared.so') and n.startswith('lib/arm64-v8a/') for n in names), 'Missing Android NDK libc++_shared.so'
               for cls in classes:
                   found=[name for name in names if name.endswith('.dex') and cls.encode() in z.read(name)]
                   print('DEX',cls,found,flush=True)
@@ -47,3 +50,23 @@ jobs:
               print('Tokenizer JNI ABIs',abis,flush=True)
               assert 'arm64-v8a' in abis,'Missing 64-bit native tokenizer'
           PY
+      - name: Verify native tokenizer ELF dependencies, 16K memory-page alignment
+        run: |
+          unzip -p app/build/outputs/apk/debug/app-debug.apk \
+            lib/arm64-v8a/libdjl_tokenizer.so > "$RUNNER_TEMP/libdjl_tokenizer.so"
+          readelf -d "$RUNNER_TEMP/libdjl_tokenizer.so" | grep NEEDED
+          readelf -l "$RUNNER_TEMP/libdjl_tokenizer.so" | grep -A2 LOAD | head -35
+      - name: Android emulator JNI smoke test (real tokenizer native call)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          disable-animations: true
+          script: |
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb shell am start -n fr.fxextractor/.TokenizerProbeActivity
+            sleep 5
+            adb logcat -d -s TOKENIZER_PROBE:I | tee "$RUNNER_TEMP/tokenizer-log.txt"
+            grep -F "PASS_JNI_REAL_TOKENIZER" "$RUNNER_TEMP/tokenizer-log.txt"
