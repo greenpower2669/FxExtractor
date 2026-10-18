@@ -12,6 +12,8 @@ import android.provider.OpenableColumns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
 import android.text.InputType;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -26,11 +28,13 @@ import java.util.concurrent.Executors;
 
 /** Local audio/video FX slicer; no storage permission, no network, no recording. */
 public final class MainActivity extends Activity {
-    private static final int OPEN_MEDIA=11, SAVE_ZIP=12;
+    private static final int OPEN_MEDIA=11, SAVE_ZIP=12, SAVE_CLIP=13;
     private static final long SOURCE_FILE_LIMIT=1_000_000_000L;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Handler ui = new Handler(Looper.getMainLooper());
     private Button openButton, analyzeButton, exportButton, aiButton;
+    private Spinner outputFormat;
+    private PendingClip pendingClip;
     private TextView state, summary, help, aiStatus;
     private LinearLayout events;
     private final List<EditText> nameInputs = new ArrayList<>();
@@ -44,6 +48,25 @@ public final class MainActivity extends Activity {
     private boolean busy;
     private MediaPlayer player;
     private Runnable stopPreview;
+    private static final class PendingClip {
+        final File source;
+        final WavIO.Info info;
+        final FxAnalyzer.Result result;
+        final FxAnalyzer.Span span;
+        final String filename;
+        final boolean aac;
+
+        PendingClip(File source, WavIO.Info info, FxAnalyzer.Result result,
+                    FxAnalyzer.Span span, String filename, boolean aac) {
+            this.source = source;
+            this.info = info;
+            this.result = result;
+            this.span = span;
+            this.filename = filename;
+            this.aac = aac;
+        }
+    }
+
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,7 +106,18 @@ public final class MainActivity extends Activity {
             @Override public void onStopTrackingTouch(SeekBar b) {}
         });
         analyzeButton = button(root, "2 · Analyser les sons", () -> analyze());
-        exportButton = button(root, "3 · Exporter les FX nommés en ZIP", () -> save());
+        text(root, "Format de sortie pour chaque son enregistré individuellement :", 18);
+        outputFormat = new Spinner(this);
+        ArrayAdapter<String> formats = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item,
+                new String[] { "WAV · sans perte", "M4A (AAC) · compressé" });
+        formats.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        outputFormat.setAdapter(formats);
+        outputFormat.setSelection(0);
+        outputFormat.setContentDescription("Choisir le format de sortie individuel : WAV ou M4A");
+        root.addView(outputFormat);
+        text(root, "Sous chaque extrait, « Enregistrer ce son » crée directement un fichier WAV ou M4A dans le dossier choisi. Le ZIP reste disponible pour tous les extraits (en WAV).", 15);
+        exportButton = button(root, "3 · Exporter tous les FX en ZIP (WAV)", () -> save());
         aiButton = button(root, "🤖 Proposer les noms avec IA locale", () -> suggestNames());
         aiStatus = text(root, "IA : importe une vidéo puis lance l'analyse. Les résultats apparaissent sous chaque extrait.", 17);
         aiStatus.setContentDescription("État de la reconnaissance audio par intelligence artificielle");
@@ -123,6 +157,30 @@ public final class MainActivity extends Activity {
         // No restrictive MIME filter: video and audio providers use varied MIME types.
         startActivityForResult(pick, OPEN_MEDIA);
     }
+    private void saveClip(int index) {
+        if (busy) {
+            state.setText("Un traitement est en cours. Patiente jusqu'à sa fin avant d'enregistrer.");
+            return;
+        }
+        FxAnalyzer.Result snapshot = result;
+        if (snapshot == null || info == null || current == null
+                || index < 0 || index >= snapshot.spans.size() || index >= nameInputs.size()) {
+            state.setText("Analyse d'abord les sons pour activer l'enregistrement individuel.");
+            return;
+        }
+        boolean aac = outputFormat.getSelectedItemPosition() == 1;
+        String label = nameInputs.get(index).getText().toString();
+        String filename = WavIO.exportFileName(label, index + 1);
+        if (aac) filename = filename.substring(0, filename.length() - 4) + ".m4a";
+        pendingClip = new PendingClip(current, info, snapshot, snapshot.spans.get(index),
+                filename, aac);
+        Intent create = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        create.addCategory(Intent.CATEGORY_OPENABLE);
+        create.setType(aac ? "audio/mp4" : "audio/wav");
+        create.putExtra(Intent.EXTRA_TITLE, filename);
+        startActivityForResult(create, SAVE_CLIP);
+    }
+
     private void save() {
         Intent create = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         create.addCategory(Intent.CATEGORY_OPENABLE); create.setType("application/zip");
@@ -133,7 +191,52 @@ public final class MainActivity extends Activity {
         super.onActivityResult(requestCode,resultCode,data);
         if(resultCode != RESULT_OK || data==null || data.getData()==null) return;
         Uri uri = data.getData();
-        if(requestCode==OPEN_MEDIA) {
+        if (requestCode == SAVE_CLIP) {
+            PendingClip clip = pendingClip;
+            pendingClip = null;
+            if (clip == null) {
+                state.setText("Enregistrement annulé : choix de fichier expiré.");
+                return;
+            }
+            if (clip.result != result || clip.source != current) {
+                state.setText("La source a changé : relance l'enregistrement du son.");
+                return;
+            }
+            setBusy(true, "Enregistrement direct de " + clip.filename + "...");
+            worker.execute(() -> {
+                File temp = null;
+                try (RandomAccessFile wav = new RandomAccessFile(clip.source, "r")) {
+                    WavIO.Info check = WavIO.readInfo(wav);
+                    if (check.rate != clip.info.rate || check.channels != clip.info.channels
+                            || check.bytes != clip.info.bytes)
+                        throw new IOException("Le son d'origine a changé");
+                    if (clip.aac) {
+                        temp = File.createTempFile("fx-single-", ".m4a", getCacheDir());
+                        ClipAacEncoder.writeM4a(wav, check, clip.span, temp);
+                    }
+                    OutputStream output = getContentResolver().openOutputStream(uri, "wt");
+                    if (output == null) throw new IOException("Destination inaccessible");
+                    try (OutputStream destination = output) {
+                        if (clip.aac) {
+                            try (InputStream encoded = new FileInputStream(temp)) {
+                                byte[] dataBuffer = new byte[32768]; int n;
+                                while ((n = encoded.read(dataBuffer)) != -1)
+                                    destination.write(dataBuffer, 0, n);
+                            }
+                        } else {
+                            WavIO.writeClip(wav, check, clip.span, destination);
+                        }
+                    }
+                    ui.post(() -> setBusy(false, "Fichier enregistré directement : "
+                            + clip.filename + " (sans ZIP)."));
+                } catch (Exception e) {
+                    ui.post(() -> setBusy(false, "Enregistrement impossible : " + safe(e)
+                            + " (vérifie le fichier partiel dans le dossier choisi)."));
+                } finally {
+                    if (temp != null) temp.delete();
+                }
+            });
+        } else if(requestCode==OPEN_MEDIA) {
             stopPlayback();
             setBusy(true,"Import vidéo/audio en cours...");
             worker.execute(() -> {
@@ -262,11 +365,12 @@ public final class MainActivity extends Activity {
                         customName.setContentDescription("Nom du son numéro " + index + ", modifiable");
                         events.addView(customName);
                         nameInputs.add(customName);
+                        button(events, "⬇ Enregistrer ce son (sans ZIP)", () -> saveClip(index - 1));
                         TextView aiScore = text(events, "IA : reconnaissance en attente", 15);
                         aiDetails.add(aiScore);
                     }
                     if(found.spans.size()>40)
-                        text(events,"40 premiers extraits renommables ; les autres seront exportés en FX_041, FX_042…",16);
+                        text(events,"40 premiers extraits disponibles individuellement ; les suivants sont toujours inclus dans le ZIP WAV.",16);
                     setBusy(false, "Découpe terminée : " + found.spans.size() + " extraits.");
                     if (!found.spans.isEmpty()) suggestNames();
                     else aiStatus.setText("IA : aucun son isolé à reconnaître. Modifie la sensibilité puis relance l'analyse.");
@@ -389,6 +493,7 @@ public final class MainActivity extends Activity {
         if(player!=null){try{player.stop();}catch(Exception ignored){} player.release();player=null;}
     }
     @Override protected void onDestroy() {
+        pendingClip = null;
         stopPlayback(); worker.shutdownNow(); super.onDestroy();
     }
 }
