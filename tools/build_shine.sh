@@ -82,3 +82,13 @@ for spec in "arm64-v8a:aarch64-linux-android26-clang" \
   file "app/src/main/jniLibs/$ABI/libshinefx.so"
 done
 echo 'PASS Android MP3 JNI: arm64-v8a, armeabi-v7a, x86_64'
+# Bundle Android NDK libc++ shared runtime required by native tokenizer Rust JNI.
+for spec in "arm64-v8a:aarch64-linux-android" "armeabi-v7a:arm-linux-androideabi" "x86:i686-linux-android" "x86_64:x86_64-linux-android"; do
+  ABI="${spec%%:*}"
+  TRIPLE="${spec#*:}"
+  CPP_RUNTIME="$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/$TRIPLE/libc++_shared.so"
+  test -s "$CPP_RUNTIME" || { echo "Missing libc++_shared.so: $CPP_RUNTIME"; exit 1; }
+  mkdir -p "app/src/main/jniLibs/$ABI"
+  cp "$CPP_RUNTIME" "app/src/main/jniLibs/$ABI/libc++_shared.so"
+  echo "PASS C++ runtime included: $ABI"
+done
