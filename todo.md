@@ -192,3 +192,12 @@
 - [ ] Fabriquer APK 0.4.2 intégrant automatiquement 4 TFLite (DiT/T5Gemma/SAME-S enc+dec) plus tokenizer, licences et manifestes SHA256, dans la branche de test dédiée ; pas de poids dans Git.
 - [ ] Tester première génération SA3 **dans le véritable Android** ; la réussite Linux Python en CI ne suffit pas.
 - [ ] Tester une prolongation réellement générée et écouter la jonction ; mesurer RAM sur SM-A576B et corriger si nécessaire.
+
+## Bilan APK complet du 19 octobre (NE PAS confondre compilation et validation Samsung)
+- [x] Compiler et emballer 4 vrais TFLite et tokenizer dans APK autonome, sha256/taille vérifiés dans archive : run 39174830059 SUCCESS.
+- [x] Livrer APK brut décompressé dans la zone temporaire GitHub : artifact 12153719163, 1 465 887 394 octets, `FxExtractor-0.4.2-SA3-ANDROID-UNVERIFIED-debug.apk`.
+- [x] Tests officiels CPU Linux texte→musique, variation amorce, vraie prolongation inpainting : run 39174719399 SUCCESS.
+- [x] Fonction prolonger +1..+60 secondes écrite dans Android (original 0.5..60 sec, durée totale <=120 s).
+- [ ] **Bloquant livraison finale :** essai réel sur Samsung SM-A576B Android 16 en mode avion, lancer 1 seconde de génération, confirmer son non silencieux et export WAV.
+- [ ] Test prolongation : WAV original 3 sec +10 sec (original inchangé et raccord doux), puis +60sec, mesurer CPU/RAM/température, corriger panne.
+- [ ] Nettoyer éventuelles dettes ci-dessus et demander à Fab validation avant merge main/release.
