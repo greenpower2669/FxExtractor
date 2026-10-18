@@ -67,3 +67,7 @@ Preuve CI 0.3.6 : run GitHub 39153583595 SUCCESS, APK debug brut `delivery/fxext
 
 ## v0.3.7 — IA MIDI intégralement embarquée
 Décision Fab (18/10) : moteur et poids dans APK, démarrage automatique en mémoire quand le laboratoire s'ouvre ; pas de vocabulaire ambigu « télécharger/charger » ; import facultatif de poids ultérieurs à étudier après tests. Runtime ONNX/WASM livré local avec `wasmBinary`, modèle v5 CPU int8 ~109,3 Mio, tokenizer/manifest et SHA256 validés en CI. Aucune permission INTERNET. Taille du fichier Android >100 Mo probable : utiliser artifact GitHub Actions archive:false, pas branche Git brute, sans Release ni merge. Inférence réelle à tester sur Samsung.
+
+
+### Preuve CI modèle embarqué v0.3.7
+Run 39157742071 SUCCESS ; APK `FxExtractor-0.3.7-MIDI-OFFLINE-debug.apk` 162 031 457 octets (GitHub Actions artifact 12148160390, archive:false). SHA256 des poids CPU et binaire WASM vérifiés dans l'APK ; pas de téléchargement au téléphone, pas de droit INTERNET. Branch `delivery/fxextractor-apk` reste inchangée pour ce paquet >100Mo, limite Git. Test d'inférence sur Samsung et lecture MIDI encore nécessaires.

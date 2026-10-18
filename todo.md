@@ -119,3 +119,5 @@
 - [ ] Vérifier run GitHub Actions, signature, APK brut >100 Mo en artefact sans ZIP, taille réelle, modèle extrait du ZIP APK et son hash.
 - [ ] Test Samsung sans connexion : application ouverte, générer quelques notes, écouter, exporter .mid ; mesurer RAM et latence.
 - [ ] Étudier dans les options un import de modèles additionnels compatibles, après validation v5 CPU.
+
+- [x] GitHub Actions run 39157742071 SUCCESS : packaging CPU MIDI 109 Mio vérifié par empreinte SHA256, WASM et tokenizer dans APK ; binaire brut 162 031 457 octets, artefact non zippé ID 12148160390. Publication dans branche Git impossible >100Mo, sans Release.
