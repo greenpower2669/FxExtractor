@@ -4,7 +4,7 @@ const $ = id => document.getElementById(id);
 let ort, detect, loadMidigen, newScore, newTrack, writeMidi, mspqOf, parseMidi;
 let mg = null, currentMidi = null, audio = null, activeOsc = [], controller = null;
 let loadController = null;
-let trace = ["FxExtractor 0.3.7 MIDI hors ligne · initialisation"];
+let trace = ["FxExtractor 0.3.8 MIDI CPU · initialisation"];
 const ASSET_ROOT = "https://appassets.androidplatform.net/midi/";
 let startedLoading = false;
 const native = globalThis.FxNative;
@@ -16,7 +16,7 @@ const status = txt => {
   if (trace.length > 50) trace.shift();
   try { native?.trace?.(message); } catch (_) {}
 };
-const failure = (phase,e) => status("❌ " + phase + " : " + (e?.message || String(e)) +
+const failure = (phase,e) => status("❌ " + phase + " : " + (e?.stack || e?.message || String(e)) +
   "\nTu peux réessayer, ou copier le diagnostic ci-dessous.");
 window.addEventListener("error", e => failure("Erreur JavaScript", e.error || e.message));
 window.addEventListener("unhandledrejection", e => failure("Promesse JavaScript", e.reason));
@@ -74,7 +74,7 @@ async function initializeInMemory(){
   try {
     status("⏳ Étape 1/4 · Chargement en mémoire des modules MIDI/ONNX déjà présents dans l'APK…");
     const modules = await withTimeout(Promise.all([
-      import("./ort.webgpu.bundle.min.mjs"),
+      import("./ort.wasm.bundle.min.mjs"),
       import("./midigen-web.mjs"),
       import("./tasks.mjs"),
       import("./midi.mjs")
@@ -85,19 +85,20 @@ async function initializeInMemory(){
     if (signal.aborted) throw new Error("Annulé");
 
     status("⏳ Étape 2/4 · Vérification du moteur WASM intégré dans l'APK…");
-    const wasmUrl = ASSET_ROOT + "ort-wasm-simd-threaded.jsep.wasm";
+    const wasmUrl = ASSET_ROOT + "ort-wasm-simd-threaded.wasm";
     const wasmResponse = await withTimeout(fetch(wasmUrl, {signal, cache:"no-store"}), 25000, "Lecture WASM");
     if (!wasmResponse.ok) throw new Error("WASM absent de l'APK (HTTP "+wasmResponse.status+").");
     const wasmBytes = new Uint8Array(await wasmResponse.arrayBuffer());
     if (wasmBytes.length < 1_000_000 || wasmBytes[0] !== 0 ||
         wasmBytes[1] !== 97 || wasmBytes[2] !== 115 || wasmBytes[3] !== 109)
       throw new Error("Le WASM intégré est incomplet ou invalide ("+wasmBytes.length+" octets).");
-    // The exact runtime binary and JS are packaged together; avoid Emscripten's
-    // broken default URL resolution inside the Android asset-backed WebView.
+    // CPU-only ORT bundle and non-JSEP CPU WASM must match the same npm package build.
+    // v0.3.7 incorrectly paired ort.webgpu.bundle with a JSEP binary, causing an
+    // internal minified JS error (reading Xe) at session initialization.
+    // Explicit wasmBinary also avoids fragile WebView relative URL resolution.
     ort.env.wasm.numThreads = 1;
-    ort.env.wasm.wasmPaths = {wasm: wasmUrl};
     ort.env.wasm.wasmBinary = wasmBytes;
-    status("✅ Moteur WASM présent : "+(wasmBytes.length/1048576).toFixed(1)+" Mio. Aucun accès Internet nécessaire.");
+    status("✅ Moteur ONNX CPU/WASM standard présent : "+(wasmBytes.length/1048576).toFixed(1)+" Mio. Aucun accès Internet nécessaire.");
 
     status("⏳ Étape 3/4 · Lecture du modèle MIDI CPU présent dans l'APK (environ 109 Mio). Pas de téléchargement.");
     const started = performance.now();

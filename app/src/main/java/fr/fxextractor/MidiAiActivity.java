@@ -35,7 +35,7 @@ public final class MidiAiActivity extends Activity {
     private WebView webView;
     private byte[] lastMidi;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final StringBuilder diagnostic = new StringBuilder("FxExtractor 0.3.7 MIDI hors ligne\n");
+    private final StringBuilder diagnostic = new StringBuilder("FxExtractor 0.3.8 MIDI CPU\n");
     private String fileName = "FxExtractor-MIDI-AI-v5.mid";
 
     @Override public void onCreate(Bundle state) {

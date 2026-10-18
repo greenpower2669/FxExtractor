@@ -121,3 +121,12 @@
 - [ ] Étudier dans les options un import de modèles additionnels compatibles, après validation v5 CPU.
 
 - [x] GitHub Actions run 39157742071 SUCCESS : packaging CPU MIDI 109 Mio vérifié par empreinte SHA256, WASM et tokenizer dans APK ; binaire brut 162 031 457 octets, artefact non zippé ID 12148160390. Publication dans branche Git impossible >100Mo, sans Release.
+
+
+## v0.3.8 — ONNX CPU cohérent
+- [x] Diagnostiquer `Xe` : moteur WebGPU/JSEP employé dans un labo CPU, mélange de variantes.
+- [x] Code : import ONNX CPU standard et WASM CPU standard issus de 1.30.0, garder `wasmBinary` pour WebView.
+- [x] Ajouter essai réel de session MIDI v5 en Chromium, entièrement hors ligne, en CI avant publication.
+- [ ] Vérifier test Chromium (prévu 180 s), puis build Android, APK >100 Mo en artifact non zippé, SHA modèle.
+- [ ] Tester physiquement le Samsung : lancement CPU hors ligne puis génération 128 tokens, temps/ mémoire, écoute.
+- [ ] Si navigateur Linux réussit mais Samsung échoue, relever la stack complète et différences WebView.

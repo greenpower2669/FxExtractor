@@ -36,3 +36,5 @@
 - `tools/test_midi_ui.mjs` : test anti-interface silencieuse en cas d'échec d'import ONNX MIDI.
 
 - `tools/embed_midi_model.py` : téléchargement modèle MIDI CPU v5 uniquement en CI et validation hash/poids avant intégration dans APK, jamais au lancement Android.
+
+- `tools/test_midi_browser.mjs` : test Chromium d'initialisation réelle ONNX CPU avec le modèle MIDI embarqué (pas seulement syntaxe et SHA), assets virtuellement servis depuis l'APK.

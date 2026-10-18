@@ -73,3 +73,7 @@ Retour réel Samsung : 109,3 / 109,3 Mio téléchargés correctement, puis ONNX 
 
 ### Build v0.3.7
 CI GitHub 39157742071 SUCCESS : tests, MP3, YAMNet, téléchargement/contrôle de poids MIDI sur runner, packaging APK, validation SHA256 du modèle à l'intérieur et moteur WASM inclus. APK debug brut 162 031 457 octets via GitHub Actions artifact 12148160390 (archive:false), pas de raw branch (limite 100Mo). Aucune preuve encore que génération fonctionne sur le Samsung ; retour test à collecter.
+
+
+## 18/10 — échec 0.3.7 au démarrage ONNX après lecture complète
+Logs exacts : WASM 27.0 Mio local, modèle CPU 109.3/109.3 Mio chargé en RAM, erreur async `Cannot read properties of undefined (reading 'Xe')` à l'étape 4. La précédente panne de fetch WASM est réglée. Nouvelle hypothèse forte : incompatibilité d'artefacts (JS ort.webgpu.bundle + JSEP WASM) pour le CPU ; selon le contrat ONNX Runtime Web, utiliser le bundle `ort.wasm.bundle.min.mjs` + `ort-wasm-simd-threaded.wasm` de même version. Introduire vraie initialisation automatisée Chromium Playwright en CI au lieu d'affirmer qu'un test de syntaxe garantit l'inférence.

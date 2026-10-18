@@ -71,3 +71,7 @@ Décision Fab (18/10) : moteur et poids dans APK, démarrage automatique en mém
 
 ### Preuve CI modèle embarqué v0.3.7
 Run 39157742071 SUCCESS ; APK `FxExtractor-0.3.7-MIDI-OFFLINE-debug.apk` 162 031 457 octets (GitHub Actions artifact 12148160390, archive:false). SHA256 des poids CPU et binaire WASM vérifiés dans l'APK ; pas de téléchargement au téléphone, pas de droit INTERNET. Branch `delivery/fxextractor-apk` reste inchangée pour ce paquet >100Mo, limite Git. Test d'inférence sur Samsung et lecture MIDI encore nécessaires.
+
+
+## v0.3.8 — corriger la variante ONNX CPU (18/10)
+Journal physique Fab : 0.3.7 atteint 109,3/109,3 Mio, WASM 27Mio présent, étape 4 échec interne JS `reading 'Xe'`. Le code combinait `ort.webgpu.bundle.min.mjs` avec `ort-wasm-simd-threaded.jsep.wasm` ; v0.3.8 utilise strictement `ort.wasm.bundle.min.mjs` + `ort-wasm-simd-threaded.wasm` de onnxruntime-web 1.30.0. Nouveau test réel de chargement de modèle ONNX via Chromium Playwright avant build Android ; ne pas qualifier l'inférence Samsung de réussie sans essai. Préserver mode hors ligne, auto-initialisation, poids 109Mio, branches isolées.

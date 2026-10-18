@@ -58,3 +58,7 @@ Fab : « J'ai lancé le truc midi, j'ai voulu charger et il se passe rien [...] 
 
 ## 18/10/2026 — commande Fab sur l'embarquement MIDI
 Fab demande que le moteur ET les poids soient embarqués comme pour Pierre/Voyas. Aucune opération « télécharger » ou « charger un moteur » sur le téléphone ; si nécessaire utiliser seulement « Charger en mémoire » avec initialisation automatique à l'ouverture du laboratoire, sans pénaliser l'écran principal. Conserver une piste pour installer d'autres poids ultérieurement. Corriger l'échec WASM, tests CI de hash/empreinte, livrer APK brut directement utilisable. Ne pas merger main ni publier Release sans approbation.
+
+
+## 18/10/2026 — correction au retour 0.3.7
+Fab fournit la trace : auto-initialisation locale trouve WASM et poids, mais erreur `Xe` interne ONNX. Mission : réparer initialisation ONNX sans retéléchargement sur téléphone, conserver modèle embarqué, UI/diagnostics, extraction audio. Vérifier par vraie initialisation sur navigateur en CI avant nouvel APK. Ne pas merger main/Release.
