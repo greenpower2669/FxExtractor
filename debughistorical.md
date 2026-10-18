@@ -51,3 +51,6 @@ GitHub Actions 39123489681 SUCCESS, code 711bba5. Tests WAV individuel, IA YAMNe
 
 ## D012 — MP3
 Android ne garantit pas d'encodeur MP3, seulement son décodeur. Choix de Shine LGPL2, JNI hors ligne et build natif épinglé, pas de fichier M4A renommé. FFprobe et FFmpeg pour vérifier vrai MP3 en CI ; Android ARM64 à tester physiquement.
+
+### D012 — résultat CI
+Run 39126300413 entièrement vert : Shine génère réellement MPEG Layer III, ffprobe détecte codec_name=mp3 à 44 100 Hz, FFmpeg décode sans erreur, build NDK trois ABI, gradle compile, APK de 19 063 004 octets contient libshinefx.so et copie LGPL. Sur téléphone réel non encore validé.

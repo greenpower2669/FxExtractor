@@ -48,3 +48,6 @@ Run Actions `39123489681` SUCCESS sur SHA source `711bba56575f4624fa73653c579ba5
 
 ## 0.3.4 — format MP3
 Choix par extrait WAV (sans perte), M4A (AAC) ou MP3 Shine natif LGPL-2.0. Encodeur Java Mp3ShineEncoder + JNI shine_bridge.c, 44,1 kHz, 128k mono/192k stereo, 3 ABIs Android. Source Shine fixée à ab5e3526b64af1a2eaa43aa6f441a7312e013519, build et test ffprobe/ffmpeg dans tools/build_shine.sh. Notices tierces dans THIRD_PARTY_NOTICES.md. Pas de merge main ni Release.
+
+### Livraison 0.3.4 prouvée
+GitHub Actions 39126300413 SUCCESS sur SHA source 6ce5fe99fcdfa4e7e21d7e9023bbff0d4e357b5a ; encoder Shine JNI réel testé par ffprobe/FFmpeg, libs Android multi-ABI, tests JVM/YAMNet, APK brut dans delivery/fxextractor-apk/apk/FxExtractor-0.3.4-debug.apk (19 063 004 octets, blob b5f6d3ed23ad221e2125509b47ddf621e7cac432). Aucun test Samsung physique, aucun merge main/Release.

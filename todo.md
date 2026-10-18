@@ -79,5 +79,5 @@
 - [x] Format MP3 dans chaque ligne, extension .mp3 et MIME audio/mpeg.
 - [x] Encodeur Shine JNI, source épinglée et licence LGPL.
 - [x] Build multi-ABI et vrai test MP3 decode FFmpeg prévus par CI.
-- [ ] Confirmer CI Android, MP3 décodable, .so native dans APK, binaire direct raw.
+- [x] GitHub Actions run 39126300413 SUCCESS : vrai MP3 Shine encodé/décodé FFmpeg, test ffprobe 44,1kHz, .so arm64-v8a/armeabi-v7a/x86_64 vérifiées, YAMNet test, APK brut FxExtractor-0.3.4-debug.apk 19 063 004 octets livré en branche delivery (git blob b5f6d3ed23ad221e2125509b47ddf621e7cac432).
 - [ ] Tester sur Samsung et écouter MP3, comparer WAV/M4A.
