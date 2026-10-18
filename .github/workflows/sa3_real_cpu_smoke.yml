@@ -59,7 +59,7 @@ jobs:
           cd "$RUNNER_TEMP/sa3ref/optimized/tflite"
           python scripts/sa3_tflite.py \
             --prompt 'Warm optimistic electronic melody, crisp drums and playful synth bass' \
-            --dit sm-music --seconds 1.0 --steps 8 --threads 2 \
+            --dit sm-music --decoder same-s --seconds 1.0 --steps 8 --threads 2 \
             --out "$RUNNER_TEMP/sa3_real_audio.wav" --free-models
           python - <<'PY'
           import wave,os,numpy as np
@@ -78,7 +78,7 @@ jobs:
           cd "$RUNNER_TEMP/sa3ref/optimized/tflite"
           python scripts/sa3_tflite.py \
             --prompt 'A warm ambient synthesizer variation with gentle drums' \
-            --dit sm-music --seconds 1.0 --steps 4 --threads 2 \
+            --dit sm-music --decoder same-s --seconds 1.0 --steps 4 --threads 2 \
             --init-audio "$RUNNER_TEMP/sa3_real_audio.wav" --init-noise-level 0.65 \
             --out "$RUNNER_TEMP/sa3_real_seeded.wav" --free-models
           python - <<'PY'
