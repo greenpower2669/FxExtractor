@@ -11,7 +11,7 @@ import java.util.List;
  */
 public final class FxAnalyzer {
     private FxAnalyzer() {}
-    public static final int DEFAULT_RELEASE_MS = 600;
+    public static final int DEFAULT_RELEASE_MS = 0;
 
     public static final class Span {
         public final long startMs, endMs;
