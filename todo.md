@@ -161,3 +161,7 @@
 - [ ] Port native T5Gemma encodage int32 et SentencePiece, sampler CPU DiT rung et codec SAME-S, vraie génération WAV tests Linux/Android.
 - [ ] Profilage RAM/temps Samsung et tests génération audio hors ligne, arrêt propre, export et écoute.
 - [ ] Ne pas livrer 0.4.0 comme IA musicale fonctionnelle tant que génération n'est pas vérifiée. Pas de merge main.
+
+- [x] CI premier socle 0.4.0-dev : run 39166381192 SUCCESS (tests Java sampler et WAV, compilation Kotlin LiteRT/Android). Artefact brut 12150472873 de 155 643 725 octets, **non livrable comme IA musicale fonctionnelle**.
+- [x] Code d'audit d'un pack de 4 modèles : tools/verify_sa3_model_pack.py, validation tailles, magic TFL3, SHA, licence explicite du responsable de packaging, pas de contournement HF.
+- [ ] Le portage réel T5Gemma/SentencePiece/DiT rung/SAME-S et la génération WAV non silencieuse manquent encore ; les tester avec vrais poids après obtention autorisée. Besoin d'accord aux licences Gemma et Stability AI.

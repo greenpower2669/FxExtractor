@@ -96,3 +96,7 @@ Après validation du moteur MIDI CPU dans Chromium, Fab trouve le résultat musi
 
 ## 18/10/2026 — démarrage implémentation Stable Audio Android
 La version d'extraction FxExtractor utilisait tensorflow-lite 2.16.1 pour YAMNet, tandis que Stable Audio 3 quantifié nécessite des graphes LiteRT 2.2+ avec signatures rung et XNNPACK. Migration expérimentale vers com.google.ai.edge.litert:litert:2.3.0 et Kotlin 2.3.21, adaptation YAMNet via LiteRtYamnet. Écran d'audit modèle CPU intégré et pure math SA3. Le code ne prétend pas encore charger les poids Stable Audio ni générer de WAV à partir de l'IA ; aucun bouton générer activé avant pipeline complet. Tester CI avant APK.
+
+
+### Jalon expérimental compilé
+CI 39166381192 SUCCESS, Kotlin LiteRT 2.3 et extraction YAMNet compilent, tests sampler/WAV en JVM passent ; aucune preuve de non-régression **sur Samsung**, YAMNet et Stable Audio 3 à tester sur matériel. APK 0.4.0-dev 155643725 octets sans poids Stable Audio, à ne pas appeler générateur musical. Modèles Stability/Gemma à obtenir sous licences, portage neuronal restant.
