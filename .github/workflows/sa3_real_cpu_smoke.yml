@@ -108,6 +108,27 @@ jobs:
           print('REAL AUDIO-TO-AUDIO VARIATION RMS:',rms,'frames',len(pcm),flush=True)
           assert rms>0.00001
           PY
+      - name: Run official REAL SA3 outpainting continuation
+        timeout-minutes: 35
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/sa3ref/optimized/tflite"
+          python scripts/sa3_tflite.py \
+            --prompt 'A warm ambient synthesizer continues with gentle shimmering chords' \
+            --dit sm-music --decoder same-s --seconds 2.0 --steps 4 --threads 2 \
+            --init-audio "$RUNNER_TEMP/sa3_real_audio.wav" --inpaint-range 1.0,2.0 \
+            --out "$RUNNER_TEMP/sa3_extended.wav" --free-models
+          python - <<'PY'
+          import wave,os,numpy as np
+          path=os.environ['RUNNER_TEMP']+'/sa3_extended.wav'
+          with wave.open(path,'rb') as w:
+              assert w.getnchannels()==2 and w.getframerate()==44100
+              assert abs(w.getnframes()-2*44100)<100
+              raw=np.frombuffer(w.readframes(w.getnframes()),dtype='<i2').reshape(-1,2)
+          rms=float(np.sqrt(np.mean((raw[44100:].astype('float64')/32768)**2)))
+          print('REAL AUDIO OUTPAINTED TAIL RMS',rms,flush=True)
+          assert rms>0.00001
+          PY
       - name: Forget temporary original models (not included in any artifact or Git ref)
         if: always()
         run: |
