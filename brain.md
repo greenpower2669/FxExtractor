@@ -57,3 +57,7 @@ GitHub Actions 39126300413 SUCCESS sur SHA source 6ce5fe99fcdfa4e7e21d7e9023bbff
 Accord Fab : tester MIDI Gen AI v5 à l'intérieur de FxExtractor, sans modifier le moteur d'extraction. UI séparée WebView locale ; modules MIT et runtime WebAssembly embarqués ; poids CPU ~115 Mo / GPU ~73 Mo téléchargés seulement sur clic, inférence ensuite locale, cache selon WebView. Pré-écoute Web Audio simplifiée, export .mid par SAF. Aucun envoi d'audio utilisateur. Essai Samsung / latence non validés. Pas de merge main/Release.
 
 CI compilation 0.3.5 validée : GitHub run 39150975283 SUCCESS, modèle runtime JS/ONNX inclus ; APK brut FxExtractor-0.3.5-MIDI-v5-debug.apk (27 399 299 octets), blob 2e42c5b4e781383dd5acbe43d08fbc5d2801e667. AAB non signé distinct. Génération réelle sur Samsung encore à tester.
+
+ 
+## v0.3.6 — diagnostic MIDI
+Retour Fab (18/10) : appui sur Charger sans réaction, options grisées. La 0.3.5 cachait le statut loin sous les boutons et utilisait les imports statiques sans gestion d'échec visible. En 0.3.6, interface de diagnostic avant chargement dynamique, copie native et bouton test hors ligne, progression près de charger, annulation et reprise après échec. Compilation/test Android à vérifier ; test réel d'inférence encore nécessaire. Ne pas fusionner main.

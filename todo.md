@@ -91,3 +91,13 @@
 - [ ] Essai Samsung Android 16 : premier téléchargement, cache, latence, stabilité RAM, WebGPU, export.
 - [ ] Si navigateur WebView est trop lent/instable, étudier ORT Android natif et un vrai lecteur SoundFont.
 - [ ] Valider la qualité musicale et licence avant inclusion dans BlockBoost.
+
+ 
+## v0.3.6 — correction « Charger ne fait rien »
+- [x] Retour Samsung identifié : boutons du bas gris + statut éloigné ; impossibilité de diagnostiquer un échec de module ou réseau.
+- [x] Démarrer l'UI avant l'import des modules ONNX, afficher étapes, progression et erreurs juste sous Charger.
+- [x] Test hors ligne des boutons, annulation, réessai, copie du diagnostic via Android Clipboard.
+- [x] Ajouter smoke test Node du clic et de la reprise après échec de module JS.
+- [ ] CI Android/Node verte avec 0.3.6 et livraison APK brut GitHub confirmée ; consigner run et SHA.
+- [ ] Essai Samsung : bouton test, téléchargement CPU (~115 Mo), sortie explicite de chaque étape, RAM et vraie génération.
+- [ ] Si diagnostic « Accès réseau », « WebGPU », « WASM » ou crash WebView, corriger le moteur spécifique à partir du rapport réel.

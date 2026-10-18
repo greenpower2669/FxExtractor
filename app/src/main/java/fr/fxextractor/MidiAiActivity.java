@@ -1,6 +1,13 @@
 package fr.fxextractor;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+import android.webkit.ConsoleMessage;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,6 +34,8 @@ public final class MidiAiActivity extends Activity {
     private static final String LOCAL_HOST = "appassets.androidplatform.net";
     private WebView webView;
     private byte[] lastMidi;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final StringBuilder diagnostic = new StringBuilder("FxExtractor 0.3.6 MIDI\n");
     private String fileName = "FxExtractor-MIDI-AI-v5.mid";
 
     @Override public void onCreate(Bundle state) {
@@ -39,12 +48,37 @@ public final class MidiAiActivity extends Activity {
         settings.setAllowContentAccess(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         webView.addJavascriptInterface(new NativeBridge(), "FxNative");
-        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override public boolean onConsoleMessage(ConsoleMessage message) {
+                Log.i("FxExtractorMIDI", message.message() + " @" + message.lineNumber());
+                if (message.messageLevel() == ConsoleMessage.MessageLevel.ERROR)
+                    record("WebView JS ERROR: " + message.message());
+                return true;
+            }
+        });
         webView.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 // JS may fetch a checkpoint, but the top-level document must never navigate off-app.
                 Uri u = request.getUrl();
                 return request.isForMainFrame() && !"appassets.androidplatform.net".equals(u.getHost());
+            }
+            @Override public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                handler.postDelayed(() -> {
+                    if (webView == null) return;
+                    view.evaluateJavascript("Boolean(window.__fxMidiReady)", value -> {
+                        if (!"true".equals(value)) {
+                            record("Module JS MIDI non initialisé après 10s (" + url + ")");
+                            view.evaluateJavascript(
+                                "document.getElementById('loadStatus').textContent='❌ Échec du chargement JavaScript MIDI. Clique Copier le diagnostic.'", null);
+                        }
+                    });
+                }, 10000);
+            }
+            @Override public void onReceivedError(WebView view, WebResourceRequest request, android.webkit.WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                if (request.isForMainFrame())
+                    record("Chargement écran : " + error.getDescription());
             }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 Uri u = request.getUrl();
@@ -71,7 +105,26 @@ public final class MidiAiActivity extends Activity {
         webView.loadUrl("https://" + LOCAL_HOST + "/midi/index.html");
     }
 
+    private synchronized void record(String message) {
+        Log.i("FxExtractorMIDI", message);
+        diagnostic.append(message).append('\n');
+        if (diagnostic.length() > 16000) diagnostic.delete(0, diagnostic.length() - 12000);
+    }
+
     public final class NativeBridge {
+        @JavascriptInterface public void trace(String message) {
+            if (message != null) record(message.substring(0, Math.min(message.length(), 1500)));
+        }
+
+        @JavascriptInterface public void copyDiagnostic(String report) {
+            runOnUiThread(() -> {
+                String full = (report == null ? "" : report) + "\n" + diagnostic.toString();
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                clipboard.setPrimaryClip(ClipData.newPlainText("FxExtractor diagnostic MIDI", full));
+                Toast.makeText(MidiAiActivity.this, "Diagnostic copié. Tu peux le coller dans la conversation.", Toast.LENGTH_LONG).show();
+            });
+        }
+
         @JavascriptInterface public void receiveMidi(String encoded, String name) {
             try {
                 byte[] decoded = Base64.decode(encoded, Base64.DEFAULT);

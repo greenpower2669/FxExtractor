@@ -141,3 +141,8 @@ Test MP3 Linux : encoder via JNI la forme d'onde WAV, vérifier au ffprobe qu'il
 - Sources : https://github.com/nicholasbien/midigenai et https://github.com/microsoft/onnxruntime.
 
 **Livraison test v0.3.5 vérifiée (GitHub Actions) :** [APK brut direct .apk](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.5-MIDI-v5-debug.apk) — 27 399 299 octets, [run CI 39150975283 SUCCESS](https://github.com/greenpower2669/FxExtractor/actions/runs/39150975283) ; [AAB non signé séparé](https://github.com/greenpower2669/FxExtractor/actions/runs/39150975283). L'inférence MIDI sur appareil n'est pas encore attestée.
+
+ 
+## v0.3.6 — correction lancement IA MIDI, diagnostic visible (18/10/2026)
+Retour Samsung : « J'ai voulu charger et il ne se passe rien ; options du bas grisées ». Défaut certain : les messages de chargement de la 0.3.5 étaient très bas hors de l'écran ; les importations JS statiques pouvaient aussi échouer avant d'enregistrer le clic. La 0.3.6 initialise immédiatement les boutons et le diagnostic puis charge dynamiquement ONNX, affiche 4 étapes, progression et erreurs près de Charger, permet annulation, réessai et copie du diagnostic natif. Le bouton « Tester les boutons et JavaScript » fonctionne sans réseau. Test CI Node `tools/test_midi_ui.mjs` : absence de silence lors d'un module indisponible. La génération réelle sur Samsung reste à tester : ne pas annoncer le correctif comme matériellement validé.
+Livraison après GitHub Actions SUCCESS : `https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.6-MIDI-v5-debug.apk`.

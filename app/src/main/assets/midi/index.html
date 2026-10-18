@@ -7,14 +7,18 @@ h1{font-size:26px;margin:0 0 8px} h2{font-size:20px}
 button,select,input{font:inherit;border-radius:9px;padding:12px;margin:6px 0;border:1px solid #9aabc7}
 button{background:#62dabf;color:#09231e;font-weight:700;width:100%;min-height:52px}
 button:disabled{opacity:.4}select,input{background:#0d1a2e;color:white;max-width:100%;box-sizing:border-box;width:100%}
-label{display:block;margin-top:12px}small{color:#b7c7de}#status{white-space:pre-wrap;word-break:break-word}
+label{display:block;margin-top:12px}small{color:#b7c7de}#status,#loadStatus{white-space:pre-wrap;word-break:break-word} .feedback{background:#112d38;border:2px solid #62dabf;border-radius:12px;padding:15px;margin:12px 0;font-weight:600;min-height:60px}
 </style></head><body>
 <h1>🎹 Laboratoire IA MIDI v5</h1>
 <p>Génération de notes par une vraie IA, calculée <strong>sur ton appareil</strong>. Aucun extrait sonore envoyé en ligne.</p>
 <section class="panel"><h2>1 · Préparer le modèle</h2>
 <p>Au premier essai seulement, il faut télécharger les poids du modèle sur Hugging Face (~115 Mo en CPU ou ~73 Mo en GPU), puis les garder en cache. Ce téléchargement est déclenché uniquement par ton choix.</p>
 <label>Moteur<select id="engine"><option value="cpu">CPU · plus compatible, ~115 Mo</option><option value="gpu">GPU WebGPU · expérimental, ~73 Mo</option></select></label>
-<button id="load">Charger MIDI Gen AI v5</button>
+<button id="ping">🧪 Tester les boutons et JavaScript (sans réseau)</button>
+<button id="load">⬇ Charger MIDI Gen AI v5</button>
+<div id="loadStatus" class="feedback" role="status" aria-live="polite">Interface en cours de vérification…</div>
+<button id="cancelLoad" disabled>Annuler le chargement</button>
+<button id="copy">📋 Copier le diagnostic</button>
 </section>
 <section class="panel"><h2>2 · Composer</h2>
 <label>Ambiance originale<select id="mood"><option value="bouncy">Électronique bondissante</option><option value="calm">Douce et légère</option><option value="arcade">Arcade dynamique</option></select></label>
@@ -29,4 +33,19 @@ label{display:block;margin-top:12px}small{color:#b7c7de}#status{white-space:pre-
 </section>
 <section class="panel"><h2>Diagnostic sur ce téléphone</h2><div id="status" role="status" aria-live="polite">En attente. La génération IA n'a pas commencé.</div></section>
 <p><small>Sources : MIDI Gen AI v5 (Nicholas Bien, MIT) et ONNX Runtime Web (Microsoft, MIT). Une mélodie inspirée des sons rétro ne doit pas reproduire Popcorn. Performances et mémoire à mesurer sur Samsung Android 16.</small></p>
+<script>
+(function(){
+  function report(s){
+    var m=String(s);
+    document.getElementById('loadStatus').textContent=m;
+    document.getElementById('status').textContent=m;
+    if(window.FxNative&&window.FxNative.trace) window.FxNative.trace(m);
+  }
+  window.addEventListener('error',function(e){report('❌ Erreur au démarrage : '+(e.message||'script absent')+'. Copie le diagnostic.');});
+  window.addEventListener('unhandledrejection',function(e){report('❌ Chargement JavaScript échoué : '+String(e.reason));});
+  setTimeout(function(){
+    if(!window.__fxMidiReady) report('❌ Le moteur de l’interface MIDI ne démarre pas (module JS non chargé). Appuie sur Copier le diagnostic.');
+  },8000);
+})();
+</script>
 <script type="module" src="./main.mjs"></script></body></html>

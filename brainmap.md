@@ -32,3 +32,5 @@
 
 - `app/src/main/java/fr/fxextractor/MidiAiActivity.java` : écran expérimental IA MIDI, WebView sécurisé, export SAF.
 - `app/src/main/assets/midi/index.html`, `main.mjs` : génération IA locale, interface, écoute WebAudio. Les modules amont/ONNX WASM sont fournis au build GitHub (pas dans Git).
+
+- `tools/test_midi_ui.mjs` : test anti-interface silencieuse en cas d'échec d'import ONNX MIDI.
