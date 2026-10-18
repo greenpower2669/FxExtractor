@@ -1,0 +1,123 @@
+name: FxExtractor Android and DSP tests
+on:
+  push:
+    branches: [main, feature/audio-fx-analyzer-v1]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Optional Qwen adapter syntax
+        run: python3 -m py_compile tools/qwen_tag_fx.py
+      - name: Pure Java WAV / FX tests
+        run: |
+          mkdir -p build/dsp-test
+          javac -d build/dsp-test app/src/main/java/fr/fxextractor/FxAnalyzer.java app/src/main/java/fr/fxextractor/WavIO.java app/src/main/java/fr/fxextractor/FxCli.java tools/TestFxAnalyzer.java
+          java -cp build/dsp-test TestFxAnalyzer
+  android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Only to update isolated APK delivery branch, never main
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: ''
+      - name: Install Android platform
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Embed official Google YAMNet model and labels for offline Android AI
+        run: |
+          set -euo pipefail
+          mkdir -p app/src/main/assets
+          curl -fL --retry 3 --connect-timeout 20 --max-time 180 'https://storage.googleapis.com/mediapipe-models/audio_classifier/yamnet/float32/1/yamnet.tflite' -o app/src/main/assets/yamnet.tflite
+          python3 - <<'PY'
+          import hashlib, pathlib, zipfile
+          p = pathlib.Path('app/src/main/assets/yamnet.tflite')
+          data = p.read_bytes()
+          assert 1_000_000 < len(data) < 24_000_000, f'Unexpected YAMNet size: {len(data)}'
+          assert data[4:8] == b'TFL3', 'Not a TensorFlow Lite model'
+          print('YAMNet SHA256:', hashlib.sha256(data).hexdigest())
+          assert hashlib.sha256(data).hexdigest() == '4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf', 'YAMNet model SHA256 mismatch'
+          with zipfile.ZipFile(p) as z:
+              files = z.namelist()
+              print('Embedded model metadata assets:', files)
+              candidates = [name for name in files if name.endswith('yamnet_label_list.txt')]
+              if not candidates:
+                  candidates = [name for name in files if name.endswith('.txt')]
+              assert candidates, 'Missing embedded YAMNet AudioSet labels'
+              labels = z.read(candidates[0]).decode('utf-8-sig')
+          rows = [row for row in labels.splitlines() if row.strip()]
+          assert len(rows) == 521, f'Expected 521 labels, got {len(rows)}'
+          pathlib.Path('app/src/main/assets/yamnet_labels.txt').write_text(
+              '\n'.join(rows) + '\n', encoding='utf-8')
+          PY
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Execute actual YAMNet inference smoke test
+        run: |
+          python3 -m pip install --quiet 'ai-edge-litert' numpy
+          python3 tools/test_yamnet_model.py
+      - name: Build and test real MP3 Shine encoder
+        run: bash tools/build_shine.sh
+      - name: Build APK and AAB
+        run: gradle --no-daemon :app:assembleDebug :app:bundleRelease
+      - name: Extract APK on GitHub into a temporary folder
+        run: |
+          mkdir -p dist "$RUNNER_TEMP/fx-packed" "$RUNNER_TEMP/fx-unpacked"
+          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/fx-packed/FxExtractor-0.3.4-debug.apk"
+          (cd "$RUNNER_TEMP/fx-packed" && zip -q "$RUNNER_TEMP/fx-packed.zip" FxExtractor-0.3.4-debug.apk)
+          unzip -q "$RUNNER_TEMP/fx-packed.zip" -d "$RUNNER_TEMP/fx-unpacked"
+          cmp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" app/build/outputs/apk/debug/app-debug.apk
+          unzip -tqq "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk"
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" | grep -Fx 'assets/yamnet.tflite'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" | grep -Fx 'assets/yamnet_labels.txt'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" | grep -Fx 'lib/arm64-v8a/libshinefx.so'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" | grep -Fx 'assets/shine_lgpl_v2.txt'
+          cp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.4-debug.apk" dist/
+          sha256sum dist/FxExtractor-0.3.4-debug.apk app/build/outputs/bundle/release/app-release.aab > dist/SHA256SUMS.txt
+          test -s dist/FxExtractor-0.3.4-debug.apk
+      - name: Publish raw APK to isolated GitHub delivery branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/audio-fx-analyzer-v1'
+        run: |
+          set -euo pipefail
+          git fetch origin 'refs/heads/delivery/fxextractor-apk:refs/remotes/origin/delivery/fxextractor-apk'
+          git worktree add -B delivery/fxextractor-apk "$RUNNER_TEMP/fx-delivery" origin/delivery/fxextractor-apk
+          mkdir -p "$RUNNER_TEMP/fx-delivery/apk"
+          cp dist/FxExtractor-0.3.4-debug.apk "$RUNNER_TEMP/fx-delivery/apk/FxExtractor-0.3.4-debug.apk"
+          git -C "$RUNNER_TEMP/fx-delivery" config user.name "github-actions[bot]"
+          git -C "$RUNNER_TEMP/fx-delivery" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$RUNNER_TEMP/fx-delivery" add apk/FxExtractor-0.3.4-debug.apk
+          git -C "$RUNNER_TEMP/fx-delivery" commit -m "build: FxExtractor 0.3.4 verified APK ($GITHUB_SHA)"
+          git -C "$RUNNER_TEMP/fx-delivery" push origin HEAD:refs/heads/delivery/fxextractor-apk
+          echo "Direct APK: https://raw.githubusercontent.com/$GITHUB_REPOSITORY/delivery/fxextractor-apk/apk/FxExtractor-0.3.4-debug.apk"
+      - uses: actions/upload-artifact@v7
+        with:
+          path: dist/FxExtractor-0.3.4-debug.apk
+          archive: false
+          retention-days: 30
+      - uses: actions/upload-artifact@v7
+        with:
+          path: app/build/outputs/bundle/release/app-release.aab
+          archive: false
+          retention-days: 30
+      - uses: actions/upload-artifact@v7
+        with:
+          path: dist/SHA256SUMS.txt
+          archive: false
+          retention-days: 30
