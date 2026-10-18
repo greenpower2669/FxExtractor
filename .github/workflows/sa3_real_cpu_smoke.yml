@@ -1,0 +1,97 @@
+name: SA3 REAL CPU model inference smoke (experimental branch only)
+on:
+  push:
+    branches:
+      - feature/stable-audio3-upstream-smoke-v1
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  authentic-sa3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install SA3 LiteRT Python test-only runtime
+        run: |
+          python -m pip install --disable-pip-version-check --quiet \
+            'ai-edge-litert>=2.2.0' 'huggingface_hub>=0.35,<2.0' \
+            'numpy>=1.24' 'soundfile>=0.12' 'sentencepiece>=0.2.0'
+      - name: Fetch public official checkpoint for isolated TEST ONLY
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/Stability-AI/stable-audio-3.git "$RUNNER_TEMP/sa3ref"
+          echo "Reference source commit:"
+          git -C "$RUNNER_TEMP/sa3ref" rev-parse HEAD
+          python3 - <<'PY'
+          from huggingface_hub import HfApi,hf_hub_download
+          from pathlib import Path
+          import os,shutil,hashlib
+          repo='stabilityai/stable-audio-3-optimized'
+          info=HfApi().model_info(repo,files_metadata=True)
+          print('HF revision',info.sha,flush=True)
+          base=Path(os.environ['RUNNER_TEMP'])/'sa3ref/optimized/tflite/models'
+          lst=['tflite/sa3-sm-music/dit_w8a8.tflite',
+               'tflite/t5gemma/encoder_fp16.tflite',
+               'tflite/same-s/dec_w8a8.tflite',
+               'tflite/same-s/enc_w8a8.tflite']
+          for key in lst:
+              cached=Path(hf_hub_download(repo_id=repo,filename=key,revision=info.sha,
+                      cache_dir=os.environ['RUNNER_TEMP']+'/hf_cache'))
+              dst=base/key
+              dst.parent.mkdir(parents=True,exist_ok=True)
+              dst.symlink_to(cached)
+              print('Model test-only',key,cached.stat().st_size,flush=True)
+          tok=Path('app/src/main/assets/sa3/tokenizer.model')
+          if not tok.is_file():
+              from urllib.request import urlretrieve
+              tok.parent.mkdir(parents=True,exist_ok=True)
+              urlretrieve('https://raw.githubusercontent.com/Stability-AI/stable-audio-3/main/optimized/tflite/models/tokenizer.model',str(tok))
+          shutil.copyfile(tok,base/'tokenizer.model')
+          PY
+      - name: Run official REAL SA3 text-to-audio inference
+        timeout-minutes: 50
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/sa3ref/optimized/tflite"
+          python scripts/sa3_tflite.py \
+            --prompt 'Warm optimistic electronic melody, crisp drums and playful synth bass' \
+            --dit sm-music --seconds 1.0 --steps 8 --threads 2 \
+            --out "$RUNNER_TEMP/sa3_real_audio.wav" --free-models
+          python - <<'PY'
+          import wave,os,numpy as np
+          path=os.environ['RUNNER_TEMP']+'/sa3_real_audio.wav'
+          with wave.open(path,'rb') as f:
+              assert f.getnchannels()==2 and f.getframerate()==44100
+              pcm=np.frombuffer(f.readframes(f.getnframes()),dtype='<i2')
+          rms=np.sqrt(np.mean((pcm.astype('float64')/32768)**2))
+          print('REAL TEXT TO AUDIO RMS:',rms,'frames',len(pcm),flush=True)
+          assert rms>0.00001
+          PY
+      - name: Run official REAL SA3 audio-primed variation inference
+        timeout-minutes: 35
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/sa3ref/optimized/tflite"
+          python scripts/sa3_tflite.py \
+            --prompt 'A warm ambient synthesizer variation with gentle drums' \
+            --dit sm-music --seconds 1.0 --steps 4 --threads 2 \
+            --init-audio "$RUNNER_TEMP/sa3_real_audio.wav" --init-noise-level 0.65 \
+            --out "$RUNNER_TEMP/sa3_real_seeded.wav" --free-models
+          python - <<'PY'
+          import wave,os,numpy as np
+          path=os.environ['RUNNER_TEMP']+'/sa3_real_seeded.wav'
+          with wave.open(path,'rb') as f:
+              assert f.getnchannels()==2 and f.getframerate()==44100
+              pcm=np.frombuffer(f.readframes(f.getnframes()),dtype='<i2')
+          rms=np.sqrt(np.mean((pcm.astype('float64')/32768)**2))
+          print('REAL AUDIO-TO-AUDIO VARIATION RMS:',rms,'frames',len(pcm),flush=True)
+          assert rms>0.00001
+          PY
+      - name: Forget temporary original models (not included in any artifact or Git ref)
+        if: always()
+        run: |
+          rm -rf "$RUNNER_TEMP/hf_cache" "$RUNNER_TEMP/sa3ref" || true
