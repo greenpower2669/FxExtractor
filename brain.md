@@ -45,3 +45,6 @@ Après l'analyse, chacune des 40 lignes affichées possède « Enregistrer ce so
 
 ### Livraison 0.3.3 confirmée
 Run Actions `39123489681` SUCCESS sur SHA source `711bba56575f4624fa73653c579ba56becbea3cb` ; tests JVM incluant WAV individuel, test YAMNet réel Linux, compilation Android avec nouveau module M4A, package `.apk` extrait et poussé brut dans `delivery/fxextractor-apk/apk/FxExtractor-0.3.3-debug.apk` (18 904 624 octets, git blob `e9b922107d0ae18364404e82d07f0be099255184`). Encodage M4A non encore essayé sur Samsung.
+
+## 0.3.4 — format MP3
+Choix par extrait WAV (sans perte), M4A (AAC) ou MP3 Shine natif LGPL-2.0. Encodeur Java Mp3ShineEncoder + JNI shine_bridge.c, 44,1 kHz, 128k mono/192k stereo, 3 ABIs Android. Source Shine fixée à ab5e3526b64af1a2eaa43aa6f441a7312e013519, build et test ffprobe/ffmpeg dans tools/build_shine.sh. Notices tierces dans THIRD_PARTY_NOTICES.md. Pas de merge main ni Release.

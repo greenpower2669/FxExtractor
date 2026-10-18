@@ -48,3 +48,6 @@ Retour utilisateur : souhaite télécharger/enregistrer individuellement chaque 
 
 ### D011 — preuve CI 0.3.3
 GitHub Actions 39123489681 SUCCESS, code 711bba5. Tests WAV individuel, IA YAMNet et compilation AAC Android, APK brut 18 904 624 octets présent dans delivery; aucune Release/main modifiée. Un build compilant MediaCodec ne prouve pas le support réel de l'encodeur sur Samsung ; tester un fichier M4A puis l'écouter.
+
+## D012 — MP3
+Android ne garantit pas d'encodeur MP3, seulement son décodeur. Choix de Shine LGPL2, JNI hors ligne et build natif épinglé, pas de fichier M4A renommé. FFprobe et FFmpeg pour vérifier vrai MP3 en CI ; Android ARM64 à tester physiquement.

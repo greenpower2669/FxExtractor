@@ -40,3 +40,6 @@ Demande de Fab : « Super proposer un téléchargement direct par ligne et des o
 
 ### Vérification livraison v0.3.3
 GitHub Actions run 39123489681 vert ; APK brut `delivery/fxextractor-apk/apk/FxExtractor-0.3.3-debug.apk` confirmé 18 904 624 octets, sans ZIP, pas de merge main ni Release. Tester M4A sur téléphone pour confirmer le codec.
+
+## 18/10/2026 — MP3 demandé
+Fab : « Mp3 aussi? ». Ajouter format MP3 réel à l'enregistrement individuel sans enlever WAV et M4A, ni modifier le ZIP WAV global. Source Shine LGPL-2.0 épinglée, notices de licence, vrai test d'encodage et de décodage en CI, puis livraison APK brut direct sur branche delivery après extraction RUNNER_TEMP. Aucun merge main ni Release.

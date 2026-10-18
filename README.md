@@ -118,3 +118,10 @@ La CI valide la création WAV direct avec les tests Java ; la compilation Androi
 
 ### APK 0.3.3 direct confirmé
 [**Télécharger FxExtractor-0.3.3-debug.apk sans ZIP**](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.3-debug.apk) (18 904 624 octets). Code `711bba5`, run CI [39123489681](https://github.com/greenpower2669/FxExtractor/actions/runs/39123489681) SUCCESS ; fichier brut vérifié sur la branche de livraison. Pour le moment, il faut tester le format M4A/AAC sur le Samsung ; WAV et IA sont soumis aux tests automatisés disponibles mais non vérifiés physiquement.
+
+## v0.3.4 — MP3 individuel réel (18/10/2026)
+Format ajouté à « Enregistrer ce son » : WAV / M4A AAC / **MP3**. Le MP3 est un véritable MPEG Layer III, pas un M4A renommé. L'encodeur natif hors ligne Shine, version épinglée ab5e3526b64af1a2eaa43aa6f441a7312e013519, produit 44,1 kHz, 128 kbit/s mono ou 192 kbit/s stéréo ; noms d'origine conservés sous forme safe, extension .mp3. Aucun téléchargement de modèle/codec pendant l'usage Android. Le fichier source WAV reste inchangé.
+
+**Licence tierce Shine LGPL-2.0** et sources dans [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), original sur [toots/shine](https://github.com/toots/shine). Le pont JNI est sous app/src/main/cpp/shine_bridge.c, copies .so ARM64, ARM32 et x86_64 fabriquées par GitHub Actions à partir des sources, notice COPYING intégrée à l'APK.
+
+Test MP3 Linux : encoder via JNI la forme d'onde WAV, vérifier au ffprobe qu'il s'agit bien du codec MP3, puis décoder via ffmpeg. La CI compile aussi l'APK et vérifie la bibliothèque .so dans le fichier brut. Pas de changement du ZIP global WAV. Tests physiques Samsung nécessaires pour confirmer qualité et latence ; Shine possède une analyse psychoacoustique moins avancée que LAME.

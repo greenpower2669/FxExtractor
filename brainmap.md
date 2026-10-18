@@ -25,3 +25,7 @@
 
 - `app/src/main/java/fr/fxextractor/ClipAacEncoder.java` : conversion WAV PCM16 segmenté en M4A AAC-LC Android, resample 44,1 kHz, sans réseau.
 - `app/src/main/java/fr/fxextractor/MainActivity.java` : format sélectionné, bouton Enregistrer ce son sous chaque FX, SAF ACTION_CREATE_DOCUMENT direct.
+
+- Mp3ShineEncoder.java et shine_bridge.c : sortie MP3 native hors ligne.
+- tools/build_shine.sh et tools/TestMp3Shine.java : build Shine et test MP3 réel décodeur ffmpeg.
+- THIRD_PARTY_NOTICES.md : licence LGPL et provenance.
