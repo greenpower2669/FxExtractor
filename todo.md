@@ -151,3 +151,13 @@
 - [ ] Audit mémoire Samsung, génération de 20/30 secondes et arrêt propre.
 - [ ] Embarquer les poids complets et licences uniquement une fois le moteur prouvé ; APK brut GitHub sans ZIP utilisateur ; comparaison hash et installation réelle.
 - [ ] Conserver extraction audio/MP3/YAMNet et l'IA MIDI 0.3.8 sans régression ; ne pas merger main ni release sans validation.
+
+## FxExtractor 0.4.0-dev — codage Stable Audio 3
+- [x] Ajouter deuxième Activity indépendante « Musique audio IA » sans casser MIDI, statut accessible et vérification modèles embarqués.
+- [x] Implémenter le vrai calcul des sigmas LogSNR, sampler pingpong SA3 et écriture WAV 44,1 kHz stéréo avec test JVM.
+- [x] Remplacer la dépendance TFLite 2.16.1 par LiteRT 2.3.0 et migrer le pont YAMNet vers CompiledModel CPU dans worker unique.
+- [ ] Vérifier pipeline Github Actions tests Java et compilation Kotlin/Android ; corriger erreurs.
+- [ ] Obtenir les poids sous licence acceptée (Stability Community + Gemma), tokenizer SentencePiece et fichiers DiT+T5+codec intégrés APK hors ligne, hash et tailles.
+- [ ] Port native T5Gemma encodage int32 et SentencePiece, sampler CPU DiT rung et codec SAME-S, vraie génération WAV tests Linux/Android.
+- [ ] Profilage RAM/temps Samsung et tests génération audio hors ligne, arrêt propre, export et écoute.
+- [ ] Ne pas livrer 0.4.0 comme IA musicale fonctionnelle tant que génération n'est pas vérifiée. Pas de merge main.

@@ -40,3 +40,7 @@
 - `tools/test_midi_browser.mjs` : test Chromium d'initialisation réelle ONNX CPU avec le modèle MIDI embarqué (pas seulement syntaxe et SHA), assets virtuellement servis depuis l'APK.
 
 - `docs/stable_audio3_android_plan.md` : mission d'un second laboratoire musical direct Stable Audio 3 Small-Music pour Android, plan des quatre modèles/tokenizer et des vrais tests de portage hors ligne. **Étude en cours, pas encore d'APK SA3 fonctionnel.**
+
+- `app/src/main/java/fr/fxextractor/StableAudioActivity.java` : écran du nouveau laboratoire, audit sans réseau du vrai pack intégré, génération bloquée tant qu'absence de backend.
+- `app/src/main/java/fr/fxextractor/StableAudioMath.java` et `tools/TestStableAudioMath.java` : sampler SA3 pingpong et export WAV stéréo testés en pur Java.
+- `app/src/main/java/fr/fxextractor/LiteRtYamnet.kt` : pont Kotlin LiteRT 2.3 pour maintenir l'extraction/nommage YAMNet.

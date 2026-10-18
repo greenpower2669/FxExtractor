@@ -66,3 +66,6 @@ Fab fournit la trace : auto-initialisation locale trouve WASM et poids, mais err
 
 ## 18/10/2026 — Stable Audio 3 Small-Music en local
 Fab : « Oui, ton premier choix mon ange ». Suite à la proposition de Stable Audio 3 Small-Music et du gros APK tout compris, choix retenu : véritable génération musicale WAV directe à partir d'un descriptif, sans réseau sur le Samsung, poids et moteur contenus dans l'APK. Conserver laboratoire MIDI. Mission sur branche isolée `feature/stable-audio3-local-v1` avec validation technique obligatoire avant livraison. Lire `docs/stable_audio3_android_plan.md`. Pas de faux moteur ni de sortie préenregistrée ; pas de merge main/release.
+
+### 18 octobre 2026 — ordre « Il faut le coder ça »
+Fab autorise démarrage du codage du deuxième laboratoire Stable Audio 3 Small-Music, en conservant l'IA MIDI v5 et extraction FX. Cadre : vraie génération audio locale, modèles poids compris dans APK final, pas de réseau téléphone, pas de faux son/bouton inerte présenté comme prêt ; branche expérimentale isolée, tests CI et Android puis livraison APK brut vérifié, pas de merge main/release sans approbation. Premier jalon : UI, audit des modèles, sampler réel, migration LiteRT/YAMNet. Suite : tokenizer, T5Gemma, DiT, SAME-S, licences, packaging.

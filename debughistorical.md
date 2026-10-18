@@ -93,3 +93,6 @@ Run 39159447721 SUCCESS : ORT CPU + WASM CPU même version 1.30, vraie session m
 
 ## 18/10/2026 — pivot de l'IA MIDI vers audio généré
 Après validation du moteur MIDI CPU dans Chromium, Fab trouve le résultat musical décevant et choisit une seconde IA directe « comme Suno » : Stable Audio 3 Small-Music. Le modèle officiel CPU nécessite de porter LiteRT, T5Gemma, SentencePiece, DiT et SAME-S à Android (les scripts publiés ciblent Python/desktop). Ne pas confondre disponibilité de fichiers TFLite et application Android fonctionnelle. Branche expérimentation séparée ; aucune preuve d'inférence sur Samsung encore.
+
+## 18/10/2026 — démarrage implémentation Stable Audio Android
+La version d'extraction FxExtractor utilisait tensorflow-lite 2.16.1 pour YAMNet, tandis que Stable Audio 3 quantifié nécessite des graphes LiteRT 2.2+ avec signatures rung et XNNPACK. Migration expérimentale vers com.google.ai.edge.litert:litert:2.3.0 et Kotlin 2.3.21, adaptation YAMNet via LiteRtYamnet. Écran d'audit modèle CPU intégré et pure math SA3. Le code ne prétend pas encore charger les poids Stable Audio ni générer de WAV à partir de l'IA ; aucun bouton générer activé avant pipeline complet. Tester CI avant APK.

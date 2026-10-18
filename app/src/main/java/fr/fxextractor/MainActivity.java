@@ -123,6 +123,8 @@ public final class MainActivity extends Activity {
         aiStatus.setContentDescription("État de la reconnaissance audio par intelligence artificielle");
         text(root, "🎹 Nouveau : IA MIDI et poids intégrés à l'APK. Elle se charge en mémoire automatiquement quand tu ouvres le laboratoire.", 15);
         button(root, "🎹 Laboratoire IA MIDI v5", () -> startActivity(new Intent(this, MidiAiActivity.class)));
+        button(root, "🎼 Musique audio IA · Stable Audio 3 (laboratoire expérimental)",
+                () -> startActivity(new Intent(this, StableAudioActivity.class)));
         state = text(root, "Choisis une vidéo ou un son pour commencer.", 18);
         summary = text(root, "", 17);
         events = new LinearLayout(this); events.setOrientation(LinearLayout.VERTICAL);
