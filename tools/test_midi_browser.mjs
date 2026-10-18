@@ -47,7 +47,7 @@ try{
   const result=await page.evaluate(()=>({
     status:document.getElementById("loadStatus").textContent,
     ready:!document.getElementById("generate").disabled,
-    resources:performance.getEntriesByType("resource").filter(r=>!r.name.startsWith(location.origin+"/midi/")).map(r=>r.name)
+    resources:performance.getEntriesByType("resource").filter(r=>!r.name.startsWith(location.origin+"/")).map(r=>r.name)
   }));
   console.log("MIDI CPU browser smoke:",JSON.stringify(result));
   assert.equal(result.ready,true,"CPU ONNX model initialization failed: "+result.status+"\n"+logs.join("\n"));

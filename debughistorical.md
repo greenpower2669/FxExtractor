@@ -81,3 +81,7 @@ Logs exacts : WASM 27.0 Mio local, modèle CPU 109.3/109.3 Mio chargé en RAM, e
 
 ### Échec du premier test Chromium v0.3.8
 Run 39158913666 : les tests Java étaient verts, mais Chromium Playwright s'est fermé abruptement pendant `page.waitForFunction` lors du test de modèle, sans message ONNX. Le banc d'essai utilisait `page.route().fulfill({path})` sur un fichier de 109Mio : risque mémoire/IPC et mort du navigateur. Nouveau test via serveur HTTP local en streaming et base URI dérivée, affichage logs/crash ; ne pas conclure à un défaut de modèle avec ce premier résultat.
+
+
+### Test 0.3.8 Chromium : la cause ONNX réparée
+Run 39159219122 : Chromium affiche `IA MIDI prête en mémoire (1.4 s)`, `ready: true`, modèle de 109,3 Mio et WASM CPU initialisés localement. Échec du job uniquement sur un filtre réseau trop strict qui classait la requête locale `/favicon.ico` comme externe. Corriger l'assertion, relancer build. Pas encore de test Samsung.

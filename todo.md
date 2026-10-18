@@ -132,3 +132,6 @@
 - [ ] Si navigateur Linux réussit mais Samsung échoue, relever la stack complète et différences WebView.
 
 - [ ] Première CI v0.3.8 run 39158913666 échouée sur **outil test Playwright**, page fermée sans diagnostic ONNX. Remplacé par serveur HTTP streaming local ; relancer test réel sur navigateur et inspecter sortie.
+
+- [x] Test réel CPU ONNX + poids 109,3 Mio **réussi sur Chromium** dans run 39159219122 (1,4s). Le build a été arrêté à tort par le filtre anti-réseau incluant le favicon local ; ajustement effectué.
+- [ ] Relancer CI après correctif du test/favicon, obtenir APK 0.3.8 brut en Actions et confirmer SHA.
