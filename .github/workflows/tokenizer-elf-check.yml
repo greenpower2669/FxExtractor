@@ -1,0 +1,25 @@
+name: Inspect DJL Rust JNI ELF dependencies fast
+on:
+  push:
+    branches: [feature/sa3-tokenizer-elf-check-v1]
+permissions:
+  contents: read
+jobs:
+  elf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read Maven Android tokenizer original JNI library DT_NEEDED and ELF LOAD alignment
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 'https://repo.maven.apache.org/maven2/ai/djl/android/tokenizer-native/0.33.0/tokenizer-native-0.33.0.aar' -o /tmp/djl.aar
+          unzip -p /tmp/djl.aar 'jni/arm64-v8a/libdjl_tokenizer.so' > /tmp/djl_tokenizer.so
+          file /tmp/djl_tokenizer.so
+          readelf -d /tmp/djl_tokenizer.so | grep NEEDED
+          readelf -l /tmp/djl_tokenizer.so | grep -A3 LOAD | head -45
+          python3 - <<'PY'
+          import subprocess
+          data=subprocess.check_output(['readelf','-d','/tmp/djl_tokenizer.so'],text=True)
+          needs=[line.strip() for line in data.splitlines() if 'NEEDED' in line]
+          print('ALL NEEDED:',needs)
+          print('REQUIRES_SHARED_CXX:',any('libc++_shared.so' in n for n in needs))
+          PY
