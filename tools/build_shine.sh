@@ -56,7 +56,15 @@ echo 'PASS MP3: native Shine -> valid MPEG audio -> FFmpeg decode'
 NDK_VERSION="27.2.12479018"
 NDK="$ANDROID_HOME/ndk/$NDK_VERSION"
 if [[ ! -x "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android26-clang" ]]; then
-  sdkmanager "ndk;$NDK_VERSION"
+  for attempt in 1 2 3; do
+    echo "Install NDK $NDK_VERSION attempt $attempt/3"
+    if sdkmanager "ndk;$NDK_VERSION" && [[ -x "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android26-clang" ]]; then
+      break
+    fi
+    echo "NDK download incomplete; cleaning partial package before retry"
+    rm -rf "$NDK"
+    sleep 8
+  done
 fi
 BIN="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin"
 test -x "$BIN/aarch64-linux-android26-clang"
