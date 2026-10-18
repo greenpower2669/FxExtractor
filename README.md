@@ -101,3 +101,6 @@ Test CI supplémentaire : charger le modèle YAMNet avec le runtime LiteRT Pytho
 **Demande Fab :** la préservation de fin de son doit accepter **0 ms**, valeur **par défaut**. Curseur désormais **0 à 1 500 ms**, par pas de 50 ms. À zéro, **aucune marge de fin supplémentaire** n'est ajoutée après la fin détectée ; la segmentation RMS et la protection de décroissance sont maintenues. L'ancien curseur était limité à 100..1500 ms et commençait à 600 ms.
 
 Les correctifs IA 0.3.1 sont inclus : vrai tenseur d'entrée YAMNet `[15600]` (confirmé sur GitHub par inférence réelle sur un silence, classé Silence), bouton reconnaissance explicatif toujours cliquable, progression et erreurs visibles. Le modèle et ses 521 étiquettes sont dans l'APK. Le test réel sur téléphone Samsung reste nécessaire, un succès Linux n'établissant pas le comportement runtime Android.
+
+### APK 0.3.2 prêt
+[**Télécharger FxExtractor 0.3.2.apk directement (sans ZIP)**](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.2-debug.apk). Run [39082262856](https://github.com/greenpower2669/FxExtractor/actions/runs/39082262856) SUCCESS, 18 888 244 octets, pas de Release/Play. Règle confirmée : défaut 0 ms, curseur 0–1500 ms ; correction YAMNet entrée rank1 et message de progression inclus.

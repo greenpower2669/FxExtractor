@@ -61,5 +61,5 @@
 - [x] Permettre explicitement **0 ms**, valeur par défaut, jusqu'à 1 500 ms par pas de 50 ms.
 - [x] Moteur RMS `DEFAULT_RELEASE_MS = 0` ; aucun padding additionnel à 0, sans dénaturer le suivi naturel des queues.
 - [x] Tests : zéro par défaut égal zéro explicite, valeurs positives plus longues, séparations préservées.
-- [ ] Confirmer CI verte et APK 0.3.2 brut direct dans delivery/fxextractor-apk.
+- [x] CI 0.3.2 run `39082262856` SUCCESS : DSP zéro par défaut + inférence YAMNet réelle LiteRT + build APK/AAB + GitHub raw. Binaire `apk/FxExtractor-0.3.2-debug.apk` 18 888 244 octets, blob `06e1935f737fdcaa20c753dadd062e5993b40ebe`.
 - [ ] Essai physique Samsung : commande 0 ms, progression IA, résultats, exports.

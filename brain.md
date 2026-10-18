@@ -36,3 +36,6 @@ Diagnostic : vérification tensorielle erronée de YAMNet. Entrée modèle offic
 
 ## 0.3.2 — 0 ms de fin de son par défaut
 À la demande expresse de Fab, **préservation après fin : 0 ms par défaut**, curseur **0..1500 ms** par pas de 50. Cela ne désactive pas le suivi naturel de décroissance ; cela retire uniquement le supplément après le dernier échantillon reconnu. Test JVM compare option implicite à 0 explicite et garantit extension si durée positive. Le correctif YAMNet rank1 et affichage clair du statut de 0.3.1 est inclus. Pas de merge main ni Release.
+
+### Preuve compilation 0.3.2 (18/10/2026)
+Run GitHub 39082262856 SUCCESS sur commit code d9761b9ad042a65d5e083dacee6524c0be2a4809 : tests Java y compris `DEFAULT_RELEASE_MS=0`, vrai test d'inférence YAMNet sur Linux, Gradle Android, extraction dans RUNNER_TEMP, publication binaire direct APK. `delivery/fxextractor-apk/apk/FxExtractor-0.3.2-debug.apk` 18 888 244 octets, blob `06e1935f737fdcaa20c753dadd062e5993b40ebe`. Reste test sur Samsung.

@@ -39,3 +39,6 @@ Retour Fab : touche reconnaissance IA apparemment sans effet. Cause source ident
 
 ## D010 — curseur ne permet pas 0 ms (18/10/2026)
 Capturé par Fab avec capture écran : valeur de fin minimale 100 ms, défaut 600 ms alors que 0 ms demandé comme défaut. Le slider était codé `max=28`, `releaseMs=100+50*progress`, et `DEFAULT_RELEASE_MS=600`. Correctif 0.3.2 : `max=30`, `releaseMs=50*progress`, `DEFAULT_RELEASE_MS=0` ; nouveau test garantissant absence de queue ajoutée à zéro. Ne pas confondre avec la fin naturelle du son déterminée par seuil RMS.
+
+### D010 — CI 0.3.2 verte
+Run 39082262856 SUCCESS : test 0 ms et réverbération, test IA LiteRT réel, compilation APK/AAB, contrôle fichier brut GitHub et livraison direct APK 18 888 244 octets. L'écoute réelle et le bouton IA sur Samsung restent à confirmer.
