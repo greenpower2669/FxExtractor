@@ -138,3 +138,57 @@
 
 - [x] Run GitHub Actions 39159447721 **SUCCESS** : vraie initialisation Chromium du modèle MIDI CPU, build Android, packaging vérifié. APK brut 147 942 598 octets artifact 12148450979. Contrat sans dézipage Fab respecté.
 - [ ] Test de Fab sur Samsung hors ligne : prêt en mémoire, Générer MIDI 128 tokens, écouter et sauver .mid ; relever temps réel ou trace d'échec.
+
+
+## Stable Audio 3 Small-Music — nouveau laboratoire audio, 18/10/2026
+- [x] Décision : conserver MIDI v5 ; ajouter Stable Audio 3 Small-Music CPU hors ligne en APK tout compris (Fab privilégie premier choix).
+- [x] Vérifier source officielle de la version quantifiée LiteRT et composants T5Gemma/DiT/SAME-S/tokenizer, ordres de grandeur (1,2 Go de poids).
+- [x] Identifier la contrainte de licence Stability AI Community + Gemma et de distribution (« Powered by Stability AI », notices).
+- [x] Ouvrir une branche de travail indépendante, sans merge, et consigner contrat dans `docs/stable_audio3_android_plan.md`.
+- [ ] Test LiteRT 2.2+ sur Android arm64 avec graphes multi-signatures, pas de réutilisation aveugle de tensorflow-lite 2.16.1.
+- [ ] Port SentencePiece et modèle d'encodeur T5Gemma en vrai test instrumental.
+- [ ] Port réel du sampler DiT w8a8 et décodeur SAME-S, WAV non silencieux vérifié en CI.
+- [ ] Audit mémoire Samsung, génération de 20/30 secondes et arrêt propre.
+- [ ] Embarquer les poids complets et licences uniquement une fois le moteur prouvé ; APK brut GitHub sans ZIP utilisateur ; comparaison hash et installation réelle.
+- [ ] Conserver extraction audio/MP3/YAMNet et l'IA MIDI 0.3.8 sans régression ; ne pas merger main ni release sans validation.
+
+## FxExtractor 0.4.0-dev — codage Stable Audio 3
+- [x] Ajouter deuxième Activity indépendante « Musique audio IA » sans casser MIDI, statut accessible et vérification modèles embarqués.
+- [x] Implémenter le vrai calcul des sigmas LogSNR, sampler pingpong SA3 et écriture WAV 44,1 kHz stéréo avec test JVM.
+- [x] Remplacer la dépendance TFLite 2.16.1 par LiteRT 2.3.0 et migrer le pont YAMNet vers CompiledModel CPU dans worker unique.
+- [ ] Vérifier pipeline Github Actions tests Java et compilation Kotlin/Android ; corriger erreurs.
+- [ ] Obtenir les poids sous licence acceptée (Stability Community + Gemma), tokenizer SentencePiece et fichiers DiT+T5+codec intégrés APK hors ligne, hash et tailles.
+- [ ] Port native T5Gemma encodage int32 et SentencePiece, sampler CPU DiT rung et codec SAME-S, vraie génération WAV tests Linux/Android.
+- [ ] Profilage RAM/temps Samsung et tests génération audio hors ligne, arrêt propre, export et écoute.
+- [ ] Ne pas livrer 0.4.0 comme IA musicale fonctionnelle tant que génération n'est pas vérifiée. Pas de merge main.
+
+- [x] CI premier socle 0.4.0-dev : run 39166381192 SUCCESS (tests Java sampler et WAV, compilation Kotlin LiteRT/Android). Artefact brut 12150472873 de 155 643 725 octets, **non livrable comme IA musicale fonctionnelle**.
+- [x] Code d'audit d'un pack de 4 modèles : tools/verify_sa3_model_pack.py, validation tailles, magic TFL3, SHA, licence explicite du responsable de packaging, pas de contournement HF.
+- [ ] Le portage réel T5Gemma/SentencePiece/DiT rung/SAME-S et la génération WAV non silencieuse manquent encore ; les tester avec vrais poids après obtention autorisée. Besoin d'accord aux licences Gemma et Stability AI.
+
+## Stable Audio 3 complet — demande explicite Fab
+- [x] Programmer architecture des deux parcours : texte→musique, amorce audio+texte→variation (sigmaMax 0.2..1, SAME-S encodeur quantifié).
+- [x] Programmer encodeur texte T5Gemma, DiT rung Small-Music gcond + bruit gaussian pingpong, décodage SAME-S, contrôle RMS non silencieux, sortie WAV.
+- [x] Programmer import WAV/MP3/M4A via MediaCodec/MediaExtractor + conversion 44,1 kHz stéréo, entrée via sélecteur fichiers Android, écouter et exporter.
+- [x] Programmer conversion tokenizer.model -> tokenizer.json locale et test de parité référence SentencePiece obligatoire.
+- [ ] Faire passer compilation Kotlin/Android complète ; adapter les noms réels des signatures TFLite d'après métadonnées du checkpoint et tester tous les calculs sur poids réels.
+- [ ] Intégrer **cinq modèles** dans l'APK (T5, Small-DiT, SAME-S enc + dec et tokenizer) avec licences et hashes ; nécessité validation des conditions Stability AI Community et Gemma.
+- [ ] Effectuer inférence Linux sur vrais poids avec un audio témoin non silencieux puis test Samsung Android 16 hors ligne, contrôler mémoire et stabilité.
+- [ ] Publier seul l'APK complet, pas le dev 0.4.1 inachevé. Aucune fusion main/release sans Fab.
+
+## 19/10/2026 — Extension / prolongation de sons (demande Fab)
+- [ ] Ajouter mode « Prolonger un son » distinct de « Variation depuis une amorce » : importer un extrait, choisir **jusqu'à +60 secondes supplémentaires** (par ex. +5, +10, +20, +30, +45, +60 s), décrire la continuité souhaitée, écouter et exporter. La durée choisie est le temps AJOUTÉ au son original, pas la durée totale; jusqu'à 120 s par génération SA3, blocs chaînés si nécessaire.
+- [ ] Tester outpainting via SAME-S encoder + `--inpaint-range` (référence upstream SA3) : étendre le signal d'entrée au total souhaité, encoder son préfixe, conserver la zone originale via `keep_mask`, générer uniquement la partie manquante avec `local_add_cond` et la réinjection des latents conservés à chaque étape.
+- [ ] Préserver **exactement** l'audio utilisateur d'origine dans le fichier final en réassemblant ses échantillons PCM originaux avec la continuation, et gérer la jonction par courte transition/crossfade facultative. Éviter de confondre fidélité du préfixe final et qualité du codec SAME-S.
+- [ ] Pour une extension dépassant la limite 120 s du Small-Music, générer des blocs successifs avec contexte glissant, raccords et tests d'accumulation d'erreurs ; performance/mémoire Samsung à vérifier.
+- [ ] Ne pas promettre une continuation parfaite pour des impacts très brefs ni pour les sons non musicaux : tester Stable Audio Small-Music, comparer au modèle Small-SFX sans intégrer un second poids massif par défaut.
+- [ ] Aucun essai/validation Android de l'outpainting n'est encore réalisé. Ne pas afficher « Prolonger » comme fonction achevée avant vraie inférence vérifiée.
+
+## 19/10/2026 — implémentation prolongation +60s et intégration complète (jalon)
+- [x] Programmer StableAudioEngine.extend() : inpainting latent SAME-S avec masque de conservation du préfixe, local_add_cond [keep; masked], remise en place du contexte après chaque passe DiT, collage PCM original non modifié et raccord 30ms sur la continuation seulement. LIMITATION explicite : origine 0,5–60s ; prolongation 1–60s ; total <=120s.
+- [x] Ajouter interface case « Prolonger » +60s, choisir son, force variation désactivée dans ce mode, export WAV et lecture conservés.
+- [x] Programmer contrôle préalable des licences Stability AI Community et Gemma dans l'application, accès aux textes intégrés.
+- [ ] Vérifier compilation Android de la nouvelle UI/extension et adapter les défauts.
+- [ ] Fabriquer APK 0.4.2 intégrant automatiquement 4 TFLite (DiT/T5Gemma/SAME-S enc+dec) plus tokenizer, licences et manifestes SHA256, dans la branche de test dédiée ; pas de poids dans Git.
+- [ ] Tester première génération SA3 **dans le véritable Android** ; la réussite Linux Python en CI ne suffit pas.
+- [ ] Tester une prolongation réellement générée et écouter la jonction ; mesurer RAM sur SM-A576B et corriger si nécessaire.

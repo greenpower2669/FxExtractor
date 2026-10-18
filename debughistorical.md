@@ -89,3 +89,17 @@ Run 39159219122 : Chromium affiche `IA MIDI prête en mémoire (1.4 s)`, `ready:
 
 ### CI 0.3.8 finale
 Run 39159447721 SUCCESS : ORT CPU + WASM CPU même version 1.30, vraie session modèle démarrée dans Chromium; pipeline Android compilé, contrôle du modèle + WASM intégrés à APK, MP3/YAMNet préservés. Artifact APK brut 12148450979 147 942 598 octets. Pas encore de résultat physique Samsung.
+
+
+## 18/10/2026 — pivot de l'IA MIDI vers audio généré
+Après validation du moteur MIDI CPU dans Chromium, Fab trouve le résultat musical décevant et choisit une seconde IA directe « comme Suno » : Stable Audio 3 Small-Music. Le modèle officiel CPU nécessite de porter LiteRT, T5Gemma, SentencePiece, DiT et SAME-S à Android (les scripts publiés ciblent Python/desktop). Ne pas confondre disponibilité de fichiers TFLite et application Android fonctionnelle. Branche expérimentation séparée ; aucune preuve d'inférence sur Samsung encore.
+
+## 18/10/2026 — démarrage implémentation Stable Audio Android
+La version d'extraction FxExtractor utilisait tensorflow-lite 2.16.1 pour YAMNet, tandis que Stable Audio 3 quantifié nécessite des graphes LiteRT 2.2+ avec signatures rung et XNNPACK. Migration expérimentale vers com.google.ai.edge.litert:litert:2.3.0 et Kotlin 2.3.21, adaptation YAMNet via LiteRtYamnet. Écran d'audit modèle CPU intégré et pure math SA3. Le code ne prétend pas encore charger les poids Stable Audio ni générer de WAV à partir de l'IA ; aucun bouton générer activé avant pipeline complet. Tester CI avant APK.
+
+
+### Jalon expérimental compilé
+CI 39166381192 SUCCESS, Kotlin LiteRT 2.3 et extraction YAMNet compilent, tests sampler/WAV en JVM passent ; aucune preuve de non-régression **sur Samsung**, YAMNet et Stable Audio 3 à tester sur matériel. APK 0.4.0-dev 155643725 octets sans poids Stable Audio, à ne pas appeler générateur musical. Modèles Stability/Gemma à obtenir sous licences, portage neuronal restant.
+
+### 18/10 — réel pipeline SA3 local en migration
+Deux modes implémentés : texte + amorce via SAME-S encoder. Les signatures DiT supposées args_0..6/output_0 sont à confronter à la SignatureDef officielle (sans le fichier ~0.5 Go, pas encore vérifiable). L'encodeur T5Gemma utilise Rust HuggingFace tokenizer, exporté depuis SentencePiece par transformers, validé par tests de parité stricts. Le runtime poids réel, Android mémoire, génération non-silence et le packaging APK >1Go sont encore NON VALIDÉS. Ne pas confondre compilation CI et fonctionnement du réseau.

@@ -1,15 +1,13 @@
 package fr.fxextractor;
 
 import android.content.Context;
-import org.tensorflow.lite.Interpreter;
+
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +23,9 @@ public final class FxSoundAI implements AutoCloseable {
     private static final int SAMPLE_RATE = 16000;
     private static final int CLASSES = 521;
     private static final float MIN_SCORE = 0.14f;
-    private final Interpreter interpreter;
+    private final LiteRtYamnet interpreter;
     private final String[] labels;
     private final float[] input = new float[SAMPLES];
-    private final boolean batchedInput;
-    private final float[][] output = new float[1][CLASSES];
 
     public static final class Prediction {
         public final String label, original;
@@ -40,15 +36,6 @@ public final class FxSoundAI implements AutoCloseable {
     }
 
     public FxSoundAI(Context context) throws IOException {
-        ByteBuffer weights;
-        try (InputStream stream = context.getAssets().open("yamnet.tflite")) {
-            byte[] bytes = readLimited(stream, 24_000_000);
-            if (bytes.length < 1_000_000 || bytes[4] != 'T' || bytes[5] != 'F'
-                    || bytes[6] != 'L' || bytes[7] != '3')
-                throw new IOException("Poids YAMNet invalides ou manquants");
-            weights = ByteBuffer.allocateDirect(bytes.length).order(ByteOrder.nativeOrder());
-            weights.put(bytes).rewind();
-        }
         List<String> names = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                 context.getAssets().open("yamnet_labels.txt"), StandardCharsets.UTF_8))) {
@@ -61,22 +48,7 @@ public final class FxSoundAI implements AutoCloseable {
         if (names.size() != CLASSES)
             throw new IOException("Étiquettes YAMNet : " + names.size() + " au lieu de " + CLASSES);
         this.labels = names.toArray(new String[0]);
-        Interpreter.Options options = new Interpreter.Options();
-        options.setNumThreads(2);
-        this.interpreter = new Interpreter(weights, options);
-        int[] inShape = interpreter.getInputTensor(0).shape();
-        int[] outShape = interpreter.getOutputTensor(0).shape();
-        boolean oneDimensional = inShape.length == 1 && inShape[0] == SAMPLES;
-        boolean twoDimensional = inShape.length == 2
-                && inShape[0] == 1 && inShape[1] == SAMPLES;
-        if (!(oneDimensional || twoDimensional)
-                || outShape.length != 2 || outShape[0] != 1 || outShape[1] != CLASSES) {
-            interpreter.close();
-            throw new IOException("Dimensions de YAMNet inattendues : entrée "
-                    + java.util.Arrays.toString(inShape) + ", sortie "
-                    + java.util.Arrays.toString(outShape));
-        }
-        batchedInput = twoDimensional;
+        this.interpreter = new LiteRtYamnet(context);
     }
 
     private static byte[] readLimited(InputStream input, int limit) throws IOException {
@@ -103,13 +75,13 @@ public final class FxSoundAI implements AutoCloseable {
             try {
                 // Official Google/MediaPipe YAMNet expects rank-1 [15600].
                 // Accept rank-2 [1,15600] variants without changing the WAV data.
-                interpreter.run(batchedInput ? new float[][] { input } : input, output);
+                float[] scores = interpreter.classify(input);
+                for (int j = 0; j < CLASSES; j++)
+                    if (Float.isFinite(scores[j]) && scores[j] > peak[j]) peak[j] = scores[j];
             } catch (RuntimeException e) {
                 throw new IOException("Inférence IA impossible", e);
             }
-            for (int j = 0; j < CLASSES; j++)
-                if (Float.isFinite(output[0][j]) && output[0][j] > peak[j])
-                    peak[j] = output[0][j];
+
         }
         int best = -1;
         float score = MIN_SCORE;

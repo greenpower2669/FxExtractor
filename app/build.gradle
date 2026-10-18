@@ -1,4 +1,7 @@
-plugins { id 'com.android.application' }
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
 android {
     namespace 'fr.fxextractor'
     compileSdk 35
@@ -6,17 +9,29 @@ android {
         applicationId 'fr.fxextractor'
         minSdk 26
         targetSdk 35
-        versionCode 13
-        versionName '0.3.8'
+        versionCode 16
+        versionName '0.4.2-sa3-test'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
     buildTypes { release { minifyEnabled false } }
-    androidResources { noCompress 'tflite', 'onnx', 'wasm' }
+    androidResources { noCompress 'tflite', 'onnx', 'wasm', 'model' }
 }
 
 dependencies {
-    implementation 'org.tensorflow:tensorflow-lite:2.16.1'
+    // One LiteRT runtime for both existing offline YAMNet and future SA3 CPU.
+    // Never bundle both org.tensorflow:tensorflow-lite and LiteRT 2.x (duplicate classes).
+    implementation 'com.google.ai.edge.litert:litert:2.3.0'
+    // Bundled local Rust tokenizer for T5Gemma SentencePiece-converted tokenizers.json
+    implementation 'ai.djl.huggingface:tokenizers:0.33.0'
+    implementation 'ai.djl.android:tokenizer-native:0.33.0'
+}
+
+// Kotlin LiteRT 2.3 requires modern Kotlin metadata (no old kotlinOptions DSL).
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }

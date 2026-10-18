@@ -79,3 +79,18 @@ Journal physique Fab : 0.3.7 atteint 109,3/109,3 Mio, WASM 27Mio présent, étap
 
 ### Preuve CI 0.3.8 (18/10)
 Run 39159447721 **SUCCESS**, code 05a9c03f63ffa2b63a97655ede8826aa4e4c9404 : authentique modèle CPU + JS/WASM CPU compatibles initialisés en Chromium en ~1,4s lors du test précédent et revalidés sans erreur réseau. APK brut `FxExtractor-0.3.8-MIDI-CPU-debug.apk` 147 942 598 octets, artifact GitHub Actions non zippé 12148450979. Poids hash vérifiés dans l'APK. Samsung non encore testé, conserver diagnostic et limiter affirmation à navigateur Linux. Pas de merge main.
+
+
+## 18/10/2026 — Choix Stable Audio 3 Small-Music pour second laboratoire
+Fab valide l'option Stable Audio 3 Small-Music **audio direct** et privilégie un gros APK intégrant entièrement les modèles, sans téléchargement au téléphone ; conserver MIDI v5. Démarrage en mémoire à l'ouverture du seul nouveau laboratoire. Étude détaillée dans `docs/stable_audio3_android_plan.md` : runtime LiteRT 2.2+ incompatible à présumer avec ancien TFLite Java 2.16.1, tokeniseur SentencePiece, T5Gemma ~0,6 Go, Small-Music w8a8 ~0,5 Go, SAME-S decoder ~0,09 Go, droits Stability/Gemma, validation vraie génération avant APK. Aucun modèle Stable Audio encore intégré ; pas de merge main.
+
+## 0.4.0-dev — premier code de Stable Audio 3 sur Android (18/10)
+Branche indépendante `feature/stable-audio3-local-v1` : ajout `StableAudioActivity.java` (UI accessible, audit d'intégrité des modèles; génération bloquée si pas de modèle), `StableAudioMath.java` (pingpong LogSNR et export WAV PCM16LE réel, sans sample préenregistré), `tools/TestStableAudioMath.java` (tests). Migration vers Google LiteRT 2.3.0 côté YAMNet `LiteRtYamnet.kt` et `FxSoundAI.java` pour libérer la voie aux graphes multi-signature Stable Audio. Ce n'est pas encore un modèle générateur portatif Android fonctionnel ; poids/non-packaging et tokenizer/inférence restent à coder/tester. Compilation CI à valider. NE PAS annoncer ce laboratoire comme prêt ni fusionner main.
+
+
+### CI 0.4.0-dev socle
+Run GitHub Actions 39166381192 SUCCESS : LiteRT 2.3 + YAMNet Kotlin compilent, tests Java sampler pingpong/WAV passent. APK préliminaire brut 155643725 octets artifact 12150472873 ; aucune génération Stable Audio 3 démontrée, poids absents, bouton désactivé. Ne pas présenter cette version comme finalité, éviter téléchargement inutile à Fab. Ajout tools/verify_sa3_model_pack.py pour valider SHA/tailles/modèles **après** accord Gemma & Stability, sans bypass.
+
+
+### 18 octobre — extension amorce sonore et port neuronal en cours
+Fab demande version Stable Audio 3 TERMINÉE et souhaite un son d'amorce. Coder 2 modes : texte→musique et audio+texte→variation. Fichiers : StableAudioEngine.kt (T5Gemma, DiT rung+gcond, sampler pingpong, SAME-S enc/dec, réduction RAM par fermeture entre étapes), StableAudioSeedInput.kt (WAV PCM16 + MediaExtractor/MediaCodec offline MP3/M4A/etc, resample 44,1 kHz), StableAudioActivity.java (écran accessible, prompt durée/variation, sélection amorce, génération asynchrone, écoute, export WAV). Ajouter dépendance tokenizer-native Android et converter Python avec comparaison rigoureuse à la SentencePiece officielle. NOTE IMPORTANTE : IA native non vérifiée sur Samsung, ni poids complets livrés avant exécution intégrale et licences. Ne pas présenter build préliminaire comme produit fini.

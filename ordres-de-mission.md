@@ -62,3 +62,13 @@ Fab demande que le moteur ET les poids soient embarqués comme pour Pierre/Voyas
 
 ## 18/10/2026 — correction au retour 0.3.7
 Fab fournit la trace : auto-initialisation locale trouve WASM et poids, mais erreur `Xe` interne ONNX. Mission : réparer initialisation ONNX sans retéléchargement sur téléphone, conserver modèle embarqué, UI/diagnostics, extraction audio. Vérifier par vraie initialisation sur navigateur en CI avant nouvel APK. Ne pas merger main/Release.
+
+
+## 18/10/2026 — Stable Audio 3 Small-Music en local
+Fab : « Oui, ton premier choix mon ange ». Suite à la proposition de Stable Audio 3 Small-Music et du gros APK tout compris, choix retenu : véritable génération musicale WAV directe à partir d'un descriptif, sans réseau sur le Samsung, poids et moteur contenus dans l'APK. Conserver laboratoire MIDI. Mission sur branche isolée `feature/stable-audio3-local-v1` avec validation technique obligatoire avant livraison. Lire `docs/stable_audio3_android_plan.md`. Pas de faux moteur ni de sortie préenregistrée ; pas de merge main/release.
+
+### 18 octobre 2026 — ordre « Il faut le coder ça »
+Fab autorise démarrage du codage du deuxième laboratoire Stable Audio 3 Small-Music, en conservant l'IA MIDI v5 et extraction FX. Cadre : vraie génération audio locale, modèles poids compris dans APK final, pas de réseau téléphone, pas de faux son/bouton inerte présenté comme prêt ; branche expérimentale isolée, tests CI et Android puis livraison APK brut vérifié, pas de merge main/release sans approbation. Premier jalon : UI, audit des modèles, sampler réel, migration LiteRT/YAMNet. Suite : tokenizer, T5Gemma, DiT, SAME-S, licences, packaging.
+
+## Autorisation 18 octobre — finir Stable Audio 3 et amorce son
+Fab : « Ok termine alors, je veux la version terminée et si on peut y mettre un bout de son en amorce ». Mission : livrer APK **réellement complet** avec génération audio locale texte→musique et audio→variation guidée par texte, écoute/export WAV, sans téléchargements on-device. Ne pas solliciter de tests ni livrer une fausse version finale avant réussite de test end-to-end avec vrais modèles. Branches main et release non modifiées. Le modèle audio de départ doit être analysé par SAME-S et injecté en latents (non concaténé). Respecter licences Gemma, Stability AI Community, et provenance du son.
