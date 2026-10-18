@@ -25,3 +25,6 @@ Autorisation de Fab : « Ok o. Intègre l ia ». YAMNet/TFLite doit être **effe
 
 ### Vérification de la livraison IA 0.3.0
 GitHub run 39072851527 SUCCESS ; APK brut réellement disponible dans delivery/fxextractor-apk, modèle YAMNet et labels embarqués et SHA256 verrouillé. Aucun merge main ni Release. Prochain test matériel Android à effectuer par Fab.
+
+## 18/10/2026 — bouton IA sans réaction
+Retour Fab : « Quand je click reconnaissance par ia il ne se passe rien il me semble ? » Réparer la vraie forme d'entrée YAMNet, assurer un affichage clair prérequis/progrès/erreurs au clic et près des sons, ajouter test d'inférence réelle. Préserver noms manuels, décodage vidéo, découpe FX et règle immuable de lien .apk brut extrait dans GitHub RUNNER_TEMP. Aucun merge main ni Release.

@@ -33,3 +33,6 @@ Run CI 39072658917 vert. SHA256 du modèle YAMNet provenant de Google : 4d8b4a53
 
 ### D008 — validation checksum après reprise CI
 Après correction du texte d'interface et verrouillage SHA256 du modèle, run GitHub 39072851527 vert (tests et build Android). Présence du binaire APK brut v0.3.0 de 18 888 244 octets confirmée dans la branche delivery. Ne pas confondre build validé avec test d'inférence sur appareil.
+
+## D009 — bouton reconnaissance semble inactif (18/10/2026)
+Retour Fab : touche reconnaissance IA apparemment sans effet. Cause source identifiable : FxSoundAI exigeait input [1,15600], mais le YAMNet officiel est rank1 [15600], sortie [1,521] ; il refusait de créer le classifieur. L'exception était signalée dans un texte au-dessus des extraits, pouvant échapper à la vue après défilement, et le bouton était désactivé pendant le traitement. Correctifs : supporter les deux dimensions, statut près du bouton et des extraits, erreurs de linkage explicites. Ajout test CI avec vraie inférence TFLite, non seulement modèle présent dans APK. Test matériel toujours requis.

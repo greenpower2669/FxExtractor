@@ -48,3 +48,11 @@
 - [x] Run 39072658917 SUCCESS, vrai APK 0.3.0 brut 18 888 244 octets sur delivery/fxextractor-apk ; modèle YAMNet et labels inclus, SHA256 contrôlé 4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf.
 - [ ] Tests Samsung Android 16 (latence, mémoire, décodage, sons explosifs/moteurs/voix, cas incertains).
 - [ ] Ajuster catégories/traductions à partir de tests réels, sans inventer de reconnaissance parfaite.
+
+## v0.3.1 — bouton IA sans réaction (18/10/2026)
+- [x] Audit : incompatibilité des dimensions YAMNet [15600] / [1,15600] et message d'erreur hors écran.
+- [x] Correction input rank1/rank2 de FxSoundAI et progrès/erreurs directement sous le bouton.
+- [x] Rendre le bouton explicatif même si aucun son prêt ; gérer les erreurs natives.
+- [x] Ajouter smoke test de véritable inférence YAMNet via LiteRT Python avant build Android.
+- [ ] CI v0.3.1 verte et APK direct vérifié avec le nouveau code.
+- [ ] Essai sur Samsung : reconnaissance de plusieurs extraits réels, affichage de scores, noms modifiables.

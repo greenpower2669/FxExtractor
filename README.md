@@ -89,3 +89,10 @@ GitHub Actions run 39072658917 : SUCCESS, compilation native Android et tests Ja
 
 ### Fichier APK v0.3.0 prêt (contrôle final)
 [**FxExtractor-0.3.0-debug.apk — téléchargement direct, aucun ZIP**](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.0-debug.apk) — 18 888 244 octets. Code aba5f44c, [workflow 39072851527](https://github.com/greenpower2669/FxExtractor/actions/runs/39072851527) SUCCESS. Le binaire contient yamnet.tflite et yamnet_labels.txt, aucune permission réseau. Un essai réel sur Samsung est encore indispensable pour valider qualité IA, temps de traitement et mémoire.
+
+## Correctif v0.3.1 : reconnaissance IA sans réaction (18 octobre 2026)
+L'initialisation du modèle YAMNet échouait : l'APK attendait strictement une entrée [1,15600], alors que le modèle Google officiel attend [15600] (sortie [1,521]). Le code accepte désormais les modèles de rang 1 ou 2 et fournit le tableau float attendu.
+
+Le bouton IA reste cliquable pour expliquer les prérequis et les opérations déjà en cours. Un texte d'état à côté du bouton indique chargement, avancement 1/N, réussite ou erreur. Les résultats de chaque extrait sont visibles près de son champ de nom. Les erreurs de chargement natif TensorFlow Lite sont désormais signalées, sans masquer les champs de renommage.
+
+Test CI supplémentaire : charger le modèle YAMNet avec le runtime LiteRT Python sur le runner GitHub, vérifier les dimensions et exécuter une véritable inférence sur un son silencieux, AVANT d'accepter la compilation APK. Cela ne remplace pas un test sur le Samsung Android 16 de Fab.

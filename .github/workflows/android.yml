@@ -66,21 +66,28 @@ jobs:
           pathlib.Path('app/src/main/assets/yamnet_labels.txt').write_text(
               '\n'.join(rows) + '\n', encoding='utf-8')
           PY
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Execute actual YAMNet inference smoke test
+        run: |
+          python3 -m pip install --quiet 'ai-edge-litert' numpy
+          python3 tools/test_yamnet_model.py
       - name: Build APK and AAB
         run: gradle --no-daemon :app:assembleDebug :app:bundleRelease
       - name: Extract APK on GitHub into a temporary folder
         run: |
           mkdir -p dist "$RUNNER_TEMP/fx-packed" "$RUNNER_TEMP/fx-unpacked"
-          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/fx-packed/FxExtractor-0.3.0-debug.apk"
-          (cd "$RUNNER_TEMP/fx-packed" && zip -q "$RUNNER_TEMP/fx-packed.zip" FxExtractor-0.3.0-debug.apk)
+          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/fx-packed/FxExtractor-0.3.1-debug.apk"
+          (cd "$RUNNER_TEMP/fx-packed" && zip -q "$RUNNER_TEMP/fx-packed.zip" FxExtractor-0.3.1-debug.apk)
           unzip -q "$RUNNER_TEMP/fx-packed.zip" -d "$RUNNER_TEMP/fx-unpacked"
-          cmp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.0-debug.apk" app/build/outputs/apk/debug/app-debug.apk
-          unzip -tqq "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.0-debug.apk"
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.0-debug.apk" | grep -Fx 'assets/yamnet.tflite'
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.0-debug.apk" | grep -Fx 'assets/yamnet_labels.txt'
-          cp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.0-debug.apk" dist/
-          sha256sum dist/FxExtractor-0.3.0-debug.apk app/build/outputs/bundle/release/app-release.aab > dist/SHA256SUMS.txt
-          test -s dist/FxExtractor-0.3.0-debug.apk
+          cmp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.1-debug.apk" app/build/outputs/apk/debug/app-debug.apk
+          unzip -tqq "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.1-debug.apk"
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.1-debug.apk" | grep -Fx 'assets/yamnet.tflite'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.1-debug.apk" | grep -Fx 'assets/yamnet_labels.txt'
+          cp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.3.1-debug.apk" dist/
+          sha256sum dist/FxExtractor-0.3.1-debug.apk app/build/outputs/bundle/release/app-release.aab > dist/SHA256SUMS.txt
+          test -s dist/FxExtractor-0.3.1-debug.apk
       - name: Publish raw APK to isolated GitHub delivery branch
         if: github.event_name == 'push' && github.ref == 'refs/heads/feature/audio-fx-analyzer-v1'
         run: |
@@ -88,16 +95,16 @@ jobs:
           git fetch origin 'refs/heads/delivery/fxextractor-apk:refs/remotes/origin/delivery/fxextractor-apk'
           git worktree add -B delivery/fxextractor-apk "$RUNNER_TEMP/fx-delivery" origin/delivery/fxextractor-apk
           mkdir -p "$RUNNER_TEMP/fx-delivery/apk"
-          cp dist/FxExtractor-0.3.0-debug.apk "$RUNNER_TEMP/fx-delivery/apk/FxExtractor-0.3.0-debug.apk"
+          cp dist/FxExtractor-0.3.1-debug.apk "$RUNNER_TEMP/fx-delivery/apk/FxExtractor-0.3.1-debug.apk"
           git -C "$RUNNER_TEMP/fx-delivery" config user.name "github-actions[bot]"
           git -C "$RUNNER_TEMP/fx-delivery" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git -C "$RUNNER_TEMP/fx-delivery" add apk/FxExtractor-0.3.0-debug.apk
-          git -C "$RUNNER_TEMP/fx-delivery" commit -m "build: FxExtractor 0.2.2 verified APK ($GITHUB_SHA)"
+          git -C "$RUNNER_TEMP/fx-delivery" add apk/FxExtractor-0.3.1-debug.apk
+          git -C "$RUNNER_TEMP/fx-delivery" commit -m "build: FxExtractor 0.3.1 verified APK ($GITHUB_SHA)"
           git -C "$RUNNER_TEMP/fx-delivery" push origin HEAD:refs/heads/delivery/fxextractor-apk
-          echo "Direct APK: https://raw.githubusercontent.com/$GITHUB_REPOSITORY/delivery/fxextractor-apk/apk/FxExtractor-0.3.0-debug.apk"
+          echo "Direct APK: https://raw.githubusercontent.com/$GITHUB_REPOSITORY/delivery/fxextractor-apk/apk/FxExtractor-0.3.1-debug.apk"
       - uses: actions/upload-artifact@v7
         with:
-          path: dist/FxExtractor-0.3.0-debug.apk
+          path: dist/FxExtractor-0.3.1-debug.apk
           archive: false
           retention-days: 30
       - uses: actions/upload-artifact@v7

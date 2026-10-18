@@ -18,3 +18,5 @@
 
 - app/src/main/java/fr/fxextractor/FxSoundAI.java : reconnaissance acoustique Android YAMNet, prétraitement 16kHz, prédictions et traduction limitée.
 - .github/workflows/android.yml : emballage du modèle officiel et des étiquettes en assets, compilation, validation et publication du vrai APK.
+
+- tools/test_yamnet_model.py : test de véritable inférence du modèle Google sur le runner GitHub.

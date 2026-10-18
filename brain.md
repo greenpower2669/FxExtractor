@@ -30,3 +30,6 @@ Run GitHub 39072658917 SUCCESS ; APK direct brut FxExtractor-0.3.0-debug.apk = 1
 
 ### Livraison 0.3.0 définitive de cette mission
 Run GitHub Actions 39072851527 SUCCESS sur commit code aba5f44c19cc986baf404a4010a606cac029e5b0. Modèle YAMNet Google SHA256 verrouillé, 521 classes, vérifier assets dans APK réussi, livraison brute sur delivery/fxextractor-apk/apk/FxExtractor-0.3.0-debug.apk (18 888 244 octets, git blob 51148d79a2baae4d3c1728432e3f3f8b6f75fadd). CI seule : inférence sur Samsung non encore essayée.
+
+## v0.3.1 — problème de bouton IA (18/10/2026)
+Diagnostic : vérification tensorielle erronée de YAMNet. Entrée modèle officiel [15600] au lieu de [1,15600]. Correctif FxSoundAI accepte deux rangs et utilise float[] ou float[][] selon la vraie forme. MainActivity rend états et erreurs visibles près du bouton et des sons, gère prérequis, progression et LinkageError. CI nouvelle inférence vraie sur Linux, sans changer traitement DSP. Test Samsung encore nécessaire, aucun merge ni Release.
