@@ -122,6 +122,35 @@ public final class WavIO {
         return String.format(Locale.ROOT, "%s_%03d.wav", safeFileLabel(label), index);
     }
 
+    /**
+     * Export one detected event directly to a WAV OutputStream, without ZIP.
+     * Boundaries and audio sample values exactly match the existing bulk export.
+     */
+    public static void writeClip(RandomAccessFile source, Info info,
+                                 FxAnalyzer.Span span, OutputStream destination)
+                                 throws IOException {
+        long[] range = clipRange(info, span);
+        long from = range[0], bytes = range[1];
+        if (bytes <= 0) throw new IOException("Extrait audio vide");
+        header(destination, info.rate, info.channels, bytes);
+        source.seek(info.offset + from * info.channels * 2L);
+        byte[] buffer = new byte[32768];
+        long remaining = bytes;
+        while (remaining > 0) {
+            int count = (int)Math.min(remaining, buffer.length);
+            source.readFully(buffer, 0, count);
+            destination.write(buffer, 0, count);
+            remaining -= count;
+        }
+    }
+
+    /** Returns [start frame, byte count] clamped to the WAV data section. */
+    public static long[] clipRange(Info info, FxAnalyzer.Span span) {
+        long from = Math.max(0, Math.min(info.frames(), span.startMs * info.rate / 1000));
+        long to = Math.max(from, Math.min(info.frames(), span.endMs * info.rate / 1000));
+        return new long[] { from, (to - from) * info.channels * 2L };
+    }
+
     /** Original CLI and callers stay compatible: unnamed exports use FX_001.wav. */
     public static void zip(RandomAccessFile r, Info in, FxAnalyzer.Result result,
                            String name, OutputStream destination) throws IOException {
@@ -155,19 +184,10 @@ public final class WavIO {
             z.closeEntry();
             for (int i = 0; i < result.spans.size(); i++) {
                 FxAnalyzer.Span span = result.spans.get(i);
-                long from = Math.max(0, Math.min(in.frames(), span.startMs * in.rate / 1000));
-                long to = Math.max(from, Math.min(in.frames(), span.endMs * in.rate / 1000));
-                long bytes = (to - from) * in.channels * 2L;
-                if (bytes == 0) continue;
                 String filename = exportFileName(labelAt(labels, i), i + 1);
+                if (clipRange(in, span)[1] == 0) continue;
                 z.putNextEntry(new ZipEntry(filename));
-                header(z, in.rate, in.channels, bytes);
-                r.seek(in.offset + from * in.channels * 2L);
-                long left = bytes;
-                while (left > 0) {
-                    int n = (int)Math.min(left, buffer.length);
-                    r.readFully(buffer, 0, n); z.write(buffer, 0, n); left -= n;
-                }
+                writeClip(r, in, span, z);
                 z.closeEntry();
             }
         }
