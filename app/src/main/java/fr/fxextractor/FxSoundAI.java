@@ -27,7 +27,8 @@ public final class FxSoundAI implements AutoCloseable {
     private static final float MIN_SCORE = 0.14f;
     private final Interpreter interpreter;
     private final String[] labels;
-    private final float[][] input = new float[1][SAMPLES];
+    private final float[] input = new float[SAMPLES];
+    private final boolean batchedInput;
     private final float[][] output = new float[1][CLASSES];
 
     public static final class Prediction {
@@ -65,11 +66,17 @@ public final class FxSoundAI implements AutoCloseable {
         this.interpreter = new Interpreter(weights, options);
         int[] inShape = interpreter.getInputTensor(0).shape();
         int[] outShape = interpreter.getOutputTensor(0).shape();
-        if (inShape.length != 2 || inShape[0] != 1 || inShape[1] != SAMPLES
+        boolean oneDimensional = inShape.length == 1 && inShape[0] == SAMPLES;
+        boolean twoDimensional = inShape.length == 2
+                && inShape[0] == 1 && inShape[1] == SAMPLES;
+        if (!(oneDimensional || twoDimensional)
                 || outShape.length != 2 || outShape[0] != 1 || outShape[1] != CLASSES) {
             interpreter.close();
-            throw new IOException("Dimensions de modèle YAMNet incompatibles");
+            throw new IOException("Dimensions de YAMNet inattendues : entrée "
+                    + java.util.Arrays.toString(inShape) + ", sortie "
+                    + java.util.Arrays.toString(outShape));
         }
+        batchedInput = twoDimensional;
     }
 
     private static byte[] readLimited(InputStream input, int limit) throws IOException {
@@ -94,7 +101,9 @@ public final class FxSoundAI implements AutoCloseable {
             long centerMs = span.startMs + duration * (i + 1) / (windows + 1);
             loadWindow(wav, info, centerMs);
             try {
-                interpreter.run(input, output);
+                // Official Google/MediaPipe YAMNet expects rank-1 [15600].
+                // Accept rank-2 [1,15600] variants without changing the WAV data.
+                interpreter.run(batchedInput ? new float[][] { input } : input, output);
             } catch (RuntimeException e) {
                 throw new IOException("Inférence IA impossible", e);
             }
@@ -135,7 +144,7 @@ public final class FxSoundAI implements AutoCloseable {
             float fraction = (float) (sourcePos - lower);
             float a = getMono(data, low, lower, info.frames(), channels);
             float b = getMono(data, low, lower + 1, info.frames(), channels);
-            input[0][i] = a + (b - a) * fraction;
+            input[i] = a + (b - a) * fraction;
         }
     }
 
