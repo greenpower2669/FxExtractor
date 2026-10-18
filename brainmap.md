@@ -34,3 +34,5 @@
 - `app/src/main/assets/midi/index.html`, `main.mjs` : génération IA locale, interface, écoute WebAudio. Les modules amont/ONNX WASM sont fournis au build GitHub (pas dans Git).
 
 - `tools/test_midi_ui.mjs` : test anti-interface silencieuse en cas d'échec d'import ONNX MIDI.
+
+- `tools/embed_midi_model.py` : téléchargement modèle MIDI CPU v5 uniquement en CI et validation hash/poids avant intégration dans APK, jamais au lancement Android.

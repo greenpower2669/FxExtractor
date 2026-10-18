@@ -10,14 +10,14 @@ button:disabled{opacity:.4}select,input{background:#0d1a2e;color:white;max-width
 label{display:block;margin-top:12px}small{color:#b7c7de}#status,#loadStatus{white-space:pre-wrap;word-break:break-word} .feedback{background:#112d38;border:2px solid #62dabf;border-radius:12px;padding:15px;margin:12px 0;font-weight:600;min-height:60px}
 </style></head><body>
 <h1>🎹 Laboratoire IA MIDI v5</h1>
-<p>Génération de notes par une vraie IA, calculée <strong>sur ton appareil</strong>. Aucun extrait sonore envoyé en ligne.</p>
+<p>Génération de notes par une vraie IA <strong>entièrement locale</strong>. Modèle et moteur inclus dans l’application ; aucune connexion Internet nécessaire.</p>
 <section class="panel"><h2>1 · Préparer le modèle</h2>
-<p>Au premier essai seulement, il faut télécharger les poids du modèle sur Hugging Face (~115 Mo en CPU ou ~73 Mo en GPU), puis les garder en cache. Ce téléchargement est déclenché uniquement par ton choix.</p>
-<label>Moteur<select id="engine"><option value="cpu">CPU · plus compatible, ~115 Mo</option><option value="gpu">GPU WebGPU · expérimental, ~73 Mo</option></select></label>
-<button id="ping">🧪 Tester les boutons et JavaScript (sans réseau)</button>
-<button id="load">⬇ Charger MIDI Gen AI v5</button>
-<div id="loadStatus" class="feedback" role="status" aria-live="polite">Interface en cours de vérification…</div>
-<button id="cancelLoad" disabled>Annuler le chargement</button>
+<p>Le moteur et les poids MIDI CPU sont fournis dans l'APK. L'IA se charge automatiquement en mémoire lorsque tu ouvres cet écran. Aucun téléchargement ni connexion Internet nécessaires.</p>
+<p><strong>Moteur installé : CPU · MIDI Gen AI v5 · environ 109 Mio de poids.</strong></p><p>Des modèles supplémentaires pourront être proposés dans les options lors d’une prochaine évolution.</p>
+<button id="ping">🧪 Tester les boutons et JavaScript (hors ligne)</button>
+<button id="load" disabled>⏳ Initialisation automatique en mémoire…</button>
+<div id="loadStatus" class="feedback" role="status" aria-live="polite">Chargement en mémoire depuis l’APK, sans Internet…</div>
+<button id="cancelLoad" disabled>Arrêter l'initialisation en mémoire</button>
 <button id="copy">📋 Copier le diagnostic</button>
 </section>
 <section class="panel"><h2>2 · Composer</h2>
@@ -32,7 +32,7 @@ label{display:block;margin-top:12px}small{color:#b7c7de}#status,#loadStatus{whit
 <button id="save" disabled>💾 Enregistrer ce MIDI (.mid)</button>
 </section>
 <section class="panel"><h2>Diagnostic sur ce téléphone</h2><div id="status" role="status" aria-live="polite">En attente. La génération IA n'a pas commencé.</div></section>
-<p><small>Sources : MIDI Gen AI v5 (Nicholas Bien, MIT) et ONNX Runtime Web (Microsoft, MIT). Une mélodie inspirée des sons rétro ne doit pas reproduire Popcorn. Performances et mémoire à mesurer sur Samsung Android 16.</small></p>
+<p><small>Sources : MIDI Gen AI v5 (Nicholas Bien, MIT) et ONNX Runtime Web (Microsoft, MIT). Modèle embarqué dans la compilation ; activation à l’ouverture de cet écran. Une mélodie inspirée des sons rétro ne doit pas reproduire Popcorn. Performances et mémoire à mesurer sur Samsung Android 16.</small></p>
 <script>
 (function(){
   function report(s){

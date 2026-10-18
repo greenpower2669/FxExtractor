@@ -4,7 +4,9 @@ const $ = id => document.getElementById(id);
 let ort, detect, loadMidigen, newScore, newTrack, writeMidi, mspqOf, parseMidi;
 let mg = null, currentMidi = null, audio = null, activeOsc = [], controller = null;
 let loadController = null;
-let trace = ["FxExtractor 0.3.6 MIDI · initialisation"];
+let trace = ["FxExtractor 0.3.7 MIDI hors ligne · initialisation"];
+const ASSET_ROOT = "https://appassets.androidplatform.net/midi/";
+let startedLoading = false;
 const native = globalThis.FxNative;
 const status = txt => {
   const message = String(txt);
@@ -19,8 +21,8 @@ const failure = (phase,e) => status("❌ " + phase + " : " + (e?.message || Stri
 window.addEventListener("error", e => failure("Erreur JavaScript", e.error || e.message));
 window.addEventListener("unhandledrejection", e => failure("Promesse JavaScript", e.reason));
 window.__fxMidiReady = true;
-status("✅ Interface prête. Appuie sur « Test de l'interface » puis sur « Charger ». Les boutons de génération s'activeront seulement lorsque l'IA est prête.");
-$("ping").addEventListener("click", () => status("✅ Commande tactile et JavaScript fonctionnels sur ce téléphone. Le modèle n'est pas encore chargé."));
+status("✅ IA MIDI intégrée dans cette application. Initialisation en mémoire au démarrage du laboratoire…");
+$("ping").addEventListener("click", () => status("✅ Commande tactile et JavaScript fonctionnels sur ce téléphone. Le modèle intégré n’est pas encore initialisé en mémoire."));
 $("copy").addEventListener("click", () => {
   const report = trace.join("\n");
   if (native?.copyDiagnostic) native.copyDiagnostic(report);
@@ -28,7 +30,8 @@ $("copy").addEventListener("click", () => {
 });
 $("cancelLoad").addEventListener("click", () => {
   loadController?.abort();
-  status("Chargement arrêté à ta demande. Tu peux réessayer.");
+  status("Initialisation en mémoire interrompue. Tu peux réessayer.");
+  startedLoading = false;
   $("load").disabled = false;
   $("cancelLoad").disabled = true;
 });
@@ -60,87 +63,87 @@ function bytesToB64(bytes) {
   return btoa(s);
 }
 $("temperature").addEventListener("input",()=> $("tempvalue").textContent=(+$("temperature").value/100).toFixed(2));
-$("load").addEventListener("click",async()=>{
-  if (mg) { status("✅ Modèle déjà chargé : tu peux générer."); return; }
+async function initializeInMemory(){
+  if (mg) { status("✅ L'IA est déjà en mémoire. Tu peux générer."); return; }
+  if (startedLoading) return;
+  startedLoading = true;
   $("load").disabled = true;
   $("cancelLoad").disabled = false;
   loadController = new AbortController();
   const signal = loadController.signal;
-  let engine = $("engine").value;
   try {
-    status("⏳ Étape 1/4 · Ouverture des modules MIDI/ONNX inclus dans l'APK…");
-    const modules = await withTimeout(
-      Promise.all([
-        import("./ort.webgpu.bundle.min.mjs"),
-        import("./midigen-web.mjs"),
-        import("./tasks.mjs"),
-        import("./midi.mjs")
-      ]),
-      25000,
-      "Chargement des modules"
-    );
-    ort=modules[0]; detect=modules[1].detect; loadMidigen=modules[2].loadMidigen;
-    ({newScore,newTrack,writeMidi,mspqOf,parseMidi}=modules[3]);
-    if (!ort?.InferenceSession || !loadMidigen)
-      throw new Error("Bibliothèque ONNX ou MIDI manquante.");
-    status("⏳ Étape 2/4 · Détection du moteur local…");
-    // Android WebView may hang in GPU adapter probing: do not block CPU.
-    if(engine === "gpu"){
-      const device=await withTimeout(detect(),12000,"Détection WebGPU");
-      if(!device.webgpu) throw new Error("WebGPU indisponible : sélectionne CPU.");
-    }
-    if(signal.aborted) throw new Error("Annulé");
-    status("⏳ Étape 3/4 · Connexion aux fichiers du modèle (Hugging Face), puis téléchargement. La première fois, le CPU nécessite environ 115 Mo. Cela peut être long en connexion mobile.");
+    status("⏳ Étape 1/4 · Chargement en mémoire des modules MIDI/ONNX déjà présents dans l'APK…");
+    const modules = await withTimeout(Promise.all([
+      import("./ort.webgpu.bundle.min.mjs"),
+      import("./midigen-web.mjs"),
+      import("./tasks.mjs"),
+      import("./midi.mjs")
+    ]), 25000, "Ouverture des modules intégrés");
+    ort = modules[0]; detect = modules[1].detect; loadMidigen = modules[2].loadMidigen;
+    ({newScore,newTrack,writeMidi,mspqOf,parseMidi} = modules[3]);
+    if (!ort?.InferenceSession || !loadMidigen) throw new Error("Module ONNX ou MIDI manquant dans l'APK.");
+    if (signal.aborted) throw new Error("Annulé");
+
+    status("⏳ Étape 2/4 · Vérification du moteur WASM intégré dans l'APK…");
+    const wasmUrl = ASSET_ROOT + "ort-wasm-simd-threaded.jsep.wasm";
+    const wasmResponse = await withTimeout(fetch(wasmUrl, {signal, cache:"no-store"}), 25000, "Lecture WASM");
+    if (!wasmResponse.ok) throw new Error("WASM absent de l'APK (HTTP "+wasmResponse.status+").");
+    const wasmBytes = new Uint8Array(await wasmResponse.arrayBuffer());
+    if (wasmBytes.length < 1_000_000 || wasmBytes[0] !== 0 ||
+        wasmBytes[1] !== 97 || wasmBytes[2] !== 115 || wasmBytes[3] !== 109)
+      throw new Error("Le WASM intégré est incomplet ou invalide ("+wasmBytes.length+" octets).");
+    // The exact runtime binary and JS are packaged together; avoid Emscripten's
+    // broken default URL resolution inside the Android asset-backed WebView.
+    ort.env.wasm.numThreads = 1;
+    ort.env.wasm.wasmPaths = {wasm: wasmUrl};
+    ort.env.wasm.wasmBinary = wasmBytes;
+    status("✅ Moteur WASM présent : "+(wasmBytes.length/1048576).toFixed(1)+" Mio. Aucun accès Internet nécessaire.");
+
+    status("⏳ Étape 3/4 · Lecture du modèle MIDI CPU présent dans l'APK (environ 109 Mio). Pas de téléchargement.");
     const started = performance.now();
-    let progressAt=Date.now();
-    // Short requests (tokenizer/manifest) must fail clearly instead of hanging.
-    // The large weight download is allowed to run for several minutes.
-    const fetchImpl = async (url,opts={}) => {
-      const address=String(url);
-      const tiny = /manifest\.json|tokenizer\.json/.test(address);
-      if(!tiny) return fetch(url,{...opts,signal});
-      const timeout = new AbortController();
-      const timer=setTimeout(()=>timeout.abort(),35000);
-      const abort=()=>timeout.abort();
-      signal.addEventListener("abort",abort,{once:true});
-      try {
-        return await fetch(url,{...opts,signal:timeout.signal});
-      } catch(e) {
-        throw new Error("Accès réseau à "+(address.includes("manifest")?"manifest.json":"tokenizer.json")+
-          " impossible (connexion, CORS ou délai). "+(e.message||e));
-      } finally {
-        clearTimeout(timer);
-        signal.removeEventListener("abort",abort);
-      }
+    let lastMessageAt=0;
+    const modelHub = ASSET_ROOT.replace(/\/$/, "");
+    const localFetch = async (url, options={})=>{
+      const requested = String(url);
+      if(!requested.startsWith(ASSET_ROOT)) throw new Error("Modèle externe refusé : "+requested);
+      const res = await fetch(requested, {...options,signal});
+      if(!res.ok) throw new Error("Fichier manquant dans l'APK : "+new URL(requested).pathname+" (HTTP "+res.status+")");
+      return res;
     };
-    const watchdog = setInterval(()=>{
-      if(!signal.aborted && Date.now()-progressAt > 45000){
-        status("⌛ Toujours en attente du modèle. Vérifie ta connexion Internet. Si rien n'avance, appuie sur « Annuler le chargement », puis copie le diagnostic.");
-        progressAt=Date.now();
+    mg = await loadMidigen({
+      ort, engine:"cpu", hub:modelHub, version:"v5",
+      signal, fetchImpl:localFetch, cache:false,
+      onProgress:p=>{
+        const now=Date.now();
+        if(p.phase==="download"){
+          if(now-lastMessageAt>600 || p.loaded===p.total){
+            status("⏳ Étape 3/4 · Lecture depuis l'APK : "+(p.loaded/1048576).toFixed(1)+
+              " / "+(p.total/1048576).toFixed(1)+" Mio (sans Internet)");
+            lastMessageAt=now;
+          }
+        } else status("⏳ Étape 4/4 · Initialisation du modèle en mémoire, sur le processeur…");
       }
-    },10000);
-    try {
-      mg=await loadMidigen({ort,engine,signal,fetchImpl,onProgress:p=>{
-        progressAt=Date.now();
-        if(p.phase==="download")status("⏳ Étape 3/4 · Modèle "+engine+" : "+
-          (p.loaded/1048576).toFixed(1)+" / "+(p.total/1048576).toFixed(1)+
-          " Mio"+(p.cached?" (cache)":" (téléchargement)"));
-        else status("⏳ Étape 4/4 · Initialisation des poids et du moteur local…");
-      }});
-    } finally { clearInterval(watchdog); }
+    });
     if(signal.aborted) {mg=null;throw new Error("Annulé");}
-    status("✅ IA v5 chargée en "+((performance.now()-started)/1000).toFixed(1)+" s. Bouton « Générer » maintenant actif.");
-    $("generate").disabled=false;
-    $("load").textContent="✅ Modèle chargé";
+    status("✅ IA MIDI prête en mémoire ("+((performance.now()-started)/1000).toFixed(1)+
+      " s). Tu peux composer. Aucun fichier téléchargé depuis Internet.");
+    $("generate").disabled = false;
+    $("load").textContent = "✅ Modèle chargé en mémoire";
   } catch(e) {
     mg=null;
-    failure("Chargement du modèle",e);
+    failure("Initialisation en mémoire",e);
     $("load").disabled=false;
+    $("load").textContent="🔄 Réessayer le chargement en mémoire";
   } finally {
+    startedLoading=false;
     $("cancelLoad").disabled=true;
     loadController=null;
   }
-});
+}
+$("load").addEventListener("click",initializeInMemory);
+// Lazy at laboratory opening: do not allocate 100+ MiB on FxExtractor's
+// main screen. Once the user opens the MIDI screen, initialize automatically.
+setTimeout(initializeInMemory, 150);
 $("generate").addEventListener("click",async()=>{
   if(!mg) return;
   $("generate").disabled=true;$("cancel").disabled=false;

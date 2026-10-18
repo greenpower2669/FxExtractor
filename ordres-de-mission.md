@@ -54,3 +54,7 @@ Fab : « On va la tester, rajoute la à fxextractor notre app apk ». Développe
  
 ## 18/10/2026 — correction retour MIDI 0.3.5
 Fab : « J'ai lancé le truc midi, j'ai voulu charger et il se passe rien [...] options du bas [...] grisées. » Autorisation implicite de diagnostic et correction ciblée sur branche laboratoire. Corriger retour d'état et rendre erreurs visibles, ne pas changer extraction FX/YAMNet. Livrer .apk brut GitHub et mettre à jour todo.md si test matériel reste en attente, aucune fusion main.
+
+
+## 18/10/2026 — commande Fab sur l'embarquement MIDI
+Fab demande que le moteur ET les poids soient embarqués comme pour Pierre/Voyas. Aucune opération « télécharger » ou « charger un moteur » sur le téléphone ; si nécessaire utiliser seulement « Charger en mémoire » avec initialisation automatique à l'ouverture du laboratoire, sans pénaliser l'écran principal. Conserver une piste pour installer d'autres poids ultérieurement. Corriger l'échec WASM, tests CI de hash/empreinte, livrer APK brut directement utilisable. Ne pas merger main ni publier Release sans approbation.

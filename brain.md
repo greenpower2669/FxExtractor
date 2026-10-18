@@ -63,3 +63,7 @@ CI compilation 0.3.5 validée : GitHub run 39150975283 SUCCESS, modèle runtime 
 Retour Fab (18/10) : appui sur Charger sans réaction, options grisées. La 0.3.5 cachait le statut loin sous les boutons et utilisait les imports statiques sans gestion d'échec visible. En 0.3.6, interface de diagnostic avant chargement dynamique, copie native et bouton test hors ligne, progression près de charger, annulation et reprise après échec. Compilation/test Android à vérifier ; test réel d'inférence encore nécessaire. Ne pas fusionner main.
 
 Preuve CI 0.3.6 : run GitHub 39153583595 SUCCESS, APK debug brut `delivery/fxextractor-apk/apk/FxExtractor-0.3.6-MIDI-v5-debug.apk` (27 401 723 octets, blob `5200331c92c3223612ad2570f7ebf4445b4e8254`), AAB distinct non signé, test JS de gestion d'échec passé. Aucun essai matériel réel nouveau.
+
+
+## v0.3.7 — IA MIDI intégralement embarquée
+Décision Fab (18/10) : moteur et poids dans APK, démarrage automatique en mémoire quand le laboratoire s'ouvre ; pas de vocabulaire ambigu « télécharger/charger » ; import facultatif de poids ultérieurs à étudier après tests. Runtime ONNX/WASM livré local avec `wasmBinary`, modèle v5 CPU int8 ~109,3 Mio, tokenizer/manifest et SHA256 validés en CI. Aucune permission INTERNET. Taille du fichier Android >100 Mo probable : utiliser artifact GitHub Actions archive:false, pas branche Git brute, sans Release ni merge. Inférence réelle à tester sur Samsung.

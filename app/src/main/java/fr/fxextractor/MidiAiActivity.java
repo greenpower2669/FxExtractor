@@ -26,7 +26,7 @@ import java.io.IOException;
 
 /**
  * MIDI Gen AI v5 laboratory. The HTML, JS and WASM are packaged with the APK.
- * Only a user click can start downloading the ONNX checkpoint from Hugging Face.
+ * The CPU ONNX checkpoint is packaged as an asset and is loaded automatically\n * when this screen opens. No networking is required.
  * Generated MIDI remains on the device and is exported via Android SAF.
  */
 public final class MidiAiActivity extends Activity {
@@ -35,7 +35,7 @@ public final class MidiAiActivity extends Activity {
     private WebView webView;
     private byte[] lastMidi;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final StringBuilder diagnostic = new StringBuilder("FxExtractor 0.3.6 MIDI\n");
+    private final StringBuilder diagnostic = new StringBuilder("FxExtractor 0.3.7 MIDI hors ligne\n");
     private String fileName = "FxExtractor-MIDI-AI-v5.mid";
 
     @Override public void onCreate(Bundle state) {
@@ -86,10 +86,12 @@ public final class MidiAiActivity extends Activity {
                 String path = u.getPath();
                 if (path == null || !path.startsWith("/midi/")) return null;
                 String name = path.substring(6);
-                if (name.isEmpty() || name.contains("/") || name.contains("\\") || name.contains(".."))
+                if (name.isEmpty() || name.startsWith("/") || name.contains("\\")
+                        || name.contains("..") || !name.matches("[A-Za-z0-9_./-]+"))
                     return new WebResourceResponse("text/plain", "UTF-8", 404, "Not found",
                         java.util.Collections.emptyMap(), new java.io.ByteArrayInputStream(new byte[0]));
                 String type = name.endsWith(".wasm") ? "application/wasm" :
+                    name.endsWith(".onnx") ? "application/octet-stream" :
                     name.endsWith(".mjs") || name.endsWith(".js") ? "text/javascript" :
                     name.endsWith(".json") ? "application/json" : "text/html";
                 try {

@@ -109,3 +109,13 @@
 - [ ] Clarifier tous les libellés : « Préparation de l’IA en mémoire… », puis « IA chargée en mémoire » / « IA prête ». Si déclenchement manuel nécessaire, appeler le bouton « Charger en mémoire » ; n’utiliser « Télécharger » que pour une récupération depuis Internet.
 - [ ] Tester hors réseau sur Samsung Android 16 : existence et résolution de l’exact fichier WASM, accès local manifest/tokenizer/poids, RAM, génération réelle et export .mid ; ne pas confondre validation CI avec validation sur téléphone.
 - [ ] Auditer la distribution avant build : l’APK embarquant ~115 Mo de poids risque de dépasser le seuil GitHub de **100 Mio par objet Git**, incompatible avec le push direct sur `delivery/fxextractor-apk`. Trouver un vrai lien APK direct sans ZIP et sans Release/merge main non autorisés ; ne pas annoncer de livraison avant vérification effective.
+
+
+## 0.3.7 — poids MIDI embarqués et WASM réparé
+- [x] Diagnostic utilisateur exact : CPU ONNX 109,3 Mio téléchargé, échec de l'initialisation du moteur WebAssembly dans WebView.
+- [x] Préparer CI : embarquer modèle CPU, tokenizer, manifest, WASM, hash SHA256 ; supprimer INTERNET du manifeste.
+- [x] Fixer explicitement `wasmBinary` sur les octets du moteur intégré pour éviter la résolution WASM en échec.
+- [x] Auto-initialiser dans l'écran MIDI seulement ; terminologie « charger en mémoire », aucun téléchargement Android.
+- [ ] Vérifier run GitHub Actions, signature, APK brut >100 Mo en artefact sans ZIP, taille réelle, modèle extrait du ZIP APK et son hash.
+- [ ] Test Samsung sans connexion : application ouverte, générer quelques notes, écouter, exporter .mid ; mesurer RAM et latence.
+- [ ] Étudier dans les options un import de modèles additionnels compatibles, après validation v5 CPU.

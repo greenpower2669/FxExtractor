@@ -148,3 +148,14 @@ Retour Samsung : « J'ai voulu charger et il ne se passe rien ; options du bas g
 Livraison après GitHub Actions SUCCESS : `https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.6-MIDI-v5-debug.apk`.
 
 **v0.3.6 livrée :** [Télécharger l'APK brut direct](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.6-MIDI-v5-debug.apk), 27 401 723 octets, [CI run 39153583595 réussi](https://github.com/greenpower2669/FxExtractor/actions/runs/39153583595). Les commandes d'extraction existantes passent toujours les tests ; modèle MIDI non encore attesté sur Samsung.
+
+
+## v0.3.7 — moteur et modèle MIDI intégrés dans l'APK (18 octobre 2026)
+
+À la demande de Fab : terminologie précise et **aucun téléchargement sur le téléphone**. Les ressources `ort.webgpu.bundle.min.mjs`, `ort-wasm-simd-threaded.jsep.wasm`, les modules MIDI, `v5/tokenizer.json`, `v5/onnx/manifest.json` et le checkpoint ONNX **CPU int8** (~109,3 Mio) sont ajoutés à l'APK au moment du build CI. `tools/embed_midi_model.py` vérifie intégrité SHA-256 et taille du vrai checkpoint avant packaging. Android n'a plus la permission INTERNET.
+
+Le moteur WebAssembly est lu explicitement depuis l'APK et fourni à ONNX Runtime par `ort.env.wasm.wasmBinary` pour contourner l'erreur Android WebView (« both async and sync fetching of the wasm failed »). Lorsque Fab ouvre l'écran MIDI, le modèle s'initialise automatiquement **en mémoire**, sans bouton « télécharger ». En cas d'échec, un bouton « Réessayer le chargement en mémoire » reste disponible. Les boutons Générer/Écouter/Enregistrer sont liés aux états réels.
+
+⚠️ Conséquence : l'APK contenant les poids dépasse probablement 100 Mo, limite stricte d'un blob GitHub ; impossible de le publier en lien `raw.githubusercontent.com` dans `delivery/fxextractor-apk`. La CI doit utiliser l'artefact GitHub Actions **fichier APK brut** (`archive: false`), sans ZIP à décompresser manuellement. Ne donner un lien qu'après vérification d'un run vert et du fichier de sortie. Test physique de génération sur Samsung encore nécessaire.
+
+La possibilité d'installer d'autres modèles/poids dans les options sera examinée séparément, après validation de ce modèle CPU par défaut. Aucun modèle additionnel n'est prétendu supporté aujourd'hui. Pas de merge main/Release.

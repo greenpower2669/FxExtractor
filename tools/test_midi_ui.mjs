@@ -30,7 +30,7 @@ assert.match(getElementById("loadStatus").textContent,/fonctionnels/);
 const attempt=listeners.get("load:click")();
 assert.match(getElementById("loadStatus").textContent,/Étape 1\/4/,"status must show immediately");
 await attempt; // isolated Node VM cannot perform a dynamic module import: intentional failure.
-assert.match(getElementById("loadStatus").textContent,/Chargement du modèle/,"error must be visible");
+assert.match(getElementById("loadStatus").textContent,/Initialisation en mémoire/,"error must be visible");
 assert.equal(getElementById("load").disabled,false,"retry must be possible");
 assert.equal(getElementById("cancelLoad").disabled,true);
 console.log("PASS MIDI UI: immediate feedback, module failure visible, retry enabled");

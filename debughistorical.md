@@ -65,3 +65,7 @@ Retour Fab : aucun retour visuel après « Charger », commandes grisées. Défa
 
 ### État correctif UI 0.3.6
 CI 39153583595 SUCCESS : tests Node d'affichage immédiat et de reprise après échec de module, compilation Android/MP3/YAMNet, extraction et livraison .apk brute. Le diagnostic utilisateur réel (éventuel blocage réseau / WASM) reste à recueillir ; ne pas conclure que l'inférence est réparée sans test sur téléphone.
+
+
+## 18/10/2026 — explication de l'erreur WASM puis v0.3.7
+Retour réel Samsung : 109,3 / 109,3 Mio téléchargés correctement, puis ONNX `no available backend found; both async and sync fetching of the wasm failed`, HTTP wasm streaming non-OK. Le moteur WASM était embarqué dans APK 0.3.6 mais ONNX n'y accédait pas ; le modèle CPU restait externe. Correction 0.3.7 : lecture explicite du WASM local via `wasmBinary` et poids CPU intégrés à la compilation, aucun chargement depuis le réseau sur Android. CI reste à valider et inférence matériel encore non prouvée. APK complet >100Mo donc Git blob delivery impossible, passer par artefact Actions non-zippé.
