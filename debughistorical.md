@@ -85,3 +85,7 @@ Run 39158913666 : les tests Java étaient verts, mais Chromium Playwright s'est 
 
 ### Test 0.3.8 Chromium : la cause ONNX réparée
 Run 39159219122 : Chromium affiche `IA MIDI prête en mémoire (1.4 s)`, `ready: true`, modèle de 109,3 Mio et WASM CPU initialisés localement. Échec du job uniquement sur un filtre réseau trop strict qui classait la requête locale `/favicon.ico` comme externe. Corriger l'assertion, relancer build. Pas encore de test Samsung.
+
+
+### CI 0.3.8 finale
+Run 39159447721 SUCCESS : ORT CPU + WASM CPU même version 1.30, vraie session modèle démarrée dans Chromium; pipeline Android compilé, contrôle du modèle + WASM intégrés à APK, MP3/YAMNet préservés. Artifact APK brut 12148450979 147 942 598 octets. Pas encore de résultat physique Samsung.

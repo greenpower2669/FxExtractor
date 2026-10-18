@@ -174,3 +174,7 @@ Avant emballage APK, le workflow effectue un test réel avec **Chromium Playwrig
 
 ### Vérification Chromium réelle du modèle ONNX CPU 0.3.8
 GitHub Actions run 39159219122 : **le chargement complet CPU réel a réussi en Chromium, 1,4 seconde**, avec ressources 100 % locales, test `tools/test_midi_browser.mjs`. Le job a ensuite échoué uniquement sur une assertion annexe : Chrome demande `/favicon.ico` automatiquement, mais ce fichier n'est pas dans `/midi/` bien qu'il reste sur la même origine locale. L'assertion a été corrigée pour autoriser toute ressource de la même origine locale. Revalider CI et APK avant de fournir à Fab.
+
+
+### Livraison 0.3.8 vérifiée — CI du 18 octobre 2026
+GitHub Actions [run 39159447721](https://github.com/greenpower2669/FxExtractor/actions/runs/39159447721) **SUCCESS** sur commit `05a9c03f63ffa2b63a97655ede8826aa4e4c9404`. Vrai modèle CPU 109,3 Mio exécuté et initialisé en Chromium avec le couple ORT Web CPU + WASM CPU de version 1.30.0, sans appel à Internet. Build Android, extraction de l'APK, contrôles SHA256 des poids à l'intérieur de l'APK, MP3 et YAMNet tous verts. **APK brut direct** [FxExtractor-0.3.8-MIDI-CPU-debug.apk](https://github.com/greenpower2669/FxExtractor/actions/runs/39159447721/artifacts/12148450979), **147 942 598 octets**, artifact `12148450979` publié avec `archive: false` : pas de ZIP à décompresser manuellement. Trop gros pour dépôt GitHub delivery/raw 100 Mo. APK debug de test, aucun merge main/Release, test matériel Samsung encore nécessaire. AAB non signé séparé.

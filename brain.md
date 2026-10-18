@@ -75,3 +75,7 @@ Run 39157742071 SUCCESS ; APK `FxExtractor-0.3.7-MIDI-OFFLINE-debug.apk` 162 031
 
 ## v0.3.8 — corriger la variante ONNX CPU (18/10)
 Journal physique Fab : 0.3.7 atteint 109,3/109,3 Mio, WASM 27Mio présent, étape 4 échec interne JS `reading 'Xe'`. Le code combinait `ort.webgpu.bundle.min.mjs` avec `ort-wasm-simd-threaded.jsep.wasm` ; v0.3.8 utilise strictement `ort.wasm.bundle.min.mjs` + `ort-wasm-simd-threaded.wasm` de onnxruntime-web 1.30.0. Nouveau test réel de chargement de modèle ONNX via Chromium Playwright avant build Android ; ne pas qualifier l'inférence Samsung de réussie sans essai. Préserver mode hors ligne, auto-initialisation, poids 109Mio, branches isolées.
+
+
+### Preuve CI 0.3.8 (18/10)
+Run 39159447721 **SUCCESS**, code 05a9c03f63ffa2b63a97655ede8826aa4e4c9404 : authentique modèle CPU + JS/WASM CPU compatibles initialisés en Chromium en ~1,4s lors du test précédent et revalidés sans erreur réseau. APK brut `FxExtractor-0.3.8-MIDI-CPU-debug.apk` 147 942 598 octets, artifact GitHub Actions non zippé 12148450979. Poids hash vérifiés dans l'APK. Samsung non encore testé, conserver diagnostic et limiter affirmation à navigateur Linux. Pas de merge main.

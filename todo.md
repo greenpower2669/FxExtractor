@@ -135,3 +135,6 @@
 
 - [x] Test réel CPU ONNX + poids 109,3 Mio **réussi sur Chromium** dans run 39159219122 (1,4s). Le build a été arrêté à tort par le filtre anti-réseau incluant le favicon local ; ajustement effectué.
 - [ ] Relancer CI après correctif du test/favicon, obtenir APK 0.3.8 brut en Actions et confirmer SHA.
+
+- [x] Run GitHub Actions 39159447721 **SUCCESS** : vraie initialisation Chromium du modèle MIDI CPU, build Android, packaging vérifié. APK brut 147 942 598 octets artifact 12148450979. Contrat sans dézipage Fab respecté.
+- [ ] Test de Fab sur Samsung hors ligne : prêt en mémoire, Générer MIDI 128 tokens, écouter et sauver .mid ; relever temps réel ou trace d'échec.
