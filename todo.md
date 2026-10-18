@@ -175,3 +175,11 @@
 - [ ] Intégrer **cinq modèles** dans l'APK (T5, Small-DiT, SAME-S enc + dec et tokenizer) avec licences et hashes ; nécessité validation des conditions Stability AI Community et Gemma.
 - [ ] Effectuer inférence Linux sur vrais poids avec un audio témoin non silencieux puis test Samsung Android 16 hors ligne, contrôler mémoire et stabilité.
 - [ ] Publier seul l'APK complet, pas le dev 0.4.1 inachevé. Aucune fusion main/release sans Fab.
+
+## 19/10/2026 — Extension / prolongation de sons (demande Fab)
+- [ ] Ajouter mode « Prolonger un son » distinct de « Variation depuis une amorce » : importer un extrait, choisir durée supplémentaire (par ex. +5, +10, +20, +30 s), décrire la continuité souhaitée, écouter et exporter.
+- [ ] Tester outpainting via SAME-S encoder + `--inpaint-range` (référence upstream SA3) : étendre le signal d'entrée au total souhaité, encoder son préfixe, conserver la zone originale via `keep_mask`, générer uniquement la partie manquante avec `local_add_cond` et la réinjection des latents conservés à chaque étape.
+- [ ] Préserver **exactement** l'audio utilisateur d'origine dans le fichier final en réassemblant ses échantillons PCM originaux avec la continuation, et gérer la jonction par courte transition/crossfade facultative. Éviter de confondre fidélité du préfixe final et qualité du codec SAME-S.
+- [ ] Pour une extension dépassant la limite 120 s du Small-Music, générer des blocs successifs avec contexte glissant, raccords et tests d'accumulation d'erreurs ; performance/mémoire Samsung à vérifier.
+- [ ] Ne pas promettre une continuation parfaite pour des impacts très brefs ni pour les sons non musicaux : tester Stable Audio Small-Music, comparer au modèle Small-SFX sans intégrer un second poids massif par défaut.
+- [ ] Aucun essai/validation Android de l'outpainting n'est encore réalisé. Ne pas afficher « Prolonger » comme fonction achevée avant vraie inférence vérifiée.
