@@ -104,3 +104,14 @@ Les correctifs IA 0.3.1 sont inclus : vrai tenseur d'entrée YAMNet `[15600]` (c
 
 ### APK 0.3.2 prêt
 [**Télécharger FxExtractor 0.3.2.apk directement (sans ZIP)**](https://raw.githubusercontent.com/greenpower2669/FxExtractor/delivery/fxextractor-apk/apk/FxExtractor-0.3.2-debug.apk). Run [39082262856](https://github.com/greenpower2669/FxExtractor/actions/runs/39082262856) SUCCESS, 18 888 244 octets, pas de Release/Play. Règle confirmée : défaut 0 ms, curseur 0–1500 ms ; correction YAMNet entrée rank1 et message de progression inclus.
+
+## v0.3.3 — téléchargement direct individuel et formats de sortie (18/10/2026)
+Chaque ligne de son disponible (jusqu'à 40 affichés) possède un bouton **« Enregistrer ce son (sans ZIP) »**. Après écoute et édition éventuelle du nom (y compris suggestion YAMNet modifiable), choisir le format de sortie tout en haut de la liste puis appuyer sous le son. Le sélecteur Android permet de choisir le dossier et de confirmer le fichier à enregistrer, par exemple `Explosion_001.wav` ou `Explosion_001.m4a`. **Aucune archive ZIP n'est créée** pour ce flux. Les boutons sont explicites et le statut dit si l'enregistrement a abouti ou échoué. Les sons 41 et suivants continuent d'être disponibles dans l'export global ZIP.
+
+**Formats effectivement implémentés :**
+- **WAV PCM16** mono/stéréo, **sans perte**, fréquence d'origine conservée : écrit directement depuis la zone de la source sélectionnée via WavIO.writeClip, sans conversion ni compression nouvelle.
+- **M4A / AAC-LC** mono/stéréo **compressé**, 44,1 kHz avec rééchantillonnage linéaire et débit demandé 96 kbit/s mono ou 160 kbit/s stéréo. Encodage 100% sur l'appareil par `MediaCodec` et emballage MP4 via `MediaMuxer`. Le codec disponible sur chaque appareil détermine le résultat réel. Ce n'est pas du MP3 : Android ne fournit pas d'encodeur MP3 standard.
+
+L'export global ZIP existe toujours ; il conserve les **WAV uniquement** et le fichier `events.json`. Les noms personnalisés sont assainis pour rester des noms de fichiers sûrs. Aucune permission réseau ni accès général au stockage n'est nécessaire : l'utilisateur choisit la destination avec `ACTION_CREATE_DOCUMENT`. Les fichiers sources sont inchangés ; le M4A est temporairement encodé en cache privé avant copie vers la destination. Si l'encodeur AAC n'est pas pris en charge ou manque de ressources sur le téléphone, un message d'erreur apparaît, et le WAV reste disponible.
+
+La CI valide la création WAV direct avec les tests Java ; la compilation Android vérifie le module M4A, mais **un essai physique Samsung est nécessaire pour valider l'encodeur AAC**, le choix du dossier et l'écoute.

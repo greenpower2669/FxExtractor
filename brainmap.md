@@ -22,3 +22,6 @@
 - tools/test_yamnet_model.py : test de véritable inférence du modèle Google sur le runner GitHub.
 
 - `app/src/main/java/fr/fxextractor/FxAnalyzer.java` : marge finale réglable, défaut 0 ms (à partir de 0.3.2).
+
+- `app/src/main/java/fr/fxextractor/ClipAacEncoder.java` : conversion WAV PCM16 segmenté en M4A AAC-LC Android, resample 44,1 kHz, sans réseau.
+- `app/src/main/java/fr/fxextractor/MainActivity.java` : format sélectionné, bouton Enregistrer ce son sous chaque FX, SAF ACTION_CREATE_DOCUMENT direct.

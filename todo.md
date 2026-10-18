@@ -63,3 +63,14 @@
 - [x] Tests : zéro par défaut égal zéro explicite, valeurs positives plus longues, séparations préservées.
 - [x] CI 0.3.2 run `39082262856` SUCCESS : DSP zéro par défaut + inférence YAMNet réelle LiteRT + build APK/AAB + GitHub raw. Binaire `apk/FxExtractor-0.3.2-debug.apk` 18 888 244 octets, blob `06e1935f737fdcaa20c753dadd062e5993b40ebe`.
 - [ ] Essai physique Samsung : commande 0 ms, progression IA, résultats, exports.
+
+## v0.3.3 — sauvegarde unitaire, formats (18/10/2026)
+- [x] Ajouter bouton d'enregistrement direct de chaque ligne FX affichée, sans ZIP.
+- [x] Sélecteur WAV sans perte ou M4A/AAC compressé ; nom personnalisé repris et contrôlé pour fichier.
+- [x] Écrire clip WAV séparé WavIO.writeClip, en réutilisant la même découpe du ZIP.
+- [x] Encoder AAC en M4A local via MediaCodec/MediaMuxer et rééchantillonnage linéaire vers 44,1 kHz.
+- [x] Conserver ZIP global WAV pour tous les clips, y compris après le 40e.
+- [x] Ajouter test JVM direct WAV lossless, durée et en-tête valide.
+- [ ] Valider CI 0.3.3 Android + Java puis fichier APK brut direct.
+- [ ] Test Samsung : sauvegarde unitaire WAV/M4A, résolution de nom, lecture M4A, pas de ZIP, qualité et durée.
+- [ ] Envisager formats supplémentaires après évaluation réels codecs/licences ; ne pas annoncer MP3 absent.

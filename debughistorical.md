@@ -42,3 +42,6 @@ Capturé par Fab avec capture écran : valeur de fin minimale 100 ms, défaut 60
 
 ### D010 — CI 0.3.2 verte
 Run 39082262856 SUCCESS : test 0 ms et réverbération, test IA LiteRT réel, compilation APK/AAB, contrôle fichier brut GitHub et livraison direct APK 18 888 244 octets. L'écoute réelle et le bouton IA sur Samsung restent à confirmer.
+
+## D011 — extraction par ligne demandée (18/10/2026)
+Retour utilisateur : souhaite télécharger/enregistrer individuellement chaque son et choisir le format. Jusqu'à 0.3.2 seule l'archive ZIP WAV était exportable. v0.3.3 : bouton par FX (40 lignes affichées), ACTION_CREATE_DOCUMENT direct, WAV sans perte via WavIO.writeClip et M4A AAC-LC comprimé via MediaCodec/MediaMuxer avec temporary file (qui est supprimé). L'export ZIP historique reste inchangé. Les encodeurs AAC étant dépendants d'Android/Samsung, compilation CI ne suffit pas à prouver le résultat matériel ; montrer les erreurs clairement et tester.

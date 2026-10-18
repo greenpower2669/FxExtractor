@@ -39,3 +39,6 @@ Diagnostic : vérification tensorielle erronée de YAMNet. Entrée modèle offic
 
 ### Preuve compilation 0.3.2 (18/10/2026)
 Run GitHub 39082262856 SUCCESS sur commit code d9761b9ad042a65d5e083dacee6524c0be2a4809 : tests Java y compris `DEFAULT_RELEASE_MS=0`, vrai test d'inférence YAMNet sur Linux, Gradle Android, extraction dans RUNNER_TEMP, publication binaire direct APK. `delivery/fxextractor-apk/apk/FxExtractor-0.3.2-debug.apk` 18 888 244 octets, blob `06e1935f737fdcaa20c753dadd062e5993b40ebe`. Reste test sur Samsung.
+
+## v0.3.3 — sauvegarde individuelle (18/10/2026)
+Après l'analyse, chacune des 40 lignes affichées possède « Enregistrer ce son » ; sélecteur de fichier Android pour sauvegarder directement l'extrait dans le dossier choisi, sans ZIP. Sélecteur de formats général : WAV PCM16 sans perte (rate source) ou M4A/AAC-LC compressé par MediaCodec/MediaMuxer Android (44,1 kHz, débit cible 96/160 kbit/s mono/stéréo). WAV direct partagé par WavIO.writeClip, ZIP global WAV inchangé, noms manuels ou YAMNet suivis et assainis, aucune permission réseau. Le téléchargement du logiciel APK brut GitHub reste séparé de l'export des sons sur le téléphone. Toujours livrer APK brut sur delivery/fxextractor-apk, sans merge main/Release.
