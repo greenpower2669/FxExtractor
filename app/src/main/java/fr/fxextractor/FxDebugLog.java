@@ -2,6 +2,7 @@ package fr.fxextractor;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.ApplicationExitInfo;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -46,7 +47,43 @@ public final class FxDebugLog {
             android.os.Build.VERSION.SDK_INT+" device="+
             android.os.Build.MANUFACTURER+"/"+android.os.Build.MODEL+
             " pid="+Process.myPid());
-        if(hasPending())write("PREVIOUS_GENERATION_INCOMPLETE: process exited or activity closed before completion; lastStage="+stage);
+        logRecentExitReasons();
+        if(hasPending())write("PREVIOUS_GENERATION_INCOMPLETE: "+pendingSummary());
+    }
+    /**
+     * Android 11+ system-retained reasons survive native crashes and low-memory
+     * SIGKILL; unlike Java UncaughtExceptionHandler these can identify OOM.
+     */
+    private static void logRecentExitReasons(){
+        if(app==null || android.os.Build.VERSION.SDK_INT<30)return;
+        try {
+            ActivityManager manager=(ActivityManager)app.getSystemService(Context.ACTIVITY_SERVICE);
+            java.util.List<ApplicationExitInfo> history=manager.getHistoricalProcessExitReasons(
+                app.getPackageName(),0,3);
+            if(history==null || history.isEmpty()){
+                write("ANDROID_EXIT_HISTORY empty");
+                return;
+            }
+            for(ApplicationExitInfo entry:history){
+                String reason;
+                switch(entry.getReason()){
+                    case ApplicationExitInfo.REASON_LOW_MEMORY: reason="LOW_MEMORY";break;
+                    case ApplicationExitInfo.REASON_CRASH: reason="JAVA_CRASH";break;
+                    case ApplicationExitInfo.REASON_CRASH_NATIVE: reason="NATIVE_CRASH";break;
+                    case ApplicationExitInfo.REASON_ANR: reason="ANR";break;
+                    case ApplicationExitInfo.REASON_SIGNALED: reason="SIGNALED";break;
+                    case ApplicationExitInfo.REASON_USER_REQUESTED: reason="USER_REQUESTED";break;
+                    default: reason="OTHER_"+entry.getReason();break;
+                }
+                String description=entry.getDescription();
+                write("ANDROID_LAST_EXIT reason="+reason+" status="+entry.getStatus()+
+                    " time="+entry.getTimestamp()+" pssMiB="+(entry.getPss()/1024)+
+                    " rssMiB="+(entry.getRss()/1024)+" desc="+
+                    (description==null?"none":description));
+            }
+        } catch(Throwable error){
+            write("ANDROID_EXIT_HISTORY unavailable="+error.getClass().getSimpleName());
+        }
     }
     private static String now(){
         return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS",Locale.US).format(new Date());
