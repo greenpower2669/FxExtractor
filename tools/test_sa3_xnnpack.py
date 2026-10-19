@@ -26,7 +26,7 @@ assert 'args.putInt("cacheMode",cacheMode)' in coordinator
 assert 'cacheMode,false,false,new Sa3Coordinator.Callback()' in activity
 assert 'SA3_WORKER_PID=' in service and 'SA3_WORKER_EXIT pid=' in coordinator
 assert all(x in manifest for x in ('sa3_text','sa3_dit','sa3_decode'))
-assert '0.4.7-sa3-longform-debug' in gradle
+assert '0.4.8-sa3-short-window-debug' in gradle
 assert 'android.permission.INTERNET' not in manifest
 print("PASS: XNNPACK cached and baseline CPU modes wired end-to-end, offline, process-isolated.")
 print("NOTE: Only a Samsung test can confirm a reduction in PSS or successful 8-step audio.")
