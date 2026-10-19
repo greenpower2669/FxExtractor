@@ -43,7 +43,8 @@ public final class StableAudioActivity extends Activity {
     private Button generate, play, export, pick, clear;
     private EditText prompt;
     private SeekBar duration, variation;
-    private CheckBox extensionMode;
+    private Spinner contextChoice;
+    private CheckBox extensionMode, retrySilenceBox;
     private Uri seedUri;
     private File audioFile;
     private MediaPlayer player;
@@ -97,6 +98,38 @@ public final class StableAudioActivity extends Activity {
         variation.setOnSeekBarChangeListener(new SimpleSeek(){@Override public void onProgressChanged(SeekBar s,int p,boolean user){
             if(!extensionMode.isChecked())variationName.setText("Force de variation : "+(p+20)+" % (20 % fidèle, 100 % libre)");
         }});
+        label(root,"🎼 Continuité musicale — durée de l'amorce précédente",19);
+        label(root,"2 s = plus rapide ; 4 s = équilibre conseillé ; 6 s = plus de "+
+            "contexte musical mais davantage de morceaux à générer.",16);
+        contextChoice=new Spinner(this);
+        String[] durations={"2 secondes — rapide","4 secondes — recommandé",
+            "6 secondes — cohérence maximale (plus lent)"};
+        ArrayAdapter<String> contextOptions=new ArrayAdapter<>(this,
+            android.R.layout.simple_spinner_item,durations);
+        contextOptions.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        contextChoice.setAdapter(contextOptions);
+        contextChoice.setMinimumHeight(80);
+        int saved=getPreferences(MODE_PRIVATE).getInt("sa3_context_seconds",4);
+        contextChoice.setSelection(saved==2?0:saved==6?2:1);
+        contextChoice.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+            @Override public void onItemSelected(AdapterView<?> parent,View view,int position,long id){
+                int chosen=position==0?2:position==2?6:4;
+                getPreferences(MODE_PRIVATE).edit()
+                    .putInt("sa3_context_seconds",chosen).apply();
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent){}
+        });
+        root.addView(contextChoice);
+        retrySilenceBox=new CheckBox(this);
+        retrySilenceBox.setText("🔎 Détecter les vrais trous de silence et régénérer "+
+            "uniquement le morceau suspect (une fois)");
+        retrySilenceBox.setTextSize(17);
+        retrySilenceBox.setChecked(getPreferences(MODE_PRIVATE)
+            .getBoolean("sa3_retry_silence",true));
+        retrySilenceBox.setOnCheckedChangeListener((button,checked)->
+            getPreferences(MODE_PRIVATE).edit()
+                .putBoolean("sa3_retry_silence",checked).apply());
+        root.addView(retrySilenceBox);
         label(root,"🧠 Mémoire DiT — méthode CPU (comparaison expérimentale)",19);
         label(root,"Cache fichier : tentative d'économie de RAM. CPU historique : témoin 0.4.5. "+
             "Les trois modes utilisent la même IA sans changer ses poids.",16);
@@ -343,9 +376,14 @@ public final class StableAudioActivity extends Activity {
         if(longPipeline!=null)longPipeline.cancel();
         int cacheMode=Sa3CacheSettings.normalize(getPreferences(MODE_PRIVATE)
             .getInt("sa3_dit_cache_mode",Sa3CacheSettings.DEFAULT));
-        FxDebugLog.write("SA3_LONGFORM_SELECTED seconds="+total+" cache="+Sa3CacheSettings.label(cacheMode));
+        int position=contextChoice.getSelectedItemPosition();
+        int contextSeconds=position==0?2:position==2?6:4;
+        boolean retrySilence=retrySilenceBox.isChecked();
+        FxDebugLog.write("SA3_LONGFORM_SELECTED seconds="+total+" cache="+Sa3CacheSettings.label(cacheMode)+
+            " contextSeconds="+contextSeconds+" retrySilence="+retrySilence);
         longPipeline=new Sa3LongFormCoordinator(this,session,description,total,originalPresent,
-            primed,strength,seed,cacheMode,new Sa3LongFormCoordinator.Callback(){
+            primed,strength,seed,cacheMode,contextSeconds,retrySilence,
+            new Sa3LongFormCoordinator.Callback(){
                 @Override public void onProgress(String text){
                     if(!isFinishing()&&!isDestroyed())state.setText(text);
                 }
