@@ -74,9 +74,12 @@ public final class MainActivity extends Activity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL); root.setPadding(dp(18),dp(20),dp(18),dp(30));
         scroll.addView(root);
+        FxDebugLog.lifecycle("MainActivity.onCreate");
         TextView title = new TextView(this);
         title.setText("🎛 FxExtractor"); title.setTextSize(28); title.setTextColor(0xFF10253D);
         root.addView(title);
+        button(root,"🧪 Voir / copier les journaux de débogage",()->FxDebugLog.show(this));
+        if(FxDebugLog.hasPending())text(root,FxDebugLog.pendingSummary()+" — utilise le bouton Journal pour nous envoyer la trace.",19);
         help = text(root, "Choisis une vidéo (MP4, MOV, MKV, WebM, 3GP…) ou un audio (MP3, M4A, WAV, OGG…). Le son sera extrait sur ton téléphone, puis découpé en effets.", 18);
         openButton = button(root, "1 · Choisir une vidéo ou un audio", () -> open());
         TextView sensitivityLabel = text(root, "Sensibilité de détection (plus à gauche = sons plus faibles)", 17);

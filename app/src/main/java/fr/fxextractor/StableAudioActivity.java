@@ -59,11 +59,14 @@ public final class StableAudioActivity extends Activity {
     }
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FxDebugLog.lifecycle("StableAudioActivity.onCreate");
         ScrollView scroll=new ScrollView(this);
         LinearLayout root=new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);root.setPadding(20,20,20,45);
         scroll.addView(root);
         label(root,"🎼 Musique audio IA — Stable Audio 3",26);
+        if(FxDebugLog.hasPending())label(root,FxDebugLog.pendingSummary()+" — touche « Voir journal » pour copier le diagnostic.",19);
+        button(root,"🧪 Voir / copier le journal de débogage",()->FxDebugLog.show(this));
         label(root,"Création de musique directement à partir d’un texte, ou en prenant un extrait sonore comme amorce. Toutes les opérations se feront sur ce téléphone, sans envoyer ton son sur Internet.",17);
         label(root,"Décris les instruments, l’ambiance et le rythme (le modèle comprend surtout l’anglais) :",18);
         prompt=new EditText(this);prompt.setTextSize(18);prompt.setMinLines(3);
@@ -118,6 +121,7 @@ public final class StableAudioActivity extends Activity {
     }
     private void checkAssets() {
         state.setText("⏳ Contrôle du pack Stable Audio 3…");
+        FxDebugLog.write("ASSET_CHECK_BEGIN");
         generate.setEnabled(false);
         worker.execute(()->{
             String[] required={
@@ -158,6 +162,7 @@ public final class StableAudioActivity extends Activity {
                 }
             }
             final boolean complete=count==required.length;
+            FxDebugLog.write("ASSET_CHECK_END found="+count+"/"+required.length+" errors="+report.toString().replace("\n",";"));
             final long bytes=total;
             final String errors=report.toString();
             ui.post(()->{
@@ -249,9 +254,11 @@ public final class StableAudioActivity extends Activity {
         final Uri startAudio=seedUri;
         final long randomSeed=new java.security.SecureRandom().nextLong();
         audioFile=null;
+        FxDebugLog.begin(extend?"outpaint":startAudio!=null?"audio-prime":"text",seconds,startAudio!=null);
         setBusy(true,"⏳ Initialisation du vrai moteur musical CPU…");
         worker.execute(()->{
             try {
+                FxDebugLog.checkpoint("worker.enter.before-seed");
                 kotlin.Pair<float[],float[]> userAudio=null;
                 float originalSeconds=0f;
                 if(startAudio!=null){
@@ -268,20 +275,28 @@ public final class StableAudioActivity extends Activity {
                     }
                     final float decodeSeconds=extend?Math.max(1f,originalSeconds):seconds;
                     ui.post(()->state.setText("⏳ Décodage de ton extrait hors ligne…"));
+                    FxDebugLog.checkpoint("seed.decode.before");
                     userAudio=StableAudioSeedInput.INSTANCE.load(getApplicationContext(),startAudio,decodeSeconds);
+                    FxDebugLog.checkpoint("seed.decode.after");
                 }
+                FxDebugLog.checkpoint("engine.construct.before");
                 StableAudioEngine engine=new StableAudioEngine(getApplicationContext());
+                FxDebugLog.checkpoint("engine.construct.after");
                 kotlin.jvm.functions.Function1<String,kotlin.Unit> progress=detail->{
+                    FxDebugLog.checkpoint("progress "+detail);
                     ui.post(()->{if(!isFinishing()&&!isDestroyed())state.setText("🎹 "+detail);});
                     return kotlin.Unit.INSTANCE;
                 };
                 StableAudioEngine.Music result;
+                FxDebugLog.checkpoint("render.call.before");
                 if(extend)result=engine.extend(description,userAudio,originalSeconds,seconds,randomSeed,progress);
                 else result=engine.render(description,seconds,randomSeed,userAudio,strength,progress);
+                FxDebugLog.checkpoint("render.call.after.wav.before");
                 File output=new File(getFilesDir(),"stable_audio3_last.wav");
                 try(FileOutputStream stream=new FileOutputStream(output)){
                     StableAudioMath.writeWav(stream,result.getLeft(),result.getRight(),result.getLeft().length);
                 }
+                FxDebugLog.finish("wav_file="+output.length()+" bytes");
                 ui.post(()->{
                     if(isFinishing()||isDestroyed())return;
                     audioFile=output;
@@ -290,6 +305,7 @@ public final class StableAudioActivity extends Activity {
                         " secondes. Tu peux écouter ou enregistrer le WAV.");
                 });
             }catch(Throwable e){
+                FxDebugLog.error(e);
                 android.util.Log.e("FxExtractor-SA3","Échec génération audio IA",e);
                 ui.post(()->{if(!isFinishing()&&!isDestroyed())
                     setBusy(false,"❌ Échec : "+e.getClass().getSimpleName()+": "+e.getMessage());});
@@ -335,7 +351,10 @@ public final class StableAudioActivity extends Activity {
         new android.app.AlertDialog.Builder(this).setTitle("Licences des modèles IA")
             .setView(viewport).setPositiveButton("Fermer",(dialog,which)->{}).show();
     }
+    @Override protected void onStart(){ super.onStart(); FxDebugLog.lifecycle("StableAudioActivity.onStart"); }
+    @Override protected void onStop(){ FxDebugLog.lifecycle("StableAudioActivity.onStop busy="+busy); super.onStop(); }
     @Override protected void onDestroy(){
+        FxDebugLog.lifecycle("StableAudioActivity.onDestroy busy="+busy);
         worker.shutdownNow();
         if(player!=null){player.release();player=null;}
         super.onDestroy();

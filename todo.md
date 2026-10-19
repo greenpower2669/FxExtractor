@@ -210,3 +210,13 @@
 - [ ] Fab : réinstaller l'APK 0.4.3, générer 1s pour vérifier que crash LibUtils a disparu; renvoyer erreur si nouvelle panne.
 - [ ] Déterminer si SM-A576B requiert des bibliothèques alignées 16KB ; DJL tokenizer-native 0.33.0 a upstream issue #3815.
 - [ ] Valider création, amorce, prolongation et mémoire sur Android 16 avant toute publication, ni merge vers main.
+
+## 19/10/2026 — debug de disparition d'Activity au lancement SA3
+- [x] Auditer la gestion des exceptions Android : uniquement Log.e dans catch Throwable, aucun journal utilisateur persistant.
+- [x] Ajouter journal local rotatif + marker génération synchronisé sur disque, checkpoints mémoire (Java, native, PSS, mémoire système), hook Application uncaught, trim/low memory.
+- [x] Ajouter « 🧪 Voir / copier le journal de débogage » en haut de l'accueil ET du laboratoire, et partage texte, bandeau de génération interrompue.
+- [x] Ajouter instrumentation fine tokenize/load T5Gemma/DiT/SAME-S avant/après et export WAV.
+- [ ] Vérifier la compilation complète Android avec la 0.4.4-debug et livrer APK brut non zippé.
+- [ ] Fab : installer 0.4.4, lancer génération de 1s, si fenêtre disparaît rouvrir FxExtractor > bouton journal > Copier tout puis coller dans chat.
+- [ ] Selon dernier checkpoint / mémoire et causes natifs, corriger crash/chargement et retester : pas de conclusion hâtive sur la cause (OOM vs erreur Java vs bibliothèque 16KB).
+- [ ] Aucun merge main/release sans validation.

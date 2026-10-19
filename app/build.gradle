@@ -9,8 +9,8 @@ android {
         applicationId 'fr.fxextractor'
         minSdk 26
         targetSdk 35
-        versionCode 16
-        versionName '0.4.2-sa3-test'
+        versionCode 17
+        versionName '0.4.4-sa3-debug'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

@@ -25,20 +25,26 @@ internal class StableAudioEngine(private val context: Context) {
         override fun close() { try {model.close()} finally {env.close()} }
     }
     private fun model(path:String):Graph {
+        FxDebugLog.checkpoint("LiteRT.load.before "+path)
         val env=Environment.create()
         return try {
             val options=CompiledModel.Options(Accelerator.CPU)
             options.cpuOptions=CompiledModel.CpuOptions(numThreads=3)
-            Graph(CompiledModel.create(context.assets,path,options,env),env)
+            val compiled=CompiledModel.create(context.assets,path,options,env)
+            FxDebugLog.checkpoint("LiteRT.load.after "+path)
+            Graph(compiled,env)
         } catch(e:Throwable) {env.close();throw e}
     }
     private fun close(vararg bs:List<TensorBuffer>) {bs.forEach{list->list.forEach{it.close()}}}
     private fun interrupt() {if(Thread.currentThread().isInterrupted)throw InterruptedException("Annulé")}
     private fun tokenize(prompt:String):Pair<IntArray,IntArray> {
+        FxDebugLog.checkpoint("tokenizer.open.before")
         val ids=IntArray(256);val mask=IntArray(256)
         context.assets.open("sa3/tokenizer.json").use{input->
             HuggingFaceTokenizer.newInstance(input, emptyMap()).use{tok->
+                FxDebugLog.checkpoint("tokenizer.encode.before")
                 val p=tok.encode(prompt,false,false).ids
+                FxDebugLog.checkpoint("tokenizer.encode.after tokens="+p.size)
                 require(p.isNotEmpty()){"Texte impossible à tokeniser"}
                 for(i in 0 until min(256,p.size)){
                     require(p[i] in 0..Int.MAX_VALUE.toLong())
@@ -46,6 +52,7 @@ internal class StableAudioEngine(private val context: Context) {
                 }
             }
         }
+        FxDebugLog.checkpoint("tokenizer.close.after")
         return Pair(ids,mask)
     }
     private fun text(prompt:String,progress:(String)->Unit):Pair<FloatArray,FloatArray> {
@@ -55,7 +62,10 @@ internal class StableAudioEngine(private val context: Context) {
             val i=g.model.createInputBuffers();val o=g.model.createOutputBuffers()
             try {
                 check(i.size==2 && o.isNotEmpty())
-                i[0].writeInt(ids);i[1].writeInt(mask);g.model.run(i,o)
+                i[0].writeInt(ids);i[1].writeInt(mask)
+                FxDebugLog.checkpoint("T5Gemma.run.before")
+                g.model.run(i,o)
+                FxDebugLog.checkpoint("T5Gemma.run.after")
                 o[0].readFloat().also {check(it.size==256*768){"T5Gemma: dimension incorrecte"}}
             }finally{close(i,o)}
         }
@@ -91,7 +101,9 @@ internal class StableAudioEngine(private val context: Context) {
                         data[ch*block+i]=pcm[ch][min(pcm[ch].size-1,w.start*S+i)]
                     }
                     inputs[0].writeFloat(data)
+                    FxDebugLog.checkpoint("SAME-S.encoder.run.before size="+w.size)
                     g.model.run(inputs,outputs,"s"+w.size)
+                    FxDebugLog.checkpoint("SAME-S.encoder.run.after size="+w.size)
                     val lat=outputs[0].readFloat()
                     check(lat.size==256*w.size){"SA3 SAME-S encodeur: dimensions incorrectes"}
                     for(ch in 0 until 256)for(i in w.low until w.high){
@@ -152,14 +164,18 @@ internal class StableAudioEngine(private val context: Context) {
                     // gcond: seconds and current diffusion time, official rung backend
                     gi[0].writeFloat(floatArrayOf(seconds))
                     gi[1].writeFloat(floatArrayOf(current))
+                    FxDebugLog.checkpoint("DiT.gcond.run.before step="+k)
                     m.run(gi,go,"gcond")
+                    FxDebugLog.checkpoint("DiT.gcond.run.after step="+k)
                     val gc=go[0].readFloat()
                     check(gc.size==6144){"DiT Small-Music gcond : "+gc.size}
                     ins.getValue("args_1").writeFloat(gc)
                     java.util.Arrays.fill(pad,0f)
                     for(ch in 0 until 256)System.arraycopy(state,ch*L,pad,ch*R,L)
                     ins.getValue("args_0").writeFloat(pad)
+                    FxDebugLog.checkpoint("DiT.run.before step="+k+" rung="+sig)
                     m.run(ins,outs,sig)
+                    FxDebugLog.checkpoint("DiT.run.after step="+k)
                     val pv=outs.getValue(oname).readFloat()
                     check(pv.size==256*R){"DiT velocity: "+pv.size}
                     val v=FloatArray(256*L)
@@ -194,7 +210,10 @@ internal class StableAudioEngine(private val context: Context) {
                     val x=FloatArray(256*w.size)
                     for(ch in 0 until 256)
                         System.arraycopy(padded,ch*even+w.start,x,ch*w.size,w.size)
-                    inp[0].writeFloat(x);g.model.run(inp,out,"s"+w.size)
+                    inp[0].writeFloat(x)
+                    FxDebugLog.checkpoint("SAME-S.decoder.run.before size="+w.size)
+                    g.model.run(inp,out,"s"+w.size)
+                    FxDebugLog.checkpoint("SAME-S.decoder.run.after size="+w.size)
                     val audio=out[0].readFloat();val block=w.size*S
                     check(audio.size==2*block){"Décodeur : dimensions invalides"}
                     for(ch in 0..1){
