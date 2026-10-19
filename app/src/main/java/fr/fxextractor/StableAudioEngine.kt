@@ -365,7 +365,10 @@ internal class StableAudioEngine @JvmOverloads constructor(
         val generated=decode(latents,L,seconds,progress)
         if(originalSeconds<=0f)return generated
         require(original!=null && originalSeconds<seconds)
-        val originalFrames=Math.round(originalSeconds*StableAudioMath.SAMPLE_RATE)
+        val roundedFrames=Math.round(originalSeconds*StableAudioMath.SAMPLE_RATE)
+        val originalFrames=if(original!=null &&
+            kotlin.math.abs(original.first.size-roundedFrames)<=1) original.first.size
+            else roundedFrames
         val frames=generated.left.size
         require(originalFrames in 1 until frames)
         require(original.first.size>=originalFrames && original.second.size>=originalFrames)
