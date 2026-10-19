@@ -72,3 +72,10 @@
 - `StableAudioEngine.kt::decode` : fenêtre décodeur sûre et log `SAME-S.decoder.pad` lors d'une trame de longueur inférieure à la signature.
 - `tools/TestStableAudioMath.java` : test de non-régression Java exact 8704→16384 et tests d'offset régulier / court.
 - `StableAudioActivity.java::recoverPartial` : trouver/copy le WAV `assembled.wav` le plus récent dans les dossiers de sessions privées, afficher durée et activer l'export si fichiers encore présents.
+
+- `feature/sa3-context-continuity-v049` / 0.4.9 : continuité musicale, contexte audio réglable, pas de merge.
+- `Sa3Continuity.java` : contexte réel aligné par paires de latents SAME-S, diagnostic RMS des trous dans la partie nouvellement générée.
+- `Sa3LongFormCoordinator.java` : durée de contexte modifiable, calcul réel du nombre de segments, réessai ciblé 1 fois si silence et arrêt avec WAV partiel conservé si échec.
+- `StableAudioEngine.kt` : garde d'amorce réelle non tronquée, indice latent basé sur frames réelles alignées.
+- `StableAudioActivity.java` : réglages 2/4/6 s (défaut 4) et contrôle de régénération du silence.
+- `tools/TestSa3Continuity.java` : test JVM du contexte aligné et heuristique audio.

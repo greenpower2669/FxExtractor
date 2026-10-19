@@ -110,7 +110,7 @@ public final class Sa3WavChain {
     }
     /** Reads only a tiny context window, so long songs never enter Java heap. */
     public static float[][] tail(File source,int maxFrames)throws IOException{
-        if(maxFrames<=0||maxFrames>RATE*2)throw new IOException("Context max 2s");
+        if(maxFrames<=0||maxFrames>RATE*7)throw new IOException("Context max 7s");
         try(RandomAccessFile file=new RandomAccessFile(source,"r")){
             int count=verifiedFrames(file);
             int n=Math.min(count,maxFrames);

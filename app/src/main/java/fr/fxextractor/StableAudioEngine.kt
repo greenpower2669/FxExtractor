@@ -97,9 +97,22 @@ internal class StableAudioEngine @JvmOverloads constructor(
         if(starts.lastOrNull()!=length-size)starts+=length-size
         return starts.mapIndexed {idx,s->Win(s,size,if(idx==0)0 else trim,if(s+size>=length)size else size-trim)}
     }
-    private fun encodeSeed(seed:Pair<FloatArray,FloatArray>,L:Int,progress:(String)->Unit):FloatArray {
+    private fun encodeSeed(seed:Pair<FloatArray,FloatArray>,L:Int,progress:(String)->Unit,
+                           preservedFrames:Int=0):FloatArray {
         progress("2/4 · SAME-S : lecture et encodage de l'amorce")
         val even=L+(L%2)
+        require(seed.first.size==seed.second.size){"Amorce stéréo incohérente"}
+        require(preservedFrames>=0 && preservedFrames<=even*S)
+        // Zeroes are necessary in the as-yet-ungenerated future, NOT within
+        // the actual context. A mismatched prefix must fail rather than fake
+        // silence that the next DiT could mistakenly learn as the music ending.
+        if(preservedFrames>0)
+            require(seed.first.size>=preservedFrames){
+                "Amorce audio tronquée : "+seed.first.size+" échantillons pour "+
+                preservedFrames+" attendus"
+            }
+        FxDebugLog.checkpoint("SA3_SEED_PCM validFrames="+seed.first.size+
+            " preserveFrames="+preservedFrames+" futurePaddingAllowed="+(even*S-seed.first.size))
         val pcm=arrayOf(FloatArray(even*S),FloatArray(even*S))
         for(ch in 0..1){val src=if(ch==0)seed.first else seed.second
             System.arraycopy(src,0,pcm[ch],0,min(src.size,pcm[ch].size))}
@@ -325,11 +338,21 @@ internal class StableAudioEngine @JvmOverloads constructor(
         require(seconds in 1f..120f)
         require(hidden.size==256*768 && mask.size==256)
         val L=StableAudioMath.latentLength(seconds.toDouble())
-        val init=if(seedAudio==null)null else encodeSeed(seedAudio,L,progress)
         val keep=if(originalSeconds>0f) {
-            require(init!=null && originalSeconds in .5f..60f && originalSeconds<seconds)
-            StableAudioMath.latentLength(originalSeconds.toDouble())
+            require(seedAudio!=null && originalSeconds in .18f..60f && originalSeconds<seconds)
+            val providedFrames=seedAudio.first.size
+            val expectedFrames=Math.round(originalSeconds*StableAudioMath.SAMPLE_RATE)
+            // Exact even-latent-aligned context from the long-form coordinator.
+            // Use its integer sample count, not ceil(float seconds), which can
+            // drift by one latent at a boundary due to float representation.
+            if(providedFrames%S==0 && kotlin.math.abs(providedFrames-expectedFrames)<=1)
+                providedFrames/S
+            else StableAudioMath.latentLength(originalSeconds.toDouble())
         } else 0
+        val init=if(seedAudio==null)null else encodeSeed(seedAudio,L,progress,
+            if(keep>0)keep*S else 0)
+        FxDebugLog.checkpoint("SA3_SEED_KEEP latentFrames="+keep+
+            " pcmFrames="+(seedAudio?.first?.size?:0))
         val noise=if(init==null || keep>0)1f else strength
         return sample(hidden,mask,seconds,init,noise,seed,progress,keep)
     }
@@ -342,7 +365,10 @@ internal class StableAudioEngine @JvmOverloads constructor(
         val generated=decode(latents,L,seconds,progress)
         if(originalSeconds<=0f)return generated
         require(original!=null && originalSeconds<seconds)
-        val originalFrames=Math.round(originalSeconds*StableAudioMath.SAMPLE_RATE)
+        val roundedFrames=Math.round(originalSeconds*StableAudioMath.SAMPLE_RATE)
+        val originalFrames=if(original!=null &&
+            kotlin.math.abs(original.first.size-roundedFrames)<=1) original.first.size
+            else roundedFrames
         val frames=generated.left.size
         require(originalFrames in 1 until frames)
         require(original.first.size>=originalFrames && original.second.size>=originalFrames)
