@@ -1,5 +1,7 @@
 package fr.fxextractor;
 
+import android.app.ActivityManager;
+import android.app.ApplicationExitInfo;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -28,10 +30,12 @@ public final class Sa3Coordinator {
     private final float seconds,strength,originalSeconds;
     private final long seed;
     private final boolean hasAudio,probeOnly;
+    private final int cacheMode;
     private final Handler ui=new Handler(Looper.getMainLooper());
     private int stage=-1;
     private boolean cancelled=false,completed=false,bound=false;
     private String workerError=null;
+    private int workerPid=-1;
     private final Messenger inbox;
     private static final Class<?>[] SERVICES = {
         Sa3Service.Text.class,Sa3Service.DiT.class,Sa3Service.Decode.class
@@ -41,7 +45,7 @@ public final class Sa3Coordinator {
 
     public Sa3Coordinator(Context context,String session,String prompt,float seconds,
                           boolean hasAudio,float strength,float originalSeconds,long seed,
-                          boolean probeOnly,Callback callback) {
+                          boolean probeOnly,int cacheMode,Callback callback) {
         this.context=context.getApplicationContext();
         if(!session.matches("[a-f0-9-]{36}"))throw new IllegalArgumentException("Session invalide");
         this.session=session;
@@ -52,12 +56,18 @@ public final class Sa3Coordinator {
         this.originalSeconds=originalSeconds;
         this.seed=seed;
         this.probeOnly=probeOnly;
+        this.cacheMode=Sa3CacheSettings.normalize(cacheMode);
         this.callback=callback;
         this.inbox=new Messenger(new Handler(Looper.getMainLooper(),message->{
         if(cancelled)return true;
         String detail=message.getData().getString("detail","");
         if(message.what==Sa3Service.PROGRESS){
-            callback.onProgress(detail);
+            if(detail.startsWith("SA3_WORKER_PID=")){
+                try{workerPid=Integer.parseInt(detail.substring(15));}
+                catch(NumberFormatException ignored){workerPid=-1;}
+                FxDebugLog.write("SA3_WORKER_CONNECTED stage="+stage+" pid="+workerPid+
+                    " cache="+Sa3CacheSettings.label(cacheMode));
+            }else callback.onProgress(detail);
         }else if(message.what==Sa3Service.COMPLETE){
             completed=true;
             FxDebugLog.checkpoint("pipeline.stage."+stage+".done waiting-worker-exit");
@@ -77,7 +87,7 @@ public final class Sa3Coordinator {
     }
     private void startStage(int next){
         if(cancelled)return;
-        stage=next;completed=false;workerError=null;remote=null;
+        stage=next;completed=false;workerError=null;remote=null;workerPid=-1;
         FxDebugLog.checkpoint("pipeline.stage."+stage+".binding");
         callback.onProgress(probeOnly?"🔬 Essai DiT seul (sans T5Gemma)…":
             stage==0?"🧠 T5Gemma : calcul du texte…":
@@ -98,6 +108,7 @@ public final class Sa3Coordinator {
                 args.putLong("randomSeed",seed);
                 args.putBoolean("hasAudio",hasAudio);
                 args.putBoolean("probe",probeOnly);
+                args.putInt("cacheMode",cacheMode);
                 run.setData(args);run.replyTo=inbox;
                 FxDebugLog.checkpoint("pipeline.stage."+stage+".connected");
                 try{remote.send(run);}catch(RemoteException e){fail("Connexion IA impossible : "+e.getMessage(),true);}
@@ -148,9 +159,33 @@ public final class Sa3Coordinator {
         if(cancelled)return;
         cancelled=true;
         detach();
-        if(unexpectedDeath)FxDebugLog.write("SA3_PIPELINE_UNEXPECTED_DEATH "+text);
+        if(unexpectedDeath){
+            FxDebugLog.write("SA3_PIPELINE_UNEXPECTED_DEATH "+text+
+                " pid="+workerPid+" cache="+Sa3CacheSettings.label(cacheMode));
+            final int failedPid=workerPid;
+            if(failedPid>0) ui.postDelayed(()->logWorkerExitReason(failedPid),1500);
+        }
         else FxDebugLog.error(new IllegalStateException(text));
         callback.onError(text,unexpectedDeath);
+    }
+    /** Retained Android 11+ exit reason. A voluntary worker SIGKILL is NOT a memory error. */
+    private void logWorkerExitReason(int pid){
+        try{
+            ActivityManager am=(ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+            java.util.List<ApplicationExitInfo> exits=am.getHistoricalProcessExitReasons(
+                context.getPackageName(),pid,3);
+            if(exits==null||exits.isEmpty()){
+                FxDebugLog.write("SA3_WORKER_EXIT pid="+pid+" reason=not_recorded_yet");
+                return;
+            }
+            for(ApplicationExitInfo e:exits){
+                if(e.getPid()!=pid)continue;
+                FxDebugLog.write("SA3_WORKER_EXIT pid="+pid+" reasonCode="+e.getReason()+
+                    " status="+e.getStatus()+" pssMiB="+e.getPss()/1048576L+
+                    " rssMiB="+e.getRss()/1048576L);
+                return;
+            }
+        }catch(Throwable t){FxDebugLog.write("SA3_WORKER_EXIT reason_unavailable="+t.getClass().getSimpleName());}
     }
     public void cancel(){
         if(cancelled)return;
