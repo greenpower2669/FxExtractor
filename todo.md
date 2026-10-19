@@ -220,3 +220,6 @@
 - [ ] Fab : installer 0.4.4, lancer génération de 1s, si fenêtre disparaît rouvrir FxExtractor > bouton journal > Copier tout puis coller dans chat.
 - [ ] Selon dernier checkpoint / mémoire et causes natifs, corriger crash/chargement et retester : pas de conclusion hâtive sur la cause (OOM vs erreur Java vs bibliothèque 16KB).
 - [ ] Aucun merge main/release sans validation.
+
+- [x] 0.4.4 journal persistant + motifs d'arrêt Android (ApplicationExitInfo) empaquetés, run 39218051002 vert, APK brut artefact 12170841441 (1472211963 octets).
+- [ ] Test terrain : générer 1s; si écran se ferme, relancer FxExtractor puis bouton d'accueil « Voir/copier les journaux de débogage », copier/coller log. Identifier l'étape T5Gemma / DiT / codec et éventuellement motif Android LOW_MEMORY ou NATIVE_CRASH.
