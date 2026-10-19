@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application android:name=".FxApplication" android:allowBackup="false" android:label="FxExtractor" android:icon="@drawable/ic_fx"
         android:usesCleartextTraffic="false" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <!-- Each huge model stage lives in its own killable process. -->
+        <service android:name=".Sa3Service$Text" android:process=":sa3_text" android:exported="false"/>
+        <service android:name=".Sa3Service$DiT" android:process=":sa3_dit" android:exported="false"/>
+        <service android:name=".Sa3Service$Decode" android:process=":sa3_decode" android:exported="false"/>
         <activity android:name=".MidiAiActivity" android:exported="false"/>
         <activity android:name=".StableAudioActivity" android:exported="false"/>
         <activity android:name=".MainActivity" android:exported="true">
