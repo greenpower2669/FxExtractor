@@ -250,3 +250,17 @@
 - [ ] Si cache réduit PSS et passe 8/8 : tester SAME-S WAV réel non silencieux, amorce et prolongation +60s ; sinon étudier découpe d'export multi-rungs, n'activer GPU qu'après mesure compatibilité et usage RAM.
 - [ ] Évaluer espace disque occupé par cache et comportement en cas de cache corrompu / stockage faible.
 - [ ] Ne pas fusionner main ni publier Play/Release sans validation.
+
+
+## 19/10/2026 — FxExtractor 0.4.7, objectif 3 minutes et audio original+suite
+- [x] Consigner confirmation « Ça marche » par Fab sur 0.4.6 et nouvelle mission durée 3 min, original puis suite concaténés.
+- [x] Auditer limites 30/60/120 s de l'UI, sampler DiT, lecteur audio et WAV.
+- [x] Créer branche `feature/sa3-three-minute-chained-wav-v047` depuis 0.4.6, aucune modification main/release.
+- [x] Écrire `Sa3WavChain` et tests Java : WAV 44.1k stéréo, taille exacte, original conservé, préfixe retiré, finale atomique.
+- [x] Générer par tranches <=8 s, contexte fin <=2 s, réutiliser encodage texte entre tranches, garder XNNPACK et services séparés.
+- [x] Intégrer curseur jusqu'à 180 s et import original WAV pour mode prolongation ; garder poids internes et sans réseau.
+- [ ] CI complète verte avec vraies ressources IA et APK brut v0.4.7 (pas de ZIP sur téléphone).
+- [ ] Fab : générer 15 s puis 45 s, écouter transitions et mesure RAM/temps ; ensuite 3 min avec batterie et stockage suffisants.
+- [ ] Fab : prolonger un WAV de 10 s de +15 s, vérifier sortie exactement 25 s et original en début, puis essai plus long.
+- [ ] Vérifier sources compressées 44.1k PCM16, gestion du manque d'espace, permissions SAF, application en arrière-plan et interruption volontaire.
+- [ ] Documenter correction/régression après retour Samsung ; aucune fusion main/Release sans validation.

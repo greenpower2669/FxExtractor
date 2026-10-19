@@ -57,3 +57,11 @@
 - `StableAudioEngine.kt::model()` : poids DiT uniquement configurés par `CompiledModel.CpuOptions(xnnPackWeightCachePath)`, T5/SAME-S non modifiés. Checkpoints mémoire, taille cache et timing.
 - `StableAudioActivity.java` / `Sa3Coordinator.java` / `Sa3Service.java` : commande lisible, paramètre transmis jusqu'au service `:sa3_dit`, PID worker et historique Android en cas d'arrêt.
 - `tools/test_sa3_xnnpack.py` : test structurel du raccordement des modes ; ne remplace pas les essais matériels avec PSS/RSS.
+
+
+- `feature/sa3-three-minute-chained-wav-v047` / v0.4.7 : création musique jusqu'à 180 s et prolongation avec original + nouvelle musique dans un WAV.
+- `Sa3LongFormCoordinator.java` : machine séquentielle des tranches de modèle <=8 s, première <=8 s de nouvelle musique et suivantes <=6 s de nouvelle musique avec contexte final <=2 s, encodage T5 une fois conservé sur disque, suivi de chaque process DiT et Decode ; checkpoint, progression et nettoyage.
+- `Sa3WavChain.java` : validation WAV PCM16 44,1kHz, copie entière de l'original et copie à flux des seules frames nouvellement générées ; lecture de la fin audio pour outpainting, limite 180 s, mise à jour du header et finalisation atomique.
+- `Sa3Coordinator.java`/`Sa3Service.java` : options `longForm` et `skipText` pour réutiliser `text.bin` et écrire `music.wav` dans la session ; services Android distincts toujours conservés.
+- `StableAudioActivity.java` : curseur 1–180 s, import audio et création `original.wav` en cas de prolongation, édition des paramètres XNNPACK conservée ; récupération du WAV final.
+- `tools/TestSa3WavChain.java`, `tools/test_sa3_longform.py` : tests structuraux et concaténation d'origine, durée, contexte.
