@@ -47,21 +47,22 @@ public final class Sa3Continuity {
         double[] rms=new double[blocks];
         try(RandomAccessFile file=new RandomAccessFile(source,"r")){
             file.seek(44L+firstFrame*4L);
+            byte[] pcm=new byte[BLOCK*4];
             for(int b=0;b<blocks;b++){
                 int frames=Math.min(BLOCK,frameCount-b*BLOCK);
+                file.readFully(pcm,0,frames*4);
                 double sum=0;
                 for(int i=0;i<frames;i++){
-                    int l=(short)readU16(file),r=(short)readU16(file);
-                    double a=l/32768.0,c=r/32768.0;
-                    sum+=a*a+c*c;
+                    int p=i*4;
+                    short l=(short)((pcm[p]&255)|((pcm[p+1]&255)<<8));
+                    short r=(short)((pcm[p+2]&255)|((pcm[p+3]&255)<<8));
+                    double left=l/32768.0,right=r/32768.0;
+                    sum+=left*left+right*right;
                 }
                 rms[b]=Math.sqrt(sum/(2.0*frames));
             }
         }
         return rms;
-    }
-    private static int readU16(RandomAccessFile f)throws IOException{
-        return f.readUnsignedByte()|(f.readUnsignedByte()<<8);
     }
     private static double weightedAverage(double[] levels){
         double s=0;for(double x:levels)s+=x*x;
