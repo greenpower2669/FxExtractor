@@ -32,21 +32,7 @@ public final class Sa3Coordinator {
     private int stage=-1;
     private boolean cancelled=false,completed=false,bound=false;
     private String workerError=null;
-    private final Messenger inbox=new Messenger(new Handler(Looper.getMainLooper(),message->{
-        if(cancelled)return true;
-        String detail=message.getData().getString("detail","");
-        if(message.what==Sa3Service.PROGRESS){
-            callback.onProgress(detail);
-        }else if(message.what==Sa3Service.COMPLETE){
-            completed=true;
-            FxDebugLog.checkpoint("pipeline.stage."+stage+".done waiting-worker-exit");
-            callback.onProgress("✅ Étape "+(stage+1)+"/"+(probeOnly?1:3)+" terminée. Libération complète de la mémoire…");
-        }else if(message.what==Sa3Service.ERROR){
-            workerError=detail;
-            FxDebugLog.write("PIPELINE_WORKER_REPORTED_ERROR "+detail);
-        }
-        return true;
-    }));
+    private final Messenger inbox;
     private static final Class<?>[] SERVICES = {
         Sa3Service.Text.class,Sa3Service.DiT.class,Sa3Service.Decode.class
     };
@@ -67,6 +53,21 @@ public final class Sa3Coordinator {
         this.seed=seed;
         this.probeOnly=probeOnly;
         this.callback=callback;
+        this.inbox=new Messenger(new Handler(Looper.getMainLooper(),message->{
+        if(cancelled)return true;
+        String detail=message.getData().getString("detail","");
+        if(message.what==Sa3Service.PROGRESS){
+            callback.onProgress(detail);
+        }else if(message.what==Sa3Service.COMPLETE){
+            completed=true;
+            FxDebugLog.checkpoint("pipeline.stage."+stage+".done waiting-worker-exit");
+            callback.onProgress("✅ Étape "+(stage+1)+"/"+(probeOnly?1:3)+" terminée. Libération complète de la mémoire…");
+        }else if(message.what==Sa3Service.ERROR){
+            workerError=detail;
+            FxDebugLog.write("PIPELINE_WORKER_REPORTED_ERROR "+detail);
+        }
+        return true;
+    }));
     }
     public static String newSession(){return UUID.randomUUID().toString();}
     public File workspace(){return new File(context.getFilesDir(),"sa3-work/"+session);}
