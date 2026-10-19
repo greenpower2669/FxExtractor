@@ -8,6 +8,7 @@ src=Path("app/src/main/java/fr/fxextractor")
 logger=(src/"FxDebugLog.java").read_text(encoding="utf-8")
 engine=(src/"StableAudioEngine.kt").read_text(encoding="utf-8")
 activity=(src/"StableAudioActivity.java").read_text(encoding="utf-8")
+coordinator=(src/"Sa3Coordinator.java").read_text(encoding="utf-8")
 main=(src/"MainActivity.java").read_text(encoding="utf-8")
 application=(src/"FxApplication.java").read_text(encoding="utf-8")
 manifest=Path("app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
@@ -33,13 +34,16 @@ assert "Thread.setDefaultUncaughtExceptionHandler" in application
 assert "APP_LOW_MEMORY" in application
 for marker in ("FxDebugLog.begin(", "FxDebugLog.error(", "FxDebugLog.finish(",
                "FxDebugLog.checkpoint(", "FxDebugLog.show(this)"):
-    assert marker in activity, f"Missing activity instrumentation: {marker}"
+    assert marker in activity + coordinator, f"Missing pipeline instrumentation: {marker}"
 for marker in ("tokenizer.open.before","tokenizer.encode.after",
                "LiteRT.load.before","T5Gemma.run.before",
                "DiT.run.before","SAME-S.decoder.run.before"):
     assert marker in engine, f"Model stage missing: {marker}"
 assert "FxDebugLog.show(this)" in main
 assert "FxDebugLog.hasPending()" in main
+assert "android:process=\":sa3_text\"" in manifest
+assert "android:process=\":sa3_dit\"" in manifest
+assert "android:process=\":sa3_decode\"" in manifest
 assert "INTERNET" not in manifest
 print("PASS debug source checks: durable pending marker, memory traces, crash handler, Android log UI")
 print("NOTICE: Java/Dex runtime, native aborts and OOM must still be tested on device.")
