@@ -290,3 +290,15 @@
 - [x] APK brut **12194846621**, `FxExtractor-0.4.8-SA3-SHORT-WINDOW-DEBUG.apk`, 1 472 244 895 octets, https://github.com/greenpower2669/FxExtractor/actions/runs/39268827687/artifacts/12194846621 .
 - [ ] Installer sans désinstaller si Android accepte : essayer `🛟 Récupérer les parties déjà générées` ; si l'ancienne APK doit être désinstallée, la récupération des fichiers privés n'est pas garantie.
 - [ ] Essai réel final 17/17 et WAV 3 minutes à écouter/exporter sur Samsung ; aucun succès in vivo présumé par les tests CI.
+
+## 19/10/2026 — autorisation et développement SA3 0.4.9 continuité
+- [x] Analyse 2s réelles=88200 frames vs 22 latents=90112 frames ; pas la preuve unique du silence.
+- [x] Branche isolée `feature/sa3-context-continuity-v049`, main et releases inchangées.
+- [x] Durée de contexte UI 2/4/6s (défaut 4) et avertissement 6s plus lent.
+- [x] Tranches choisies sur vrais PCM et paires de latents 4096, garde préfixe incomplet dans le moteur.
+- [x] Contrôle de trou RMS sur toute partie générée, réessai ciblé une fois configurable, WAV partiel préservé après échec.
+- [x] Test JVM d'alignement et de trous silence et tests des contraintes anciennes conservés.
+- [ ] Vérifier CI finale avec tous les modèles, compilation et véritable APK 0.4.9 brut dans GitHub Actions.
+- [ ] Comparer sur Samsung 2/4/6s avec même audio Block Boost, écoute raccords et cohérence ; mesurer lenteur, mémoire, chauffe, silences, export 3 minutes.
+- [ ] En cas de trou persistant, examiner les PCM et latents d'un segment réel, sans prétendre réparation complète sur base de tests unitaires.
+- [ ] Pas de merge main/release sans accord Fab.
