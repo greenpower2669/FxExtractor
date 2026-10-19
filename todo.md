@@ -223,3 +223,16 @@
 
 - [x] 0.4.4 journal persistant + motifs d'arrêt Android (ApplicationExitInfo) empaquetés, run 39218051002 vert, APK brut artefact 12170841441 (1472211963 octets).
 - [ ] Test terrain : générer 1s; si écran se ferme, relancer FxExtractor puis bouton d'accueil « Voir/copier les journaux de débogage », copier/coller log. Identifier l'étape T5Gemma / DiT / codec et éventuellement motif Android LOW_MEMORY ou NATIVE_CRASH.
+
+
+## 19/10 — SA3 0.4.5 processus séparés, après journal LOW_MEMORY
+- [x] Examiner le crash Android : génération 8s, tokenizer OK, encodage T5Gemma OK, OOM LOW_MEMORY pendant chargement `dit_w8a8.tflite`.
+- [x] Vérifier que le code ferme déjà T5Gemma avant DiT : pas de simultanéité intentionnelle dans 0.4.4.
+- [x] Créer `feature/sa3-process-isolation-v1` sans modifier main.
+- [x] Introduire services de calcul T5Gemma/DiT/SAME-S à processus distincts, échanges par checkpoints privés et attente de sortie effective de chaque worker.
+- [x] Ajouter test indépendant de chargement du DiT et tests de sérialisation de tensors, sans prétendre à une génération validée.
+- [ ] CI GitHub verte sur source finale et téléchargement APK 0.4.5 directement sans ZIP sur téléphone.
+- [ ] Fab : « Tester DiT seul (mémoire) » et transmettre log, puis génération 1 seconde, puis 8 secondes.
+- [ ] Si DiT seul fait OOM : optimiser préparation des signatures, accélération ou quantification/streaming sans fausse sortie musicale.
+- [ ] Retester audio en amorce, prolongation jusqu'à +60s, arrêt d'application, stockage privé, modèle réellement non silencieux, et stabilité Android.
+- [ ] Aucune fusion main, publication Release ou Play avant accord.
