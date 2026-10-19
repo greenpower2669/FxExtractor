@@ -4,6 +4,10 @@ on:
     branches: [main, feature/audio-fx-analyzer-v1, feature/midi-ai-v5-test, feature/stable-audio3-local-v1, feature/stable-audio3-full-apk-v1, feature/sa3-tokenizer-crash-fix-v1, feature/sa3-persistent-debug-v1, feature/sa3-process-isolation-v1, feature/sa3-xnnpack-memory-v046]
   pull_request:
   workflow_dispatch:
+# Prevent expensive duplicate 1.5-GB offline builds on every successive source commit.
+concurrency:
+  group: fxextractor-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -143,6 +147,7 @@ jobs:
       - name: Verify persistent diagnostic implementation and log access
         run: |
           python3 tools/test_sa3_debug_instrumentation.py
+          python3 tools/test_sa3_xnnpack.py
       - name: Build APK and AAB
         run: |
           if [[ "$GITHUB_REF" == 'refs/heads/feature/stable-audio3-full-apk-v1' || "$GITHUB_REF" == 'refs/heads/feature/sa3-tokenizer-crash-fix-v1' || "$GITHUB_REF" == 'refs/heads/feature/sa3-persistent-debug-v1' || "$GITHUB_REF" == 'refs/heads/feature/sa3-process-isolation-v1' || "$GITHUB_REF" == 'refs/heads/feature/sa3-xnnpack-memory-v046' ]]; then
