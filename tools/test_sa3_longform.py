@@ -27,6 +27,11 @@ assert 'new File(dir,"music.wav")' in service
 assert "MAX_FRAMES=RATE*180" in wav and "readFully(buf,0,n)" in wav
 assert "require(maxSeconds in 1f..180f)" in seed
 assert "samples > SAMPLE_RATE * 180" in math
+assert "Sa3WavChain.frames(part)" in ui
+assert "stable_audio3_partial_recovered.wav" in ui
+assert "Récupérer les parties déjà générées" in ui
+assert "StableAudioMath.decoderWindow(padded,256,even,w.start,w.size)" in (p/"StableAudioEngine.kt").read_text()
+assert "SAME-S.decoder.pad valid=" in (p/"StableAudioEngine.kt").read_text()
 assert "android.permission.INTERNET" not in Path("app/src/main/AndroidManifest.xml").read_text()
 print("PASS SA3 3-min: bounded chunks, rolling 2-s context, no duplicate audio, single WAV, offline")
 print("NOTE Actual acoustic continuity and successful 3-min export need Android device test.")
