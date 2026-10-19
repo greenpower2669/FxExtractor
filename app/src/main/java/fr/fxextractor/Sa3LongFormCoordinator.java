@@ -70,8 +70,10 @@ public final class Sa3LongFormCoordinator {
                 }
                 if(targetFrames-producedFrames<Sa3WavChain.RATE)
                     throw new IOException("Prolongation minimale 1 seconde, durée totale maximale 3 minutes.");
-                estimateTotal=1+Math.max(0,(int)Math.ceil(
-                    (targetFrames-producedFrames-RENDER_FRAMES)/6.0/Sa3WavChain.RATE));
+                int remaining=targetFrames-producedFrames;
+                int firstCapacity=originalPresent?6*Sa3WavChain.RATE:RENDER_FRAMES;
+                estimateTotal=remaining<=firstCapacity?1:1+
+                    (int)Math.ceil((remaining-firstCapacity)/(6.0*Sa3WavChain.RATE));
                 FxDebugLog.checkpoint("SA3_LONGFORM_START existing="+producedFrames+
                     " target="+targetFrames+" chunks="+estimateTotal);
                 prepareNext();
