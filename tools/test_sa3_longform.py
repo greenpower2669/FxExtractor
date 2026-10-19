@@ -16,7 +16,7 @@ for marker in (
 ):
     assert marker in ui, ("UI long-form missing", marker)
 for marker in (
-    "RENDER_FRAMES=Sa3WavChain.RATE*8", "CONTEXT_FRAMES=Sa3WavChain.RATE*2",
+    "RENDER_FRAMES=Sa3WavChain.RATE*8", "Sa3Continuity.contextFrames(contextSeconds,producedFrames)",
     "Sa3WavChain.append", "Sa3WavChain.tail", "Sa3WavChain.complete",
     "firstChunk=false", "firstPrimed", "text.bin", "skipText",
 ):
@@ -28,6 +28,11 @@ assert "MAX_FRAMES=RATE*180" in wav and "readFully(buf,0,n)" in wav
 assert "require(maxSeconds in 1f..180f)" in seed
 assert "samples > SAMPLE_RATE * 180" in math
 assert "Sa3WavChain.frames(part)" in ui
+assert 'Sa3Continuity.inspect(' in coordinator
+assert 'SA3_AUDIO_QC_RETRY' in coordinator
+assert 'sa3_context_seconds' in ui
+assert 'sa3_retry_silence' in ui
+assert 'SA3_SEED_PCM validFrames=' in (p/"StableAudioEngine.kt").read_text()
 assert "stable_audio3_partial_recovered.wav" in ui
 assert "Récupérer les parties déjà générées" in ui
 assert "StableAudioMath.decoderWindow(padded,256,even,w.start,w.size)" in (p/"StableAudioEngine.kt").read_text()
