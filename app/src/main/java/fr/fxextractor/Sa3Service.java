@@ -108,7 +108,8 @@ public abstract class Sa3Service extends Service {
                     StableAudioMath.writeWav(stream,music.getLeft(),music.getRight(),music.getLeft().length);
                     stream.getFD().sync();
                 }
-                File target=new File(getFilesDir(),"stable_audio3_last.wav");
+                File target=args.getBoolean("longForm")?
+                    new File(dir,"music.wav"):new File(getFilesDir(),"stable_audio3_last.wav");
                 if(target.exists()&&!target.delete())throw new java.io.IOException("Old WAV could not be replaced");
                 if(!pending.renameTo(target))throw new java.io.IOException("WAV commit failed");
                 FxDebugLog.checkpoint("process.Decode.wav="+target.length());

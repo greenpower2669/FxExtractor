@@ -29,7 +29,7 @@ public final class Sa3Coordinator {
     private final String prompt;
     private final float seconds,strength,originalSeconds;
     private final long seed;
-    private final boolean hasAudio,probeOnly;
+    private final boolean hasAudio,probeOnly,longForm,skipText;
     private final int cacheMode;
     private final Handler ui=new Handler(Looper.getMainLooper());
     private int stage=-1;
@@ -45,7 +45,7 @@ public final class Sa3Coordinator {
 
     public Sa3Coordinator(Context context,String session,String prompt,float seconds,
                           boolean hasAudio,float strength,float originalSeconds,long seed,
-                          boolean probeOnly,int cacheMode,Callback callback) {
+                          boolean probeOnly,int cacheMode,boolean longForm,boolean skipText,Callback callback) {
         this.context=context.getApplicationContext();
         if(!session.matches("[a-f0-9-]{36}"))throw new IllegalArgumentException("Session invalide");
         this.session=session;
@@ -56,6 +56,8 @@ public final class Sa3Coordinator {
         this.originalSeconds=originalSeconds;
         this.seed=seed;
         this.probeOnly=probeOnly;
+        this.longForm=longForm;
+        this.skipText=skipText;
         this.cacheMode=Sa3CacheSettings.normalize(cacheMode);
         this.callback=callback;
         this.inbox=new Messenger(new Handler(Looper.getMainLooper(),message->{
@@ -83,7 +85,10 @@ public final class Sa3Coordinator {
     public File workspace(){return new File(context.getFilesDir(),"sa3-work/"+session);}
     public void start(){
         if(Looper.myLooper()!=Looper.getMainLooper())throw new IllegalStateException("UI thread required");
-        startStage(probeOnly?1:0);
+        if(skipText && !workspace().toPath().resolve("text.bin").toFile().isFile()){
+            fail("Encodage T5Gemma de la session absent",false);return;
+        }
+        startStage(probeOnly||skipText?1:0);
     }
     private void startStage(int next){
         if(cancelled)return;
@@ -108,6 +113,7 @@ public final class Sa3Coordinator {
                 args.putLong("randomSeed",seed);
                 args.putBoolean("hasAudio",hasAudio);
                 args.putBoolean("probe",probeOnly);
+                args.putBoolean("longForm",longForm);
                 args.putInt("cacheMode",cacheMode);
                 run.setData(args);run.replyTo=inbox;
                 FxDebugLog.checkpoint("pipeline.stage."+stage+".connected");
@@ -130,12 +136,15 @@ public final class Sa3Coordinator {
                         FxDebugLog.finish("Standalone DiT successfully loaded and unloaded");
                         callback.onComplete(null);
                     }else{
-                        File output=new File(context.getFilesDir(),"stable_audio3_last.wav");
+                        File output=longForm?new File(workspace(),"music.wav"):
+                            new File(context.getFilesDir(),"stable_audio3_last.wav");
                         if(!output.isFile() || output.length()<44){
                             fail("Le fichier WAV final est absent.",false);return;
                         }
-                        FxDebugLog.finish("wav="+output.length()+" bytes");
-                        deleteWorkDir(workspace());
+                        if(!longForm){
+                            FxDebugLog.finish("wav="+output.length()+" bytes");
+                            deleteWorkDir(workspace());
+                        }
                         callback.onComplete(output);
                     }
                 } else startStage(stage+1);

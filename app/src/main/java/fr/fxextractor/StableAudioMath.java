@@ -67,7 +67,7 @@ public final class StableAudioMath {
             throws IOException {
         if (out == null || left == null || right == null || samples <= 0
                 || left.length < samples || right.length < samples
-                || samples > SAMPLE_RATE * 120)
+                || samples > SAMPLE_RATE * 180)
             throw new IllegalArgumentException("Dimensions audio incorrectes");
         long pcm = (long)samples * CHANNELS * 2;
         if (pcm > Integer.MAX_VALUE - 36) throw new IllegalArgumentException("WAV trop grand");

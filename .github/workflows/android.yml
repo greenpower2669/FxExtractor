@@ -1,7 +1,7 @@
 name: FxExtractor Android and DSP tests
 on:
   push:
-    branches: [main, feature/audio-fx-analyzer-v1, feature/midi-ai-v5-test, feature/stable-audio3-local-v1, feature/stable-audio3-full-apk-v1, feature/sa3-tokenizer-crash-fix-v1, feature/sa3-persistent-debug-v1, feature/sa3-process-isolation-v1, feature/sa3-xnnpack-memory-v046]
+    branches: [main, feature/audio-fx-analyzer-v1, feature/midi-ai-v5-test, feature/stable-audio3-local-v1, feature/stable-audio3-full-apk-v1, feature/sa3-tokenizer-crash-fix-v1, feature/sa3-persistent-debug-v1, feature/sa3-process-isolation-v1, feature/sa3-xnnpack-memory-v046, feature/sa3-three-minute-chained-wav-v047]
   pull_request:
   workflow_dispatch:
 # Prevent expensive duplicate 1.5-GB offline builds on every successive source commit.
@@ -31,6 +31,10 @@ jobs:
           mkdir -p build/sa3-test
           javac -d build/sa3-test app/src/main/java/fr/fxextractor/StableAudioMath.java tools/TestStableAudioMath.java
           java -cp build/sa3-test TestStableAudioMath
+      - name: Test genuine 3-minute WAV concatenation, sample preservation and bounded context
+        run: |
+          javac -d build/sa3-test app/src/main/java/fr/fxextractor/StableAudioMath.java app/src/main/java/fr/fxextractor/Sa3WavChain.java tools/TestSa3WavChain.java
+          java -cp build/sa3-test TestSa3WavChain
       - name: Verify durable inter-process checkpoints
         run: |
           javac -d build/sa3-test app/src/main/java/fr/fxextractor/Sa3CheckpointIO.java tools/TestSa3CheckpointIO.java
@@ -136,7 +140,7 @@ jobs:
           print('MIDI OFFLINE ASSETS OK',blob.stat().st_size)
           PY
       - name: Download authentic SA3 offline models and all licences for full APK
-        if: github.ref == 'refs/heads/feature/stable-audio3-full-apk-v1' || github.ref == 'refs/heads/feature/sa3-tokenizer-crash-fix-v1' || github.ref == 'refs/heads/feature/sa3-persistent-debug-v1' || github.ref == 'refs/heads/feature/sa3-process-isolation-v1' || github.ref == 'refs/heads/feature/sa3-xnnpack-memory-v046'
+        if: github.ref == 'refs/heads/feature/stable-audio3-full-apk-v1' || github.ref == 'refs/heads/feature/sa3-tokenizer-crash-fix-v1' || github.ref == 'refs/heads/feature/sa3-persistent-debug-v1' || github.ref == 'refs/heads/feature/sa3-process-isolation-v1' || github.ref == 'refs/heads/feature/sa3-xnnpack-memory-v046' || github.ref == 'refs/heads/feature/sa3-three-minute-chained-wav-v047'
         run: |
           set -euo pipefail
           python3 -m pip install --quiet 'huggingface_hub>=0.36,<2.0'
@@ -148,15 +152,16 @@ jobs:
         run: |
           python3 tools/test_sa3_debug_instrumentation.py
           python3 tools/test_sa3_xnnpack.py
+          python3 tools/test_sa3_longform.py
       - name: Build APK and AAB
         run: |
-          if [[ "$GITHUB_REF" == 'refs/heads/feature/stable-audio3-full-apk-v1' || "$GITHUB_REF" == 'refs/heads/feature/sa3-tokenizer-crash-fix-v1' || "$GITHUB_REF" == 'refs/heads/feature/sa3-persistent-debug-v1' || "$GITHUB_REF" == 'refs/heads/feature/sa3-process-isolation-v1' || "$GITHUB_REF" == 'refs/heads/feature/sa3-xnnpack-memory-v046' ]]; then
+          if [[ "$GITHUB_REF" == 'refs/heads/feature/stable-audio3-full-apk-v1' || "$GITHUB_REF" == 'refs/heads/feature/sa3-tokenizer-crash-fix-v1' || "$GITHUB_REF" == 'refs/heads/feature/sa3-persistent-debug-v1' || "$GITHUB_REF" == 'refs/heads/feature/sa3-process-isolation-v1' || "$GITHUB_REF" == 'refs/heads/feature/sa3-xnnpack-memory-v046' || "$GITHUB_REF" == 'refs/heads/feature/sa3-three-minute-chained-wav-v047' ]]; then
             gradle --no-daemon :app:assembleDebug
           else
             gradle --no-daemon :app:assembleDebug :app:bundleRelease
           fi
       - name: Verify full APK contains all actual models and license texts
-        if: github.ref == 'refs/heads/feature/stable-audio3-full-apk-v1' || github.ref == 'refs/heads/feature/sa3-tokenizer-crash-fix-v1' || github.ref == 'refs/heads/feature/sa3-persistent-debug-v1' || github.ref == 'refs/heads/feature/sa3-process-isolation-v1' || github.ref == 'refs/heads/feature/sa3-xnnpack-memory-v046'
+        if: github.ref == 'refs/heads/feature/stable-audio3-full-apk-v1' || github.ref == 'refs/heads/feature/sa3-tokenizer-crash-fix-v1' || github.ref == 'refs/heads/feature/sa3-persistent-debug-v1' || github.ref == 'refs/heads/feature/sa3-process-isolation-v1' || github.ref == 'refs/heads/feature/sa3-xnnpack-memory-v046' || github.ref == 'refs/heads/feature/sa3-three-minute-chained-wav-v047'
         run: |
           python3 - <<'PY'
           import zipfile,hashlib,json
@@ -179,19 +184,19 @@ jobs:
       - name: Extract APK on GitHub into a temporary folder
         run: |
           mkdir -p dist "$RUNNER_TEMP/fx-packed" "$RUNNER_TEMP/fx-unpacked"
-          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/fx-packed/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk"
-          (cd "$RUNNER_TEMP/fx-packed" && zip -q "$RUNNER_TEMP/fx-packed.zip" FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk)
+          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/fx-packed/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk"
+          (cd "$RUNNER_TEMP/fx-packed" && zip -q "$RUNNER_TEMP/fx-packed.zip" FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk)
           unzip -q "$RUNNER_TEMP/fx-packed.zip" -d "$RUNNER_TEMP/fx-unpacked"
-          cmp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk" app/build/outputs/apk/debug/app-debug.apk
-          unzip -tqq "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk"
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk" | grep -Fx 'assets/yamnet.tflite'
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk" | grep -Fx 'assets/midi/main.mjs'
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk" | grep -Fx 'assets/midi/index.html'
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk" | grep -Fx 'assets/midi/ort-wasm-simd-threaded.wasm'
+          cmp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk" app/build/outputs/apk/debug/app-debug.apk
+          unzip -tqq "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk"
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk" | grep -Fx 'assets/yamnet.tflite'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk" | grep -Fx 'assets/midi/main.mjs'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk" | grep -Fx 'assets/midi/index.html'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk" | grep -Fx 'assets/midi/ort-wasm-simd-threaded.wasm'
           # Verify the exact CPU ONNX bytes and tokenizer were packaged.
           python3 - <<'PY'
           import hashlib,json,pathlib,zipfile
-          apk=pathlib.Path('dist/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk')
+          apk=pathlib.Path('dist/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk')
           if not apk.exists(): apk=pathlib.Path('app/build/outputs/apk/debug/app-debug.apk')
           with zipfile.ZipFile(apk) as z:
               names=set(z.namelist())
@@ -211,15 +216,15 @@ jobs:
               assert z.read('assets/midi/ort-wasm-simd-threaded.wasm')[:4]==b'\x00asm'
               print('APK OFFLINE MIDI VERIFIED:',size,'bytes of model,',h.hexdigest())
           PY
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk" | grep -Fx 'assets/yamnet_labels.txt'
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk" | grep -Fx 'lib/arm64-v8a/libshinefx.so'
-          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk" | grep -Fx 'assets/shine_lgpl_v2.txt'
-          cp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk" dist/
-          sha256sum dist/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk > dist/SHA256SUMS.txt
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk" | grep -Fx 'assets/yamnet_labels.txt'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk" | grep -Fx 'lib/arm64-v8a/libshinefx.so'
+          unzip -Z1 "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk" | grep -Fx 'assets/shine_lgpl_v2.txt'
+          cp "$RUNNER_TEMP/fx-unpacked/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk" dist/
+          sha256sum dist/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk > dist/SHA256SUMS.txt
           if [ -f app/build/outputs/bundle/release/app-release.aab ]; then
             sha256sum app/build/outputs/bundle/release/app-release.aab >> dist/SHA256SUMS.txt
           fi
-          test -s dist/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk
+          test -s dist/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk
       - name: Publish raw APK to isolated GitHub delivery branch
         if: github.event_name == 'push' && github.ref == 'refs/heads/feature/midi-ai-v5-test'
         run: |
@@ -227,7 +232,7 @@ jobs:
           # GitHub rejects Git blobs above 100 MB. The full CPU checkpoint
           # makes the APK larger than that; the file itself is still published
           # directly (archive:false) by the Actions artifact below.
-          SIZE=$(stat -c%s dist/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk)
+          SIZE=$(stat -c%s dist/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk)
           if [ "$SIZE" -ge 100000000 ]; then
             echo "APK has $SIZE bytes (> GitHub 100 MB Git blob limit)."
             echo "Publish via Actions raw artifact (archive:false), not the delivery git branch."
@@ -236,16 +241,16 @@ jobs:
           git fetch origin 'refs/heads/delivery/fxextractor-apk:refs/remotes/origin/delivery/fxextractor-apk'
           git worktree add -B delivery/fxextractor-apk "$RUNNER_TEMP/fx-delivery" origin/delivery/fxextractor-apk
           mkdir -p "$RUNNER_TEMP/fx-delivery/apk"
-          cp dist/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk "$RUNNER_TEMP/fx-delivery/apk/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk"
+          cp dist/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk "$RUNNER_TEMP/fx-delivery/apk/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk"
           git -C "$RUNNER_TEMP/fx-delivery" config user.name "github-actions[bot]"
           git -C "$RUNNER_TEMP/fx-delivery" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git -C "$RUNNER_TEMP/fx-delivery" add apk/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk
+          git -C "$RUNNER_TEMP/fx-delivery" add apk/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk
           git -C "$RUNNER_TEMP/fx-delivery" commit -m "build: FxExtractor 0.4.0 SA3 FOUNDATION verified APK ($GITHUB_SHA)"
           git -C "$RUNNER_TEMP/fx-delivery" push origin HEAD:refs/heads/delivery/fxextractor-apk
-          echo "Direct APK: https://raw.githubusercontent.com/$GITHUB_REPOSITORY/delivery/fxextractor-apk/apk/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk"
+          echo "Direct APK: https://raw.githubusercontent.com/$GITHUB_REPOSITORY/delivery/fxextractor-apk/apk/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk"
       - uses: actions/upload-artifact@v7
         with:
-          path: dist/FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk
+          path: dist/FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk
           archive: false
           retention-days: 30
       - uses: actions/upload-artifact@v7
