@@ -181,8 +181,8 @@ public final class Sa3Coordinator {
             for(ApplicationExitInfo e:exits){
                 if(e.getPid()!=pid)continue;
                 FxDebugLog.write("SA3_WORKER_EXIT pid="+pid+" reasonCode="+e.getReason()+
-                    " status="+e.getStatus()+" pssMiB="+e.getPss()/1048576L+
-                    " rssMiB="+e.getRss()/1048576L);
+                    " status="+e.getStatus()+" pssMiB="+e.getPss()/1024L+
+                    " rssMiB="+e.getRss()/1024L);
                 return;
             }
         }catch(Throwable t){FxDebugLog.write("SA3_WORKER_EXIT reason_unavailable="+t.getClass().getSimpleName());}
