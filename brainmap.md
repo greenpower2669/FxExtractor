@@ -65,3 +65,10 @@
 - `Sa3Coordinator.java`/`Sa3Service.java` : options `longForm` et `skipText` pour réutiliser `text.bin` et écrire `music.wav` dans la session ; services Android distincts toujours conservés.
 - `StableAudioActivity.java` : curseur 1–180 s, import audio et création `original.wav` en cas de prolongation, édition des paramètres XNNPACK conservée ; récupération du WAV final.
 - `tools/TestSa3WavChain.java`, `tools/test_sa3_longform.py` : tests structuraux et concaténation d'origine, durée, contexte.
+
+
+- `fix/sa3-small-final-codec-window-v048`, v0.4.8 : correctif dernier segment `17/17` avec source latente 34 et signature SAME-S s64.
+- `StableAudioMath.java::decoderWindow` : copier chaque canal latent en restant dans ses bornes, compléter la fin du canal avec la dernière valeur.
+- `StableAudioEngine.kt::decode` : fenêtre décodeur sûre et log `SAME-S.decoder.pad` lors d'une trame de longueur inférieure à la signature.
+- `tools/TestStableAudioMath.java` : test de non-régression Java exact 8704→16384 et tests d'offset régulier / court.
+- `StableAudioActivity.java::recoverPartial` : trouver/copy le WAV `assembled.wav` le plus récent dans les dossiers de sessions privées, afficher durée et activer l'export si fichiers encore présents.
