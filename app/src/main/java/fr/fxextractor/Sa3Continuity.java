@@ -38,12 +38,6 @@ public final class Sa3Continuity {
                 " newRms="+newRms+" longestQuietMs="+longestQuietMs;
         }
     }
-    private static final class Samples{
-        double sum=0;
-        int frames=0;
-        int quietFrames=0;
-        int longestQuietFrames=0;
-    }
     /** WAV PCM16LE verified by Sa3WavChain, read in small windows not a full file. */
     private static double[] levels(File source,int firstFrame,int frameCount)throws IOException{
         int count=Sa3WavChain.frames(source);
@@ -83,8 +77,10 @@ public final class Sa3Continuity {
         int output=Sa3WavChain.frames(rendered);
         if(contextFrames<0||newFrames<=0||(long)contextFrames+newFrames>output)
             throw new IOException("Audio quality range incorrect");
-        // Measure only up to 2s new sound and 0.7s of previous material.
-        double[] fresh=levels(rendered,contextFrames,Math.min(newFrames,RATE*2));
+        // Inspect the WHOLE newly generated section (up to 8 seconds), not
+        // just the seam: a later hole can also pollute the next seed.
+        // The conditioning prefix is excluded from all quality calculations.
+        double[] fresh=levels(rendered,contextFrames,newFrames);
         double newRms=weightedAverage(fresh);
         double prevRms=0;
         int oldFrames=Sa3WavChain.frames(assembled);
