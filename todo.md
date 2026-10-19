@@ -283,3 +283,10 @@
 - [ ] Test récupération : essayer le bouton `🛟 Récupérer les parties déjà générées` **avant** de relancer une génération, si l'installation a préservé les données ; cette copie peut être impossible si l'app a été désinstallée.
 - [ ] Vérifier raccords audio et original BlockBoost préservé dans sortie finale.
 - [ ] Aucune fusion `main`, publication Release ni Play sans validation.
+
+
+### Livraison 0.4.8 — preuve CI
+- [x] Run **39268827687** `push` sur source `2ccdfc8a74510fd032d41b5b539b711f01b2c689` : JVM+Android **SUCCESS**, modèles/licences dans l'APK et extraction sur GitHub vérifiés.
+- [x] APK brut **12194846621**, `FxExtractor-0.4.8-SA3-SHORT-WINDOW-DEBUG.apk`, 1 472 244 895 octets, https://github.com/greenpower2669/FxExtractor/actions/runs/39268827687/artifacts/12194846621 .
+- [ ] Installer sans désinstaller si Android accepte : essayer `🛟 Récupérer les parties déjà générées` ; si l'ancienne APK doit être désinstallée, la récupération des fichiers privés n'est pas garantie.
+- [ ] Essai réel final 17/17 et WAV 3 minutes à écouter/exporter sur Samsung ; aucun succès in vivo présumé par les tests CI.
