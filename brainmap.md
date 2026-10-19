@@ -44,3 +44,9 @@
 - `app/src/main/java/fr/fxextractor/StableAudioActivity.java` : écran du nouveau laboratoire, audit sans réseau du vrai pack intégré, génération bloquée tant qu'absence de backend.
 - `app/src/main/java/fr/fxextractor/StableAudioMath.java` et `tools/TestStableAudioMath.java` : sampler SA3 pingpong et export WAV stéréo testés en pur Java.
 - `app/src/main/java/fr/fxextractor/LiteRtYamnet.kt` : pont Kotlin LiteRT 2.3 pour maintenir l'extraction/nommage YAMNet.
+
+
+- `feature/sa3-process-isolation-v1` : labo SA3 0.4.5 mémoire/processus, validation Samsung nécessaire.
+- `Sa3Coordinator.java` / `Sa3Service.java` : orchestration T5Gemma → DiT → SAME-S via services Android à processus distincts, mort du processus entre étapes, gestion mémoire/arrêts.
+- `Sa3CheckpointIO.java`, `tools/TestSa3CheckpointIO.java` : fichiers intermédiaires float32 privés, I/O atomique et test de troncation.
+- `StableAudioEngine.kt` : entrées indépendantes encoder/DiT/décoder et sonde chargement DiT seul.

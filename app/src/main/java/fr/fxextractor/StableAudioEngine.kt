@@ -297,4 +297,60 @@ internal class StableAudioEngine(private val context: Context) {
         interrupt()
         return decode(lat,L,seconds,progress)
     }
+    /** Separate process entry points: no model is retained between these calls. */
+    fun encodeText(prompt:String, progress:(String)->Unit):Pair<FloatArray,FloatArray> =
+        text(prompt,progress)
+
+    fun generateLatents(hidden:FloatArray,mask:FloatArray,seconds:Float,
+                        seedAudio:Pair<FloatArray,FloatArray>?,strength:Float,
+                        seed:Long,originalSeconds:Float,progress:(String)->Unit):FloatArray {
+        require(seconds in 1f..120f)
+        require(hidden.size==256*768 && mask.size==256)
+        val L=StableAudioMath.latentLength(seconds.toDouble())
+        val init=if(seedAudio==null)null else encodeSeed(seedAudio,L,progress)
+        val keep=if(originalSeconds>0f) {
+            require(init!=null && originalSeconds in .5f..60f && originalSeconds<seconds)
+            StableAudioMath.latentLength(originalSeconds.toDouble())
+        } else 0
+        val noise=if(init==null || keep>0)1f else strength
+        return sample(hidden,mask,seconds,init,noise,seed,progress,keep)
+    }
+
+    fun decodeLatents(latents:FloatArray,seconds:Float,
+                      original:Pair<FloatArray,FloatArray>?,originalSeconds:Float,
+                      progress:(String)->Unit):Music {
+        val L=StableAudioMath.latentLength(seconds.toDouble())
+        require(latents.size==256*L){"Latents incompatibles avec la durée"}
+        val generated=decode(latents,L,seconds,progress)
+        if(originalSeconds<=0f)return generated
+        require(original!=null && originalSeconds<seconds)
+        val originalFrames=Math.round(originalSeconds*StableAudioMath.SAMPLE_RATE)
+        val frames=generated.left.size
+        require(originalFrames in 1 until frames)
+        require(original.first.size>=originalFrames && original.second.size>=originalFrames)
+        val left=generated.left;val right=generated.right
+        System.arraycopy(original.first,0,left,0,originalFrames)
+        System.arraycopy(original.second,0,right,0,originalFrames)
+        val smoothing=min(frames-originalFrames,1323)
+        for(i in 0 until smoothing){
+            val w=(i+1).toFloat()/(smoothing+1)
+            left[originalFrames+i]=original.first[originalFrames-1]*(1-w)+left[originalFrames+i]*w
+            right[originalFrames+i]=original.second[originalFrames-1]*(1-w)+right[originalFrames+i]*w
+        }
+        return Music(left,right)
+    }
+
+    /** Diagnostics: measure true DiT compile cost without loading Gemma or SAME-S. */
+    fun probeDiT(seconds:Float):String {
+        val L=StableAudioMath.latentLength(seconds.toDouble())
+        val R=ditRungs.first{it>=L}
+        FxDebugLog.checkpoint("DiT.only.before rung=s"+R)
+        model("sa3/sa3-sm-music/dit_w8a8.tflite").use { g ->
+            val output=outputName(g.model,"s"+R)
+            FxDebugLog.checkpoint("DiT.only.loaded rung=s"+R+" output="+output)
+        }
+        FxDebugLog.checkpoint("DiT.only.closed")
+        return "DiT chargé et fermé indépendamment (s"+R+")"
+    }
+
 }

@@ -113,7 +113,7 @@ public final class FxDebugLog {
     }
     public static synchronized void checkpoint(String next){
         stage=next;
-        if(hasPending())persistPending(runInfo+" lastStage="+next);
+        // The UI process owns the pending marker; remote model processes must not overwrite its run ID.\n        if(!runInfo.isEmpty() && hasPending())persistPending(runInfo+" lastStage="+next);
         write("STAGE "+next+" | "+memory());
     }
     public static synchronized void begin(String mode,float seconds,boolean hasAudio){
