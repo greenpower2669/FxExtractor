@@ -264,3 +264,9 @@
 - [ ] Fab : prolonger un WAV de 10 s de +15 s, vérifier sortie exactement 25 s et original en début, puis essai plus long.
 - [ ] Vérifier sources compressées 44.1k PCM16, gestion du manque d'espace, permissions SAF, application en arrière-plan et interruption volontaire.
 - [ ] Documenter correction/régression après retour Samsung ; aucune fusion main/Release sans validation.
+
+
+### CI 0.4.7 vérifiée (tests et APK complet)
+- [x] GitHub Actions push **39261954769**, source `f76b170e2ce3afe736c734006fe59969ddf10957` : jobs `tests` et `android` SUCCESS, compilation Kotlin/Java, modèles et licences authentifiés, APK décompressé/vérifié côté CI.
+- [x] APK brut `FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk` artifact **12190868862**, 1 472 244 891 octets, lien https://github.com/greenpower2669/FxExtractor/actions/runs/39261954769/artifacts/12190868862 ; validation du checksum ZIP/asset dans CI.
+- [ ] Tests terrain Samsung : créations 15 s, 45 s et 180 s ; prolongation de 10 s +15 s avec un seul WAV, continuité acoustique et durée/export exacts ; pas de publication main/release sans validation.
