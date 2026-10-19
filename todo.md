@@ -201,3 +201,12 @@
 - [ ] **Bloquant livraison finale :** essai réel sur Samsung SM-A576B Android 16 en mode avion, lancer 1 seconde de génération, confirmer son non silencieux et export WAV.
 - [ ] Test prolongation : WAV original 3 sec +10 sec (original inchangé et raccord doux), puis +60sec, mesurer CPU/RAM/température, corriger panne.
 - [ ] Nettoyer éventuelles dettes ci-dessus et demander à Fab validation avant merge main/release.
+
+## 19/10 — correction DLJ tokenizer version 0.4.3
+- [x] Reproduire l'analyse de l'APK : `LibUtils` existe dans DEX, JNI native présente, mais bibliothèque `libc++_shared.so` absente (CI 39177366560).
+- [x] Confirmer la dépendance ELF originale `NEEDED libc++_shared.so` de `libdjl_tokenizer.so` (CI 39178798876).
+- [x] Ajouter automatiquement les 4 variantes JNI libc++_shared.so au packaging Android via NDK.
+- [x] Recompiler et vérifier APK complet 0.4.3 (CI 39178284751, succès), brut 1472211951 octets, artifact 12155580851.
+- [ ] Fab : réinstaller l'APK 0.4.3, générer 1s pour vérifier que crash LibUtils a disparu; renvoyer erreur si nouvelle panne.
+- [ ] Déterminer si SM-A576B requiert des bibliothèques alignées 16KB ; DJL tokenizer-native 0.33.0 a upstream issue #3815.
+- [ ] Valider création, amorce, prolongation et mémoire sur Android 16 avant toute publication, ni merge vers main.
