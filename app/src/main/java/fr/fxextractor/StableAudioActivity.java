@@ -11,6 +11,9 @@ import android.os.Looper;
 import android.provider.OpenableColumns;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
+import android.widget.Spinner;
 import android.widget.CheckBox;
 import android.media.MediaMetadataRetriever;
 import android.widget.EditText;
@@ -93,6 +96,30 @@ public final class StableAudioActivity extends Activity {
         variation.setOnSeekBarChangeListener(new SimpleSeek(){@Override public void onProgressChanged(SeekBar s,int p,boolean user){
             if(!extensionMode.isChecked())variationName.setText("Force de variation : "+(p+20)+" % (20 % fidèle, 100 % libre)");
         }});
+        label(root,"🧠 Mémoire DiT — méthode CPU (comparaison expérimentale)",19);
+        label(root,"Cache fichier : tentative d'économie de RAM. CPU historique : témoin 0.4.5. "+
+            "Les trois modes utilisent la même IA sans changer ses poids.",16);
+        Spinner cacheChoice=new Spinner(this);
+        String[] modes={
+            "CPU historique — sans cache supplémentaire",
+            "CPU XNNPACK — cache mémoire",
+            "CPU XNNPACK — cache fichier (à essayer en premier)"
+        };
+        ArrayAdapter<String> choices=new ArrayAdapter<>(this,
+            android.R.layout.simple_spinner_item,modes);
+        choices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        cacheChoice.setAdapter(choices);
+        cacheChoice.setMinimumHeight(80);
+        cacheChoice.setSelection(Sa3CacheSettings.normalize(getPreferences(MODE_PRIVATE)
+            .getInt("sa3_dit_cache_mode",Sa3CacheSettings.DEFAULT)));
+        cacheChoice.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+            @Override public void onItemSelected(AdapterView<?> parent,View view,int position,long id){
+                getPreferences(MODE_PRIVATE).edit().putInt("sa3_dit_cache_mode",
+                    Sa3CacheSettings.normalize(position)).apply();
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent){}
+        });
+        root.addView(cacheChoice);
         state=label(root,"⏳ Vérification de la présence des modèles IA dans l’APK…",18);
         state.setContentDescription("Journal de progression de la génération musicale");
         generate=button(root,"🎵 Générer une musique WAV",this::generate);
@@ -310,8 +337,11 @@ public final class StableAudioActivity extends Activity {
     private void launchPipeline(String session,String description,float total,boolean hasAudio,
                                 float strength,float prefix,long randomSeed,boolean probe){
         if(pipeline!=null)pipeline.cancel();
+        int cacheMode=Sa3CacheSettings.normalize(getPreferences(MODE_PRIVATE)
+            .getInt("sa3_dit_cache_mode",Sa3CacheSettings.DEFAULT));
+        FxDebugLog.write("SA3_DIT_CACHE_SELECTED "+Sa3CacheSettings.label(cacheMode));
         pipeline=new Sa3Coordinator(this,session,description,total,hasAudio,strength,prefix,randomSeed,
-            probe,new Sa3Coordinator.Callback(){
+            probe,cacheMode,new Sa3Coordinator.Callback(){
                 @Override public void onProgress(String detail){
                     if(!isFinishing()&&!isDestroyed())state.setText("🎹 "+detail);
                 }
