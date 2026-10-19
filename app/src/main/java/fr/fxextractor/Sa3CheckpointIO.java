@@ -1,5 +1,7 @@
 package fr.fxextractor;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -18,9 +20,8 @@ public final class Sa3CheckpointIO {
         if (!name.matches("[a-z]+\\.bin")) throw new IOException("Invalid checkpoint name");
         File target = new File(directory,name);
         File tmp = new File(directory,name+".tmp");
-        boolean success = false;
         try (FileOutputStream stream = new FileOutputStream(tmp);
-             DataOutputStream data = new DataOutputStream(stream)) {
+             DataOutputStream data = new DataOutputStream(new BufferedOutputStream(stream,65536))) {
             if (tensors.length < 1 || tensors.length > 3) throw new IOException("Invalid tensor count");
             data.writeInt(MAGIC);
             data.writeInt(tensors.length);
@@ -34,14 +35,12 @@ public final class Sa3CheckpointIO {
         }
         if (target.exists() && !target.delete()) throw new IOException("Cannot replace old checkpoint");
         if (!tmp.renameTo(target)) throw new IOException("Cannot commit checkpoint");
-        success = true;
-        if (!success && tmp.exists()) tmp.delete();
     }
 
     public static float[][] read(File directory, String name, int expectedCount) throws IOException {
         if (!name.matches("[a-z]+\\.bin")) throw new IOException("Invalid checkpoint name");
         File file = new File(directory,name);
-        try (DataInputStream data = new DataInputStream(new FileInputStream(file))) {
+        try (DataInputStream data = new DataInputStream(new BufferedInputStream(new FileInputStream(file),65536))) {
             if (data.readInt() != MAGIC) throw new IOException("Invalid SA3 checkpoint header");
             int count = data.readInt();
             if (count != expectedCount || count < 1 || count > 3) throw new IOException("Invalid tensor count");
