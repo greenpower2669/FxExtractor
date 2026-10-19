@@ -48,6 +48,7 @@ public final class StableAudioActivity extends Activity {
     private File audioFile;
     private MediaPlayer player;
     private Sa3Coordinator pipeline;
+    private Sa3LongFormCoordinator longPipeline;
     private volatile boolean busy=false;
     private volatile boolean packPresent=false;
 
@@ -77,12 +78,12 @@ public final class StableAudioActivity extends Activity {
         prompt.setSingleLine(false);prompt.setText("Upbeat retro arcade synthpop, bouncy bass, crisp drums, joyful electronic melody, instrumental.");
         root.addView(prompt);
         extensionMode=new CheckBox(this);
-        extensionMode.setText("🔁 Prolonger le son original jusqu'à +60 secondes");
+        extensionMode.setText("🔁 Prolonger le son original jusqu'à +suite dans un seul WAV (3 min au total)");
         extensionMode.setTextSize(19);
         root.addView(extensionMode);
         label(root,"Durée de génération :",18);
         durationName=label(root,"8 secondes",17);
-        duration=new SeekBar(this);duration.setMax(29);duration.setProgress(7);
+        duration=new SeekBar(this);duration.setMax(179);duration.setProgress(7);
         root.addView(duration);
         duration.setOnSeekBarChangeListener(new SimpleSeek(){@Override public void onProgressChanged(SeekBar s,int p,boolean user){
             durationName.setText(extensionMode.isChecked()?"Ajouter +"+(p+1)+" secondes":(p+1)+" secondes");
@@ -130,13 +131,13 @@ public final class StableAudioActivity extends Activity {
         export=button(root,"💾 Enregistrer la musique au format WAV",this::save);
         export.setEnabled(false);
         extensionMode.setOnCheckedChangeListener((button,checked)->{
-            duration.setMax(checked?59:29);
+            duration.setMax(179);
             duration.setProgress(checked?9:7);
             variation.setEnabled(!checked);
             variationName.setText(checked?
                 "Prolongation : original conservé, nouvelle suite créée par IA":
                 "Force de variation : "+(variation.getProgress()+20)+" %");
-            durationName.setText(checked?"Ajouter +10 secondes":"8 secondes");
+            durationName.setText(checked?"Ajouter +10 secondes (3 min au total)":"8 secondes");
         });
         button(root,"📜 Licences Stable Audio / Gemma",this::readLicenses);
         button(root,"🔍 Vérifier les modèles intégrés",this::checkAssets);
@@ -285,7 +286,7 @@ public final class StableAudioActivity extends Activity {
         final String session=Sa3Coordinator.newSession();
         audioFile=null;
         FxDebugLog.begin(extend?"outpaint":selected!=null?"audio-prime":"text",added,selected!=null);
-        setBusy(true,"⏳ Préparation des données, puis lancement des trois processus indépendants…");
+        setBusy(true,"⏳ Préparation des morceaux (jusqu’à 3 min)…");
         worker.execute(()->{
             try{
                 float originalSeconds=0f;
@@ -298,22 +299,34 @@ public final class StableAudioActivity extends Activity {
                             if(millis==null)throw new IOException("Impossible de lire la durée de l'original");
                             originalSeconds=Float.parseFloat(millis)/1000f;
                         }finally{metadata.release();}
-                        if(originalSeconds<0.5f || originalSeconds>60f)
-                            throw new IOException("L'original doit durer entre 0,5 et 60 secondes.");
+                        if(originalSeconds<0.5f || originalSeconds>=180f)
+                            throw new IOException("L'original doit durer entre 0,5 s et moins de 3 minutes.");
                     }
-                    float decodeSeconds=extend?Math.max(1f,originalSeconds):added;
+                    float decodeSeconds=extend?Math.max(1f,originalSeconds):Math.min(8f,added);
                     FxDebugLog.checkpoint("seed.decode.before");
                     kotlin.Pair<float[],float[]> audio=
                         StableAudioSeedInput.INSTANCE.load(getApplicationContext(),selected,decodeSeconds);
-                    Sa3CheckpointIO.write(new File(getFilesDir(),"sa3-work/"+session),
-                        "seed.bin",audio.getFirst(),audio.getSecond());
+                    File work=new File(getFilesDir(),"sa3-work/"+session);
+                    if(extend){
+                        if(!work.isDirectory() && !work.mkdirs())
+                            throw new IOException("Impossible de créer le dossier temporaire");
+                        try(FileOutputStream out=new FileOutputStream(new File(work,"original.wav"))){
+                            StableAudioMath.writeWav(out,audio.getFirst(),audio.getSecond(),
+                                Math.round(originalSeconds*StableAudioMath.SAMPLE_RATE));
+                            out.getFD().sync();
+                        }
+                        FxDebugLog.checkpoint("original.wav.safely_saved");
+                    }else Sa3CheckpointIO.write(work,"seed.bin",audio.getFirst(),audio.getSecond());
                     FxDebugLog.checkpoint("seed.checkpoint.after");
                 }
                 final float prefix=originalSeconds;
                 final float total=extend?prefix+added:added;
+                if(total>180.0001f)throw new IOException(
+                    "Durée maximale : 3 min au total, original compris. Réduis la prolongation.");
                 ui.post(()->{
                     if(isFinishing()||isDestroyed())return;
-                    launchPipeline(session,description,total,selected!=null,strength,prefix,randomSeed,false);
+                    launchLongPipeline(session,description,total,extend,selected!=null&&!extend,
+                        strength,randomSeed);
                 });
             }catch(Throwable error){
                 FxDebugLog.error(error);
@@ -323,6 +336,31 @@ public final class StableAudioActivity extends Activity {
                 });
             }
         });
+    }
+    private void launchLongPipeline(String session,String description,float total,
+                                    boolean originalPresent,boolean primed,float strength,long seed){
+        if(longPipeline!=null)longPipeline.cancel();
+        int cacheMode=Sa3CacheSettings.normalize(getPreferences(MODE_PRIVATE)
+            .getInt("sa3_dit_cache_mode",Sa3CacheSettings.DEFAULT));
+        FxDebugLog.write("SA3_LONGFORM_SELECTED seconds="+total+" cache="+Sa3CacheSettings.label(cacheMode));
+        longPipeline=new Sa3LongFormCoordinator(this,session,description,total,originalPresent,
+            primed,strength,seed,cacheMode,new Sa3LongFormCoordinator.Callback(){
+                @Override public void onProgress(String text){
+                    if(!isFinishing()&&!isDestroyed())state.setText(text);
+                }
+                @Override public void onComplete(File wav){
+                    if(isFinishing()||isDestroyed())return;
+                    audioFile=wav;
+                    setBusy(false,"✅ Morceau final : "+String.format(Locale.FRANCE,"%.1f",total)+
+                        " s. Original et suite réunis dans un seul fichier WAV !");
+                }
+                @Override public void onError(String message,boolean unexpectedDeath){
+                    if(!isFinishing()&&!isDestroyed())
+                        setBusy(false,"❌ "+message+(unexpectedDeath?
+                            " — processus interrompu ; copie le journal.":""));
+                }
+            });
+        longPipeline.start();
     }
     private void probeDiT(){
         if(busy||!packPresent)return;
@@ -341,7 +379,7 @@ public final class StableAudioActivity extends Activity {
             .getInt("sa3_dit_cache_mode",Sa3CacheSettings.DEFAULT));
         FxDebugLog.write("SA3_DIT_CACHE_SELECTED "+Sa3CacheSettings.label(cacheMode));
         pipeline=new Sa3Coordinator(this,session,description,total,hasAudio,strength,prefix,randomSeed,
-            probe,cacheMode,new Sa3Coordinator.Callback(){
+            probe,cacheMode,false,false,new Sa3Coordinator.Callback(){
                 @Override public void onProgress(String detail){
                     if(!isFinishing()&&!isDestroyed())state.setText("🎹 "+detail);
                 }
@@ -407,6 +445,7 @@ public final class StableAudioActivity extends Activity {
     @Override protected void onDestroy(){
         FxDebugLog.lifecycle("StableAudioActivity.onDestroy busy="+busy);
         if(pipeline!=null)pipeline.cancel();
+        if(longPipeline!=null)longPipeline.cancel();
         worker.shutdownNow();
         if(player!=null){player.release();player=null;}
         super.onDestroy();
