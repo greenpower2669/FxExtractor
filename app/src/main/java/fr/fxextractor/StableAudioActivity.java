@@ -126,6 +126,7 @@ public final class StableAudioActivity extends Activity {
         generate=button(root,"🎵 Générer une musique WAV",this::generate);
         generate.setEnabled(false);
         button(root,"🔬 Tester le DiT seul (mémoire)",this::probeDiT);
+        button(root,"🛟 Récupérer les parties déjà générées (WAV partiel)",this::recoverPartial);
         play=button(root,"▶ Écouter la musique",this::play);
         play.setEnabled(false);
         export=button(root,"💾 Enregistrer la musique au format WAV",this::save);
@@ -400,6 +401,62 @@ public final class StableAudioActivity extends Activity {
                 }
             });
         pipeline.start();
+    }
+    /**
+     * If chunk 17/17 fails, the 16 already finished chunks still live in
+     * files/sa3-work/<session>/assembled.wav. On app update the private
+     * files survive. Recover a valid WAV instead of forcing a fresh 3-min run.
+     * This does NOT claim the missing tail was rendered.
+     */
+    private void recoverPartial(){
+        if(busy)return;
+        setBusy(true,"🔎 Recherche des morceaux déjà enregistrés dans FxExtractor…");
+        worker.execute(()->{
+            try{
+                File sessions=new File(getFilesDir(),"sa3-work");
+                File[] dirs=sessions.listFiles();
+                File chosen=null;
+                int bestFrames=0;
+                if(dirs!=null)for(File dir:dirs){
+                    if(!dir.isDirectory())continue;
+                    File part=new File(dir,"assembled.wav");
+                    if(!part.isFile())continue;
+                    try{
+                        int n=Sa3WavChain.frames(part);
+                        if(n>0 && (chosen==null || part.lastModified()>chosen.lastModified())){
+                            chosen=part;bestFrames=n;
+                        }
+                    }catch(IOException invalid){
+                        FxDebugLog.write("SA3_RECOVER_SKIPPED invalid="+dir.getName());
+                    }
+                }
+                if(chosen==null)throw new IOException(
+                    "Aucune partie WAV récupérable. Le dernier rendu a peut-être déjà été nettoyé.");
+                final int recoveredFrames=bestFrames;
+                File output=new File(getFilesDir(),"stable_audio3_partial_recovered.wav");
+                java.nio.file.Files.copy(chosen.toPath(),output.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                if(Sa3WavChain.frames(output)!=recoveredFrames)
+                    throw new IOException("Contrôle du fichier récupéré incorrect");
+                FxDebugLog.write("SA3_PARTIAL_RECOVERED frames="+recoveredFrames+
+                    " bytes="+output.length());
+                ui.post(()->{
+                    if(isFinishing()||isDestroyed())return;
+                    audioFile=output;
+                    setBusy(false,"✅ "+String.format(Locale.FRANCE,"%.1f",
+                        recoveredFrames/(double)StableAudioMath.SAMPLE_RATE)+
+                        " secondes récupérées. Dernier morceau manquant : "+
+                        "tu peux écouter et enregistrer ce WAV partiel.");
+                });
+            }catch(Throwable error){
+                FxDebugLog.write("SA3_PARTIAL_RECOVERY_ERROR "+error.getClass().getSimpleName()+
+                    " "+error.getMessage());
+                ui.post(()->{
+                    if(!isFinishing()&&!isDestroyed())
+                        setBusy(false,"⚠️ Récupération : "+error.getMessage());
+                });
+            }
+        });
     }
     private void play(){
         if(audioFile==null)return;

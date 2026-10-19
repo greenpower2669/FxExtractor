@@ -23,6 +23,30 @@ public final class StableAudioMath {
         return Math.max(1, (int) Math.ceil(seconds * SAMPLE_RATE / SAMPLES_PER_LATENT));
     }
 
+    /**
+     * Extract one SAME-S decoder latent window from channel-major data.
+     * Last generation chunks may contain fewer positions (for example 34) than
+     * the smallest compatible decoder signature (64). Copy ONLY positions in
+     * the channel and extend the last valid position through the padded tail.
+     * Never copy from the following channel or past the original array.
+     */
+    public static float[] decoderWindow(float[] latents,int channels,int length,
+                                        int start,int signatureSize) {
+        if(latents==null||channels<=0||length<=0||start<0||start>=length||
+           signatureSize<=0||signatureSize>256||
+           latents.length!=(long)channels*length)
+            throw new IllegalArgumentException("Invalid decoder latent window");
+        float[] out=new float[channels*signatureSize];
+        int valid=Math.min(signatureSize,length-start);
+        for(int ch=0;ch<channels;ch++){
+            int src=ch*length+start,dst=ch*signatureSize;
+            System.arraycopy(latents,src,out,dst,valid);
+            if(valid<signatureSize)
+                java.util.Arrays.fill(out,dst+valid,dst+signatureSize,out[dst+valid-1]);
+        }
+        return out;
+    }
+
     /** Returns monotonically decreasing sigmas; values at endpoints are exact 1.0 and 0.0. */
     public static float[] pingpongSchedule(int steps, float sigmaMax) {
         if (steps <= 0 || steps > 100) throw new IllegalArgumentException("Étapes invalides");

@@ -270,3 +270,23 @@
 - [x] GitHub Actions push **39261954769**, source `f76b170e2ce3afe736c734006fe59969ddf10957` : jobs `tests` et `android` SUCCESS, compilation Kotlin/Java, modèles et licences authentifiés, APK décompressé/vérifié côté CI.
 - [x] APK brut `FxExtractor-0.4.7-SA3-LONGFORM-DEBUG.apk` artifact **12190868862**, 1 472 244 891 octets, lien https://github.com/greenpower2669/FxExtractor/actions/runs/39261954769/artifacts/12190868862 ; validation du checksum ZIP/asset dans CI.
 - [ ] Tests terrain Samsung : créations 15 s, 45 s et 180 s ; prolongation de 10 s +15 s avec un seul WAV, continuité acoustique et durée/export exacts ; pas de publication main/release sans validation.
+
+
+## 19/10/2026 — hotfix 0.4.8 après retour Samsung « Morceau 17/17 »
+- [x] Isoler exactement le débordement `src=256×34`, `dst=256×64`, longueur copiée 64 sur le canal 255.
+- [x] Ajouter remplissage par canal pour les fenêtres SAME-S plus larges que les données latentes.
+- [x] Ajouter test JVM de régression reproduisant le dernier segment `srcPos=8670`, plus fenêtres normales et position décalée.
+- [x] Ajouter bouton récupération du WAV partiel si données privées des morceaux précédents encore présentes après installation.
+- [x] Créer branche `fix/sa3-small-final-codec-window-v048` sans fusionner `main`/Release.
+- [ ] CI Android 0.4.8 : compilateur, signatures SA3, tests et artefact APK vérifiés sur GitHub.
+- [ ] Test Samsung : générer 15s puis reprendre essai longue durée jusqu'au dernier morceau, vérifier taille WAV et lecture/exports.
+- [ ] Test récupération : essayer le bouton `🛟 Récupérer les parties déjà générées` **avant** de relancer une génération, si l'installation a préservé les données ; cette copie peut être impossible si l'app a été désinstallée.
+- [ ] Vérifier raccords audio et original BlockBoost préservé dans sortie finale.
+- [ ] Aucune fusion `main`, publication Release ni Play sans validation.
+
+
+### Livraison 0.4.8 — preuve CI
+- [x] Run **39268827687** `push` sur source `2ccdfc8a74510fd032d41b5b539b711f01b2c689` : JVM+Android **SUCCESS**, modèles/licences dans l'APK et extraction sur GitHub vérifiés.
+- [x] APK brut **12194846621**, `FxExtractor-0.4.8-SA3-SHORT-WINDOW-DEBUG.apk`, 1 472 244 895 octets, https://github.com/greenpower2669/FxExtractor/actions/runs/39268827687/artifacts/12194846621 .
+- [ ] Installer sans désinstaller si Android accepte : essayer `🛟 Récupérer les parties déjà générées` ; si l'ancienne APK doit être désinstallée, la récupération des fichiers privés n'est pas garantie.
+- [ ] Essai réel final 17/17 et WAV 3 minutes à écouter/exporter sur Samsung ; aucun succès in vivo présumé par les tests CI.
