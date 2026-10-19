@@ -221,9 +221,13 @@ internal class StableAudioEngine @JvmOverloads constructor(
                 val inp=g.model.createInputBuffers("s"+w.size)
                 val out=g.model.createOutputBuffers("s"+w.size)
                 try {
-                    val x=FloatArray(256*w.size)
-                    for(ch in 0 until 256)
-                        System.arraycopy(padded,ch*even+w.start,x,ch*w.size,w.size)
+                    // For the last short segment, the decoder rung can be larger
+                    // than available positions (e.g. 34 latents, s64 signature).
+                    // Pad each channel with its own last position; never overread.
+                    val x=StableAudioMath.decoderWindow(padded,256,even,w.start,w.size)
+                    if(w.size>even-w.start)
+                        FxDebugLog.checkpoint("SAME-S.decoder.pad valid="+(even-w.start)+
+                            " rung=s"+w.size+" latentLength="+even)
                     inp[0].writeFloat(x)
                     FxDebugLog.checkpoint("SAME-S.decoder.run.before size="+w.size)
                     g.model.run(inp,out,"s"+w.size)
