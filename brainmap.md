@@ -50,3 +50,10 @@
 - `Sa3Coordinator.java` / `Sa3Service.java` : orchestration T5Gemma → DiT → SAME-S via services Android à processus distincts, mort du processus entre étapes, gestion mémoire/arrêts.
 - `Sa3CheckpointIO.java`, `tools/TestSa3CheckpointIO.java` : fichiers intermédiaires float32 privés, I/O atomique et test de troncation.
 - `StableAudioEngine.kt` : entrées indépendantes encoder/DiT/décoder et sonde chargement DiT seul.
+
+
+- `feature/sa3-xnnpack-memory-v046` / v0.4.6 : expérimentation CPU XNNPACK sans dénaturer le pipeline T5Gemma → DiT → SAME-S.
+- `Sa3CacheSettings.java` : sélection des modes 0=CPU témoin, 1=cache XNNPACK mémoire `:memory`, 2=cache fichier, protection espace libre, identité ABI/empreinte `weights-manifest.json`.
+- `StableAudioEngine.kt::model()` : poids DiT uniquement configurés par `CompiledModel.CpuOptions(xnnPackWeightCachePath)`, T5/SAME-S non modifiés. Checkpoints mémoire, taille cache et timing.
+- `StableAudioActivity.java` / `Sa3Coordinator.java` / `Sa3Service.java` : commande lisible, paramètre transmis jusqu'au service `:sa3_dit`, PID worker et historique Android en cas d'arrêt.
+- `tools/test_sa3_xnnpack.py` : test structurel du raccordement des modes ; ne remplace pas les essais matériels avec PSS/RSS.

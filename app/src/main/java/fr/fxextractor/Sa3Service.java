@@ -63,8 +63,12 @@ public abstract class Sa3Service extends Service {
             float seconds=args.getFloat("seconds");
             float originalSeconds=args.getFloat("originalSeconds");
             boolean probe=args.getBoolean("probe");
-            FxDebugLog.checkpoint("process."+name+".start pid="+Process.myPid()+" probe="+probe);
-            StableAudioEngine engine=new StableAudioEngine(getApplicationContext());
+            int cacheMode=Sa3CacheSettings.normalize(args.getInt("cacheMode",Sa3CacheSettings.DEFAULT));
+            FxDebugLog.checkpoint("process."+name+".start pid="+Process.myPid()+" probe="+probe+
+                " cache="+(this instanceof DiT?Sa3CacheSettings.label(cacheMode):"not_used"));
+            send(reply,PROGRESS,"SA3_WORKER_PID="+Process.myPid());
+            StableAudioEngine engine=new StableAudioEngine(getApplicationContext(),
+                this instanceof DiT?cacheMode:Sa3CacheSettings.OFF);
             kotlin.jvm.functions.Function1<String,kotlin.Unit> progress=detail->{
                 FxDebugLog.checkpoint("process."+name+" "+detail);
                 send(reply,PROGRESS,detail);

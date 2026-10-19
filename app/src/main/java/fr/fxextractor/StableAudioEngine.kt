@@ -16,7 +16,10 @@ import kotlin.math.sqrt
  * No mock music. Models/tokenizer must be real and licensed.
  * NOTE: unverified until HF tokenizer parity, model signatures and Android inference pass.
  */
-internal class StableAudioEngine(private val context: Context) {
+internal class StableAudioEngine @JvmOverloads constructor(
+    private val context: Context,
+    private val cacheMode: Int = Sa3CacheSettings.OFF
+) {
     data class Music(val left: FloatArray, val right: FloatArray)
     private val S = StableAudioMath.SAMPLES_PER_LATENT
     private val ditRungs = intArrayOf(8,48,96,192,416,704,1056,1292)
@@ -25,15 +28,26 @@ internal class StableAudioEngine(private val context: Context) {
         override fun close() { try {model.close()} finally {env.close()} }
     }
     private fun model(path:String):Graph {
-        FxDebugLog.checkpoint("LiteRT.load.before "+path)
+        // Only DiT uses an experimental XNNPACK weight cache; T5Gemma/SAME-S unchanged.
+        // Never pretend a cache saves RAM unless PSS measurements on the phone prove it.
+        val isDiT=path=="sa3/sa3-sm-music/dit_w8a8.tflite"
+        val cachePath=if(isDiT)Sa3CacheSettings.cachePath(context,cacheMode) else null
+        FxDebugLog.checkpoint("LiteRT.load.before "+path+
+            (if(isDiT)" cache="+Sa3CacheSettings.label(cacheMode) else ""))
         val env=Environment.create()
         return try {
             val options=CompiledModel.Options(Accelerator.CPU)
-            options.cpuOptions=CompiledModel.CpuOptions(numThreads=3)
+            options.cpuOptions=CompiledModel.CpuOptions(
+                numThreads=3, xnnPackWeightCachePath=cachePath)
             val compiled=CompiledModel.create(context.assets,path,options,env)
             FxDebugLog.checkpoint("LiteRT.load.after "+path)
+            if(isDiT)Sa3CacheSettings.logAfterLoad(cachePath)
             Graph(compiled,env)
-        } catch(e:Throwable) {env.close();throw e}
+        } catch(e:Throwable) {
+            FxDebugLog.write("SA3_LITERT_OPEN_ERROR cache="+(if(isDiT)Sa3CacheSettings.label(cacheMode) else "off")+
+                " type="+e.javaClass.simpleName)
+            env.close();throw e
+        }
     }
     private fun close(vararg bs:List<TensorBuffer>) {bs.forEach{list->list.forEach{it.close()}}}
     private fun interrupt() {if(Thread.currentThread().isInterrupted)throw InterruptedException("Annulé")}

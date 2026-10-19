@@ -236,3 +236,17 @@
 - [ ] Si DiT seul fait OOM : optimiser préparation des signatures, accélération ou quantification/streaming sans fausse sortie musicale.
 - [ ] Retester audio en amorce, prolongation jusqu'à +60s, arrêt d'application, stockage privé, modèle réellement non silencieux, et stabilité Android.
 - [ ] Aucune fusion main, publication Release ou Play avant accord.
+
+
+## 19/10/2026 — SA3 0.4.6 XNNPACK : mission autorisée
+- [x] Analyser journal 12:50 : T5Gemma OK ; DiT ~4152 Mio natif, cinq passes s96 sur huit terminées, dernier PID mort ; motif exact inconnu.
+- [x] Vérifier API `CompiledModel.CpuOptions.xnnPackWeightCachePath` et le cache officiel du modèle multi-rungs.
+- [x] Créer branche isolée `feature/sa3-xnnpack-memory-v046` depuis 0.4.5.
+- [x] Ajouter modes CPU témoin / cache XNNPACK mémoire / cache fichier et mesure dans les checkpoints ; pas de régression MIDI/FX, pas de GPU présenté comme actif.
+- [x] Instrumenter PID du worker DiT et demander `ApplicationExitInfo` différé si arrêt anormal ; absence de motif possible.
+- [x] Préparer tests structurels et build 0.4.6 complet avec modèle officiel+licences et extraction côté GitHub.
+- [ ] Confirmer CI finale verte, APK brut `FxExtractor-0.4.6-SA3-XNNPACK-DEBUG.apk` téléchargeable sans ZIP, SHA et build source.
+- [ ] Fab : même prompt, d'abord cache fichier 8s, ensuite éventuellement cache mémoire 8s et CPU témoin 8s (uniquement si nécessaire), copier logs : `SA3_XNN_CACHE`, `LiteRT.load.after`, PSS native, étapes, sortie.
+- [ ] Si cache réduit PSS et passe 8/8 : tester SAME-S WAV réel non silencieux, amorce et prolongation +60s ; sinon étudier découpe d'export multi-rungs, n'activer GPU qu'après mesure compatibilité et usage RAM.
+- [ ] Évaluer espace disque occupé par cache et comportement en cas de cache corrompu / stockage faible.
+- [ ] Ne pas fusionner main ni publier Play/Release sans validation.
