@@ -16,7 +16,7 @@ import kotlin.math.min
  * without a codec. No network or cloud upload of private sound. */
 internal object StableAudioSeedInput {
     fun load(context: Context, uri: Uri, maxSeconds: Float): Pair<FloatArray,FloatArray> {
-        require(maxSeconds in 1f..120f)
+        require(maxSeconds in 1f..180f)
         val source = context.contentResolver.openInputStream(uri)
             ?: throw IllegalArgumentException("Fichier inaccessible")
         source.use { ins ->
@@ -113,7 +113,7 @@ internal object StableAudioSeedInput {
             var channels=fmt.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
             var pcmEncoding=AudioFormat.ENCODING_PCM_16BIT
             require(channels in 1..2 && rate in 8000..192000)
-            var l=FloatArray(min((rate*maxSeconds).toInt()+8192,rate*121))
+            var l=FloatArray(min((rate*maxSeconds).toInt()+8192,rate*181))
             var r=FloatArray(l.size)
             var frames=0;var endInput=false;var endOutput=false;var rounds=0
             val info=MediaCodec.BufferInfo()
