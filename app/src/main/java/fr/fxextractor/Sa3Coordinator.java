@@ -29,6 +29,9 @@ public final class Sa3Coordinator {
     private final long seed;
     private final boolean hasAudio,probeOnly;
     private final Handler ui=new Handler(Looper.getMainLooper());
+    private int stage=-1;
+    private boolean cancelled=false,completed=false,bound=false;
+    private String workerError=null;
     private final Messenger inbox=new Messenger(new Handler(Looper.getMainLooper(),message->{
         if(cancelled)return true;
         String detail=message.getData().getString("detail","");
@@ -49,9 +52,6 @@ public final class Sa3Coordinator {
     };
     private ServiceConnection connection;
     private Messenger remote;
-    private int stage=-1;
-    private boolean cancelled=false,completed=false,bound=false;
-    private String workerError=null;
 
     public Sa3Coordinator(Context context,String session,String prompt,float seconds,
                           boolean hasAudio,float strength,float originalSeconds,long seed,
